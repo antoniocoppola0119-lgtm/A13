@@ -8,14 +8,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+import com.groom.manvsclass.model.ServiceURL;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -208,8 +213,9 @@ public class RobotUtil {
 			HttpClient httpClient = HttpClientBuilder.create().build();
 
 			// Creazione di un oggetto HttpPost con l'URL "http://t4-g18-app-1:3000/robots"
-			HttpPost httpPost = new HttpPost("http://t4-g18-app-1:3000/robots");
-			
+			// HttpPost httpPost = new HttpPost("http://t4-g18-app-1:3000/robots");
+			HttpPost httpPost = new HttpPost("http://" + ServiceURL.T4.getServiceURL() + "/robots");
+
 			// Creazione di un array JSON per contenere le informazioni sui robot generati
 			JSONArray arr = new JSONArray();
 			
@@ -365,58 +371,100 @@ public class RobotUtil {
 
     }
 
-	public static void saveRobots(String fileNameClass, String fileNameTest, String fileNameTestEvo , String className, MultipartFile classFile, MultipartFile testFile, MultipartFile testFileEvo)
+	public static void saveRobots(String fileNameClass, String fileNameTestRandoop, String fileNameTestEvoSuit , String className, MultipartFile classFile, MultipartFile testFileRandoop, MultipartFile testFileEvoSuit)
 			throws IOException {
 
 		/*CARICAMENTO CLASSE NEI VOLUMI T8 E T9*/
+		/*
 		Path directory = Paths.get("/VolumeT9/app/FolderTree/" + className + "/" + className + "SourceCode");
-		Path directoryEvo = Paths.get("/VolumeT8/FolderTreeEvo/" + className + "/" + className + "SourceCode");		
-		caricaFile(fileNameClass, directory, classFile);
-		caricaFile(fileNameClass, directoryEvo, classFile);
+		Path directoryEvo = Paths.get("/VolumeT8/FolderTreeEvo/" + className + "/" + className + "SourceCode");
+		 */
 
-		/*CARICAMENTO TEST */
-		//Randoop
-		Path directoryTest = Paths.get("/VolumeT9/app/FolderTree/" + className + "/RobotTest/RandoopTest");
-		caricaFile(fileNameTest, directoryTest, testFile);
-		//Evosuite
-		Path directoryTestEvo = Paths.get("/VolumeT8/FolderTreeEvo/" + className + "/RobotTest/EvoSuiteTest");
-		caricaFile(fileNameTestEvo, directoryTestEvo, testFileEvo);
-		
-		//Rinomina il file zip caricato secondo la convenzione attuale: |nomeClasse|TestRandoop.zip
-		File fileZipDir = new File("/VolumeT9/app/FolderTree/" + className + "/RobotTest/RandoopTest/");
-		File fileZip[] = fileZipDir.listFiles();
-		String nomeAttuale = fileZip[0].getAbsolutePath().toString();
-        String nuovoNome = "/VolumeT9/app/FolderTree/" + className + "/RobotTest/RandoopTest/" + className + "TestRandoop.zip";
-        File zipAttuale = new File(nomeAttuale);
-        File zipNuova = new File(nuovoNome);
-        boolean rinominato = zipAttuale.renameTo(zipNuova);
+		// Carico i sorgenti della classe UT (under test) in T8 e T9
+		Path directoryT9 = Paths.get("/VolumeT9/FolderTree/ClassUT/" + className + "/" + className + "SourceCode");
+		Path directoryT8 = Paths.get("/VolumeT8/FolderTree/ClassUT/" + className + "/" + className + "SourceCode");
+		caricaFile(fileNameClass, directoryT9, classFile);
+		caricaFile(fileNameClass, directoryT8, classFile);
 
-		//Rinomina il file zip caricato secondo la convenzione attuale: |nomeClasse|TestEvosuite.zip
-		File fileZipDirEvo = new File("/VolumeT8/FolderTreeEvo/" + className + "/RobotTest/EvoSuiteTest");
-		File fileZipEvo[] = fileZipDirEvo.listFiles();
-		String nomeAttualeEvo = fileZipEvo[0].getAbsolutePath().toString();
-        String nuovoNomeEvo = "/VolumeT8/FolderTreeEvo/" + className + "/RobotTest/EvoSuiteTest/" + className + "TestEvosuite.zip";
-        File zipAttualeEvo = new File(nomeAttualeEvo);
-        File zipNuovaEvo = new File(nuovoNomeEvo);
-        boolean rinominatoEvo = zipAttualeEvo.renameTo(zipNuovaEvo);
+		// Carico le classi di test generate dai Robot
+		String robotPathRandoop = "/VolumeT9/FolderTree/ClassUT/" + className + "/RobotTest/RandoopTest";
+		String robotPathEvoSuit = "/VolumeT8/FolderTree/ClassUT/" + className + "/RobotTest/EvoSuiteTest";
 
-		//Estrae i test dall'archivio caricato : Randoop
-		String zipRandoop = "/VolumeT9/app/FolderTree/" + className + "/RobotTest/RandoopTest/" + className + "TestRandoop.zip";
-		File destRandoop = new File("/VolumeT9/app/FolderTree/" + className + "/RobotTest/RandoopTest/");
-		RobotUtil.unzip(zipRandoop, destRandoop);
+		Path directoryTestT9 = Paths.get(robotPathRandoop);
+		Path directoryTestT8 = Paths.get(robotPathEvoSuit);
+		caricaFile(fileNameTestRandoop, directoryTestT9, testFileRandoop);
+		caricaFile(fileNameTestEvoSuit, directoryTestT8, testFileEvoSuit);
 
-		//Elimina la zip dei test
-		Files.delete(Paths.get("/VolumeT9/app/FolderTree/" + className + "/RobotTest/RandoopTest/" + className + "TestRandoop.zip"));
+		// Estraggo gli zip
+		Path zipRandoop, zipEvosuit;
+		try {
+			zipRandoop = Objects.requireNonNull((new File(robotPathRandoop)).listFiles())[0].toPath();
+			zipEvosuit = Objects.requireNonNull((new File(robotPathEvoSuit)).listFiles())[0].toPath();
+		} catch (NullPointerException e) {
+			return;
+		}
 
-		//Estrae i test dall'archivio caricato : Evosuite
-		String zipEvo = "/VolumeT8/FolderTreeEvo/" + className + "/RobotTest/EvoSuiteTest/" + className + "TestEvosuite.zip";
-		File destEvo = new File("/VolumeT8/FolderTreeEvo/" + className + "/RobotTest/EvoSuiteTest");
-		RobotUtil.unzip(zipEvo, destEvo);
+		File destRandoop = new File(robotPathRandoop);
+		RobotUtil.unzip(String.valueOf(zipRandoop), destRandoop);
 
-		//Elimina la zip dei test
-		Files.delete(Paths.get("/VolumeT8/FolderTreeEvo/" + className + "/RobotTest/EvoSuiteTest/" + className + "TestEvosuite.zip"));
+		File destEvoSuit = new File(robotPathEvoSuit);
+		RobotUtil.unzip(String.valueOf(zipEvosuit), destEvoSuit);
 
-		/*SALVATAGGIO RISULTATI NEL TASK T4 */
+		// Elimino gli zip dei test
+		Files.delete(zipRandoop);
+		Files.delete(zipEvosuit);
+
+
+		// Carico in EvoSuit gli zip dei test generati da Randoop e viceversa
+		String robotPathRandoop_InEvosuit = "/VolumeT8/FolderTree/ClassUT/" + className + "/RobotTest/RandoopTest";
+		String robotPathEvoSuit_InRandoop = "/VolumeT9/FolderTree/ClassUT/" + className + "/RobotTest/EvoSuiteTest";
+		caricaFile(fileNameTestRandoop, Paths.get(robotPathRandoop_InEvosuit), testFileRandoop);
+		caricaFile(fileNameTestEvoSuit, Paths.get(robotPathEvoSuit_InRandoop), testFileEvoSuit);
+
+		Path zipRandoop_InEvoSuit, zipEvoSuit_InRandoop;
+		try {
+			zipRandoop_InEvoSuit = Objects.requireNonNull((new File(robotPathRandoop_InEvosuit)).listFiles())[0].toPath();
+			zipEvoSuit_InRandoop = Objects.requireNonNull((new File(robotPathEvoSuit_InRandoop)).listFiles())[0].toPath();
+		} catch (NullPointerException e) {
+			return;
+		}
+
+		RobotUtil.unzip(String.valueOf(zipRandoop_InEvoSuit), new File(robotPathRandoop_InEvosuit));
+		RobotUtil.unzip(String.valueOf(zipEvoSuit_InRandoop), new File(robotPathEvoSuit_InRandoop));
+		Files.delete(zipRandoop_InEvoSuit);
+		Files.delete(zipEvoSuit_InRandoop);
+
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			HttpPost httpPostT8 = new HttpPost("http://" + ServiceURL.T8.getServiceURL() + "/coverage/randoop/");
+
+			// Creazione del body JSON
+			JSONObject reqBody = new JSONObject();
+			reqBody.put("evosuit_working_dir", "/VolumeT8/FolderTree/ClassUT/" + className);
+			reqBody.put("sourceClassPath", directoryT9.toString());
+			reqBody.put("sourcePackageName", className + "SourceCode");
+			reqBody.put("sourceClassName", className);
+			reqBody.put("testFilesFolder", robotPathRandoop_InEvosuit + "/01Level");
+			reqBody.put("saveDirPath", "/VolumeT8/FolderTree/ClassUT/" + className + "/RobotTest/RandoopTest");
+
+			// Imposta il body della richiesta
+			StringEntity entity = new StringEntity(reqBody.toString(), ContentType.APPLICATION_JSON);
+			System.out.println(reqBody.toString());
+			httpPostT8.setEntity(entity);
+
+			// Esegue la richiesta HTTP
+			try (CloseableHttpResponse response = httpClient.execute(httpPostT8)) {
+				String responseBody = EntityUtils.toString(response.getEntity());
+				System.out.println("Response Code: " + response.getStatusLine().getStatusCode());
+				System.out.println("Response Body: " + responseBody);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+
+
+		/* SALVATAGGIO RISULTATI NEL TASK T4 */
 
 		// Crea un oggetto File che rappresenta il percorso della directory contenente i
 		// risultati

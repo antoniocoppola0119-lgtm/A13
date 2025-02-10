@@ -22,11 +22,13 @@ NOME_CLASSE=$3
 #e.g. arg4=path of the directory where the test class is located=PERCORSO_TEST=/VolumeT8/FolderTreeEvo/Calcolatrice/StudentLogin/Player1/Game92/Round92/Turn2/TestReport
 PERCORSO_TEST=$4
 
+WORKING_DIR=$5
+
 #e.g. arg5=path of the csv file where the coverage data will be saved=PERCORSO_CSV=/app
-PERCORSO_CSV=$5
+PERCORSO_CSV=$6
 
 #e.g. EVOSUITE_WORKING_DI=/VolumeT8/FolderTreeEvo/Calcolatrice/StudentLogin/Player1/Game92/Round92/Turn2/TestReport/evosuite-working-dir
-EVOSUITE_WORKING_DIR=$PERCORSO_TEST/evosuite-working-dir
+EVOSUITE_WORKING_DIR=$WORKING_DIR/evosuite-working-dir
 
 echo "Configuring the environment...\n\n"
 echo "percorso :$PERCORSO \n"
@@ -44,14 +46,14 @@ echo "EvoSuite working directory :$EVOSUITE_WORKING_DIR\n"
 # file $PERCORSO_TEST/Test$NOME_CLASSE.java is written by prova_esecuzione_parametri4.js
 
 
-mkdir -p $PERCORSO_TEST/evosuite-working-dir/src/test/java/Tests/
-mkdir -p $PERCORSO_TEST/evosuite-working-dir/src/main/java/
+mkdir -p $EVOSUITE_WORKING_DIR/src/test/java/Tests/
+mkdir -p $EVOSUITE_WORKING_DIR/src/main/java/
 
-cp -r $PERCORSO_PACKAGE $PERCORSO_TEST/evosuite-working-dir/src/main/java/
-cp -r $PERCORSO_TEST/Test$NOME_CLASSE.java $PERCORSO_TEST/evosuite-working-dir/src/test/java/Tests/
-cp -r $PERCORSO/evosuite-1.0.6.jar $PERCORSO_TEST/evosuite-working-dir/
-cp -r $PERCORSO/evosuite-standalone-runtime-1.0.6.jar $PERCORSO_TEST/evosuite-working-dir/
-cp -r $PERCORSO/pom.xml $PERCORSO_TEST/evosuite-working-dir/
+cp -r $PERCORSO_PACKAGE/ $EVOSUITE_WORKING_DIR/src/main/java/
+cp -r $PERCORSO_TEST/*.java $EVOSUITE_WORKING_DIR/src/test/java/Tests/
+cp -r $PERCORSO/evosuite-1.0.6.jar $EVOSUITE_WORKING_DIR/
+cp -r $PERCORSO/evosuite-standalone-runtime-1.0.6.jar $EVOSUITE_WORKING_DIR/
+cp -r $PERCORSO/pom.xml $EVOSUITE_WORKING_DIR/
 
 
 cd $EVOSUITE_WORKING_DIR
@@ -68,21 +70,7 @@ export CLASSPATH=target/classes:evosuite-standalone-runtime-1.0.6.jar:target/tes
 
 sleep 2
 
-$EVOSUITE -measureCoverage -class $NOME_CLASSE -Djunit=Test${NOME_CLASSE} -projectCP $EVOSUITE_WORKING_DIR/target/classes:$EVOSUITE_WORKING_DIR/target/test-classes -Dcriterion=LINE
-
-$EVOSUITE -measureCoverage -class $NOME_CLASSE -Djunit=Test${NOME_CLASSE} -projectCP $EVOSUITE_WORKING_DIR/target/classes:$EVOSUITE_WORKING_DIR/target/test-classes -Dcriterion=BRANCH
-
-$EVOSUITE -measureCoverage -class $NOME_CLASSE -Djunit=Test${NOME_CLASSE} -projectCP $EVOSUITE_WORKING_DIR/target/classes:$EVOSUITE_WORKING_DIR/target/test-classes -Dcriterion=EXCEPTION
-
-$EVOSUITE -measureCoverage -class $NOME_CLASSE -Djunit=Test${NOME_CLASSE} -projectCP $EVOSUITE_WORKING_DIR/target/classes:$EVOSUITE_WORKING_DIR/target/test-classes -Dcriterion=WEAKMUTATION
-
-$EVOSUITE -measureCoverage -class $NOME_CLASSE -Djunit=Test${NOME_CLASSE} -projectCP $EVOSUITE_WORKING_DIR/target/classes:$EVOSUITE_WORKING_DIR/target/test-classes -Dcriterion=OUTPUT
-
-$EVOSUITE -measureCoverage -class $NOME_CLASSE -Djunit=Test${NOME_CLASSE} -projectCP $EVOSUITE_WORKING_DIR/target/classes:$EVOSUITE_WORKING_DIR/target/test-classes -Dcriterion=METHOD
-
-$EVOSUITE -measureCoverage -class $NOME_CLASSE -Djunit=Test${NOME_CLASSE} -projectCP $EVOSUITE_WORKING_DIR/target/classes:$EVOSUITE_WORKING_DIR/target/test-classes -Dcriterion=METHODNOEXCEPTION
-
-$EVOSUITE -measureCoverage -class $NOME_CLASSE -Djunit=Test${NOME_CLASSE} -projectCP $EVOSUITE_WORKING_DIR/target/classes:$EVOSUITE_WORKING_DIR/target/test-classes -Dcriterion=CBRANCH
+# $EVOSUITE -measureCoverage -class $NOME_CLASSE -Djunit=RegressionTest -projectCP $EVOSUITE_WORKING_DIR/target/classes:$EVOSUITE_WORKING_DIR/target/test-classes -Dcriterion=LINE
 
 
 sleep 2

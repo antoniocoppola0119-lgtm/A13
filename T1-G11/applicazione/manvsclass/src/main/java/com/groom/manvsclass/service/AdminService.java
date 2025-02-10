@@ -57,6 +57,7 @@ import java.util.Arrays;
 import java.util.List;
 
 //MODIFICA (11/02/2024) : Controlli sul form registrazione
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -257,43 +258,52 @@ public class AdminService {
     }
 
     public ResponseEntity<FileUploadResponse> uploadTest(MultipartFile classFile, String model, MultipartFile testFile, MultipartFile testFileEvo, String jwt, HttpServletRequest request) throws IOException {
-        if (jwtService.isJwtValid(jwt)) {
-            System.out.println("Token valido (uploadTest)");
-            ObjectMapper mapper = new ObjectMapper();
-            ClassUT classe = mapper.readValue(model, ClassUT.class);
-
-            String fileNameClass = StringUtils.cleanPath(classFile.getOriginalFilename());
-			long size = classFile.getSize();
-
-           System.out.println("Salvataggio di "+fileNameClass+"nel filestystem condiviso");
-			FileUploadUtil.saveCLassFile(fileNameClass, classe.getName(), classFile);
-
-            String fileNameTest = StringUtils.cleanPath(testFile.getOriginalFilename());
-			String fileNameTestEvo = StringUtils.cleanPath(testFileEvo.getOriginalFilename());
-			RobotUtil.saveRobots(fileNameClass, fileNameTest,fileNameTestEvo , classe.getName(), classFile ,testFile, testFileEvo);
-
-            FileUploadResponse response = new FileUploadResponse();
-            response.setFileName(fileNameClass);
-            response.setSize(size);
-            response.setDownloadUri("/downloadFile");
-
-            classe.setUri("Files-Upload/" + classe.getName() + "/" + fileNameClass);
-            classe.setDate(today.toString());
-
-            LocalDate currentDate = LocalDate.now();
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-			String data = currentDate.format(formatter);
-			Operation operation1 = new Operation((int) orepo.count(), userAdmin.getUsername(), classe.getName() + " con Robot", 0, data);
-            
-            orepo.save(operation1);
-            repo.save(classe);
-            System.out.println("Operazione completata con successo (uploadTest)");
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } else {
+        // Se il token Jwt non è valido restituisci un errore al frontend e esci
+        if (! jwtService.isJwtValid(jwt)) {
             FileUploadResponse response = new FileUploadResponse();
             response.setErrorMessage("Errore, il token non è valido");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
+
+        // Se il token è valido, verifica che i MultipartFile siano stati ricevuto con successo
+        String fileNameClass, fileNameTest, fileNameTestEvo;
+        try {
+            fileNameClass = StringUtils.cleanPath(Objects.requireNonNull(classFile.getOriginalFilename()));
+            fileNameTest = StringUtils.cleanPath(Objects.requireNonNull(testFile.getOriginalFilename()));
+            fileNameTestEvo = StringUtils.cleanPath(Objects.requireNonNull(testFileEvo.getOriginalFilename()));
+        } catch (NullPointerException e) {
+            FileUploadResponse response = new FileUploadResponse();
+            response.setErrorMessage("Errore, almeno uno dei file selezionati non è stato ricevuto con successo");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
+        // Se i file sono stati ricevuti, procedi con il salvataggio
+        ObjectMapper mapper = new ObjectMapper();
+        ClassUT classe = mapper.readValue(model, ClassUT.class);
+        long size = classFile.getSize();
+
+        System.out.println("Salvataggio di "+fileNameClass+"nel filestystem condiviso");
+        FileUploadUtil.saveCLassFile(fileNameClass, classe.getName(), classFile);
+
+        RobotUtil.saveRobots(fileNameClass, fileNameTest,fileNameTestEvo , classe.getName(), classFile ,testFile, testFileEvo);
+
+        FileUploadResponse response = new FileUploadResponse();
+        response.setFileName(fileNameClass);
+        response.setSize(size);
+        response.setDownloadUri("/downloadFile");
+
+        classe.setUri("Files-Upload/" + classe.getName() + "/" + fileNameClass);
+        classe.setDate(today.toString());
+
+        LocalDate currentDate = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String data = currentDate.format(formatter);
+        Operation operation1 = new Operation((int) orepo.count(), userAdmin.getUsername(), classe.getName() + " con Robot", 0, data);
+
+        orepo.save(operation1);
+        repo.save(classe);
+        System.out.println("Operazione completata con successo (uploadTest)");
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     public ResponseEntity<?> eliminaClasse(String name, String jwt) {

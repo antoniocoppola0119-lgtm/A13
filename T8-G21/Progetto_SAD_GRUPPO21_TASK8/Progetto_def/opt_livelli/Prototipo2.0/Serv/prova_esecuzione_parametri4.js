@@ -7,6 +7,7 @@
 const http = require('http');
 const fs = require('fs');
 const { exec, fork } = require('child_process');
+const { spawn } = require('child_process');
 
 // exec, utilizzata per eseguire comandi shell; prende come input una stringa che rappresenta il comando da eseguire
 // e restituisce un oggetto ChildProcess, che rappresenta il processo figlio avviato per eseguire il comando
@@ -20,7 +21,6 @@ const { url } = require('inspector');
 console.log("(prova_esecuzione_parametri4.js) Creazione server HTTP...");
 
 const server = http.createServer((req, res) => {
-
     //Verifica che la richiesta sia presso un endpoint API controllando che l'URL inizi con /api/
     console.log("(prova_esecuzione_parametri4.js) Verifica che la richiesta sia presso un endpoint API");
 
@@ -256,7 +256,9 @@ const server = http.createServer((req, res) => {
                 res.end(data);
             }
         });
-    } else if (req.url.startsWith('/remove-allenamento')) {
+    }
+
+    else if (req.url.startsWith('/remove-allenamento')) {
         // Rimozione delle cartelle di allenamento
 
         console.log("(prova_esecuzione_parametri4.js), la richiesta inizia con /remove-allenamento\n");
@@ -291,6 +293,68 @@ const server = http.createServer((req, res) => {
             res.writeHead(500, { 'Content-Type': 'text/plain' });
             res.end('Errore durante la rimozione della cartella');
         }
+    }
+
+    else if (req.url.startsWith("/coverage/randoop/")) {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+
+        //Gestione evento ricezione dei dati della richiesta concatenando i chunk ricevuti in una stringa
+        let body = '';
+        req.on('data', chunk => {
+            body += chunk.toString(); // convert Buffer to string
+        });
+
+        //Gestione evento di completamento della ricezione dei dati della richiesta
+        req.on('end', () => {
+            const jsonBody = JSON.parse(body); // Converte la stringa in JSON
+            console.log("body: ", jsonBody);
+
+            const sourceClassName = jsonBody.sourceClassName;
+            const sourceClassPath = jsonBody.sourceClassPath;
+            const sourcePackageName = jsonBody.sourcePackageName;
+
+            console.log("sourceClassName: " + sourceClassName);
+            console.log("sourceClassPath: " + sourceClassPath);
+            console.log("sourcePackageName: " + sourcePackageName);
+
+            const evoSuitWorkingDir = jsonBody.evosuit_working_dir;
+            console.log("evoSuitWorkingDir: " + evoSuitWorkingDir);
+
+            const testFilesFolder = jsonBody.testFilesFolder;
+            console.log("testFilesFolder: " + testFilesFolder);
+
+            const parametri = sourceClassPath + " " + sourcePackageName + " " + sourceClassName + " " + testFilesFolder + " " + evoSuitWorkingDir + " " + jsonBody.saveDirPath;
+
+            console.log("(prova_esecuzione_parametri4.js) Execution of the script: 'coverage_randoop.sh'\n");
+            console.log("parametri: ", parametri);
+            const process = spawn('sh', ['coverage_randoop.sh', parametri]);
+
+            let stdoutData = "";
+            let stderrData = "";
+
+            process.stdout.on('data', (data) => {
+                stdoutData += data.toString(); // Accumula i dati
+            });
+
+            process.stderr.on('data', (data) => {
+                stderrData += data.toString();
+            });
+
+            process.on('close', (code) => {
+                if (code !== 0 || stderrData) {
+                    console.error(`Errore: ${stderrData}`);
+                    res.statusCode = 500;
+                    res.end(stderrData);
+                } else {
+                    console.log("(prova_esecuzione_parametri4.js) Lettura del file 'GameData.csv'...\n");
+                    const csvContent = fs.readFileSync(packageTestPath + '/GameData.csv', 'utf8');
+                    console.log(csvContent);
+                    res.setHeader('Content-Type', 'text/csv');
+                    res.setHeader('Content-Disposition', `attachment; filename="${className}.csv"`);
+                    res.end(csvContent);
+                }
+            });
+        });
     } else {
         res.end('Richiesta http per test non andata a buon fine');
     }
