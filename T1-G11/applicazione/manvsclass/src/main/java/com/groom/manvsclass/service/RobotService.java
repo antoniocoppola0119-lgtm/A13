@@ -488,6 +488,10 @@ public class RobotService {
 		boolean jacocoFound = false;
 		boolean evosuiteFound = false;
 
+		if (!Files.exists(searchIn)) {
+			return new boolean[]{jacocoFound, evosuiteFound};
+		}
+
 		for (File coverageFile : Objects.requireNonNull(searchIn.toFile().listFiles())) {
 			Files.createDirectories(Paths.get(String.format("%s", coveragePath)));
 
@@ -622,6 +626,21 @@ public class RobotService {
 
 			logger.info("Robot TESTS path " + fromTestPath);
 			logger.info("Robot COVERAGE path " + fromCoveragePath);
+
+			if (!Files.exists(fromTestPath)) {
+				logger.info("Skipping folder " + fromTestPath + " because it does not exist");
+				continue;
+			}
+
+			if (fromTestPath.toFile().listFiles().length == 0) {
+				logger.info("Skipping folder " + fromTestPath + " because it does not have any files");
+				continue;
+			}
+
+			if (Arrays.stream(fromTestPath.toFile().listFiles()).noneMatch(file -> file.getName().endsWith(".java"))) {
+				logger.info("Skipping folder " + fromTestPath + " because it does not contain any .java files");
+				continue;
+			}
 
 			String[][] splitPackageNames = saveTestFilesInVolume(fromTestPath, toTestPath, classUTName, robotType);
 			String[] srcPackageNameSplit = splitPackageNames[0];
