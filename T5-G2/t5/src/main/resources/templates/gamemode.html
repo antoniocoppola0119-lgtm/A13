@@ -49,25 +49,16 @@
 										<!-- Selezione Robot -->
 										<div class="form-group mb-3" id="robot_selector">
 											<label for="select_robot" th:text="#{robot}"></label>
-											<select class="form-control" id="select_robot">
+											<select class="form-control" id="select_robot" disabled>
 												<option value="" th:text="#{opzioni}"></option>
-												<th:block th:each="option : ${lista_robot}">
-													<option
-														th:value="${option}"
-														th:text="${option}"
-													></option>
-												</th:block>
 											</select>
 										</div>
 
 										<!-- Selezione Difficoltà -->
 										<div class="form-group mb-3" id="difficulty_selector">
-											<label for="select_diff" th:text="#{difficoltà}"></label>
-											<select class="form-control" id="select_diff">
+											<label for="difficulty_options" th:text="#{difficoltà}"></label>
+											<select class="form-control" id="select_diff" disabled>
 												<option value="" th:text="#{opzioni}"></option>
-												<option value="1" th:text="#{d_facile}"></option>
-												<option value="2" th:text="#{d_medio}"></option>
-												<option value="3" th:text="#{d_difficile}"></option>
 											</select>
 										</div>
 
@@ -151,6 +142,18 @@
 			</div>
 		</div>
 		<div th:replace="fragments/footer :: footer"></div>
+
+		<!-- Opzioni di difficoltà precaricate lato server -->
+		<div id="difficulty_options" style="display: none;">
+			<option value="1" th:text="#{d_facile}"></option>
+			<option value="2" th:text="#{d_medio}"></option>
+			<option value="3" th:text="#{d_difficile}"></option>
+		</div>
+
+		<script th:inline="javascript">
+			// Contiene i robot disponibili in T4 data la classe scelta
+			let availableRobots = /*[[${available_robots}]]*/ [];
+		</script>
 		<script
 			th:src="@{/t5/js/Gamemode_logic.js}"
 			th:inline="javascript"
@@ -159,8 +162,8 @@
 		<script
 		th:src="@{/t5/js/Util_Editor.js}"
 		th:inline="javascript"
-	>
-	</script>
-		
+		>
+		</script>
+
 	</body>
 </html>

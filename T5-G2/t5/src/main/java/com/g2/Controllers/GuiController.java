@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import com.g2.Model.*;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +42,8 @@ import com.g2.Components.PageBuilder;
 import com.g2.Components.ServiceObjectComponent;
 import com.g2.Components.VariableValidationLogicComponent;
 import com.g2.Interfaces.ServiceManager;
+import com.g2.Service.AchievementService;
+import com.g2.t5.GameDataWriter;
 import com.g2.Model.ClassUT;
 import com.g2.Model.ScalataGiocata;
 import com.g2.t5.ScalataDataWriter;
@@ -96,13 +99,20 @@ public class GuiController {
             List<String> list_mode = Arrays.asList("Sfida", "Allenamento");
             Valida_classeUT.setCheckAllowedValues(list_mode); //Se il request param non è in questa lista è un problema
             ServiceObjectComponent lista_classi = new ServiceObjectComponent(serviceManager, "lista_classi", "T1", "getClasses");
-            gamemode.setObjectComponents(lista_classi);
+            //gamemode.setObjectComponents(lista_classi);
+
+            ServiceObjectComponent availableRobots = new ServiceObjectComponent(serviceManager, "available_robots", "T4", "getAvailableRobots");
+            gamemode.setObjectComponents(lista_classi, availableRobots);
+
+            /*
             List<String> list_robot = new ArrayList<>();
             // Aggiungere elementi alla lista
             list_robot.add("Randoop");
             list_robot.add("EvoSuite");
             GenericObjectComponent lista_robot = new GenericObjectComponent("lista_robot", list_robot);
             gamemode.setObjectComponents(lista_robot);
+
+             */
             gamemode.SetAuth(jwt);
             return gamemode.handlePageRequest();
         }

@@ -1,6 +1,8 @@
 package robot
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/alarmfox/game-repository/api"
@@ -8,8 +10,10 @@ import (
 
 type Service interface {
 	CreateBulk(request *CreateRequest) (int, error)
-	FindByFilter(testClassId string, difficulty string, t RobotType) (Robot, error)
+	FindByFilter(testClassId string, difficulty string, robotType string) (Robot, error)
 	DeleteByTestClass(testClassId string) error
+	GetAllAvailableRobots() ([]AvailableRobot, error)
+	GetEvoSuiteCoverageBy(testClassId string, difficulty string, robotType string) (EvoSuiteCoverage, error)
 }
 
 type Controller struct {
@@ -48,7 +52,7 @@ func (rc *Controller) FindByFilter(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 
-	t, err := api.FromUrlQuery[RobotType](r, "type", 0)
+	robotType, err := api.FromUrlQuery[CustomString](r, "type", "")
 	if err != nil {
 		return err
 	}
@@ -56,7 +60,7 @@ func (rc *Controller) FindByFilter(w http.ResponseWriter, r *http.Request) error
 	robot, err := rc.service.FindByFilter(
 		testClassId.AsString(),
 		difficulty.AsString(),
-		t,
+		robotType.AsString(),
 	)
 
 	if err != nil {
@@ -65,6 +69,47 @@ func (rc *Controller) FindByFilter(w http.ResponseWriter, r *http.Request) error
 
 	return api.WriteJson(w, http.StatusOK, robot)
 
+}
+
+func (rc *Controller) GetAllAvailableRobots(w http.ResponseWriter, r *http.Request) error {
+	robots, err := rc.service.GetAllAvailableRobots()
+	if err != nil {
+		return api.MakeHttpError(err)
+	}
+
+	jsonData, _ := json.Marshal(robots)
+	fmt.Println("JSON Response:", string(jsonData))
+
+	return api.WriteJson(w, http.StatusOK, robots)
+}
+
+func (rc *Controller) GetEvoSuiteCoverageBy(w http.ResponseWriter, r *http.Request) error {
+	testClassId, err := api.FromUrlQuery[CustomString](r, "testClassId", "")
+	if err != nil {
+		return err
+	}
+
+	difficulty, err := api.FromUrlQuery[CustomString](r, "difficulty", "")
+	if err != nil {
+		return err
+	}
+
+	robotType, err := api.FromUrlQuery[CustomString](r, "robotType", "")
+	if err != nil {
+		return err
+	}
+
+	evoSuiteCoverage, err := rc.service.GetEvoSuiteCoverageBy(
+		testClassId.AsString(),
+		difficulty.AsString(),
+		robotType.AsString(),
+	)
+
+	if err != nil {
+		return api.MakeHttpError(err)
+	}
+
+	return api.WriteJson(w, http.StatusOK, evoSuiteCoverage)
 }
 
 func (rc *Controller) Delete(w http.ResponseWriter, r *http.Request) error {

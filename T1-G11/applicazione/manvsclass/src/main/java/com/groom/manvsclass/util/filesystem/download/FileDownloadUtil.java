@@ -1,4 +1,4 @@
-package com.groom.manvsclass.model.filesystem.download;
+package com.groom.manvsclass.util.filesystem.download;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;

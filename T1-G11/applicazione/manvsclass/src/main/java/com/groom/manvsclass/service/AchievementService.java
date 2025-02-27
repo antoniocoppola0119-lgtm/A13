@@ -51,28 +51,26 @@ public class AchievementService {
     @Autowired
     private AchievementRepository achievementRepository;
 
-    public ModelAndView showAchievementsPage(HttpServletRequest request, String jwt) {
-        System.out.println("(GET /achievements) Token JWT valido?");
-        if (jwtService.isJwtValid(jwt)) {
-            ModelAndView model = new ModelAndView("achievements");
+    public ModelAndView showAchievement(HttpServletRequest request, @CookieValue(name = "jwt", required = false) String jwt) {
+        if (!jwtService.isJwtValid(jwt))
+            return new ModelAndView("login_admin");
 
-            List<Gamemode> allGamemodes = Arrays.asList(Gamemode.values());
-            List<StatisticRole> allRoles = Arrays.asList(StatisticRole.values());
-            List<Robot> allRobots = Arrays.asList(Robot.values());
+        ModelAndView modelAndView = new ModelAndView("achievements");
 
-            List<Statistic> allStatistics = statisticRepository.findAll();
+        List<Gamemode> allGamemodes = Arrays.asList(Gamemode.values());
+        List<StatisticRole> allRoles = Arrays.asList(StatisticRole.values());
+        List<Robot> allRobots = Arrays.asList(Robot.values());
 
-            model.addObject("gamemodesList", allGamemodes);
-            model.addObject("rolesList", allRoles);
-            model.addObject("robotsList", allRobots);
-            model.addObject("statisticsList", allStatistics);
+        List<Statistic> allStatistics = statisticRepository.findAll();
 
-            return model;
-        }
+        modelAndView.addObject("gamemodesList", allGamemodes);
+        modelAndView.addObject("rolesList", allRoles);
+        modelAndView.addObject("robotsList", allRobots);
+        modelAndView.addObject("statisticsList", allStatistics);
 
-        System.out.println("(GET /achievements) Token JWT invalido");
-        return new ModelAndView("login_admin");
+        return modelAndView;
     }
+
 
     public ResponseEntity<?> listAchievements() {
         System.out.println("(GET /achievements/list) Recupero degli achievement memorizzati nel sistema.");
@@ -92,7 +90,7 @@ public class AchievementService {
         achievementRepository.save(achievement);
         System.out.println("(POST /createAchievement) Salvataggio avvenuto correttamente all'interno del DB");
 
-        return showAchievementsPage(request, jwt);
+        return showAchievement(request, jwt);
     }
 
     public ResponseEntity<?> listStatistics() {
@@ -113,7 +111,7 @@ public class AchievementService {
         statisticRepository.save(statistic);
         System.out.println("(POST /createStatistic) Salvataggio avvenuto correttamente all'interno del DB");
 
-        return showAchievementsPage(request, jwt);
+        return showAchievement(request, jwt);
     }
 
     public Object deleteStatistic(String Id, String jwt, HttpServletRequest request) {

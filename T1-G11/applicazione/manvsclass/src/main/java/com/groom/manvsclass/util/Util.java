@@ -1,7 +1,7 @@
 /*MODIFICA (5/11/2024) - Refactoring task T1
  * Util ora si occupa di implementare i servizi ritenuti di utilità generale.
  */
-package com.groom.manvsclass.service;
+package com.groom.manvsclass.util;
 
 import com.groom.manvsclass.model.interaction;
 import com.groom.manvsclass.model.repository.InteractionRepository;

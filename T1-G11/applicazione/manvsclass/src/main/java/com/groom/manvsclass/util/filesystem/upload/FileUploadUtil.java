@@ -1,4 +1,4 @@
-package com.groom.manvsclass.model.filesystem.upload;
+package com.groom.manvsclass.util.filesystem.upload;
 
 import java.io.IOException;
 import java.io.InputStream;

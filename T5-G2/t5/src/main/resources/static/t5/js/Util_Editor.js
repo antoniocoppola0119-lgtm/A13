@@ -22,11 +22,13 @@
 
 // Funzione per creare l'URL dell'API
 function createApiUrl(formData, orderTurno) {
+	console.log("formData: ", formData)
+
 	const className = formData.get("className");
 	const underTestClassName = formData.get("underTestClassName");
 	const playerId = formData.get("playerId");
 	// Costruisce il percorso per la classe
-	const classePath = `VolumeT8/FolderTreeEvo/${className}/${className}SourceCode/${underTestClassName}`;
+	const classePath = `VolumeT0/FolderTree/ClassUT/unmodified_src/${className}/${underTestClassName}`;
 	// Ottiene il percorso del test generato
 	const testPath = generaPercorsoTest(orderTurno, formData);
 	// Costruisce l'URL dell'API
@@ -53,7 +55,7 @@ function generaPercorsoTest(orderTurno, formData) {
 				  )}`
 				: "";
 
-		return `/VolumeT8/FolderTreeEvo/StudentLogin/Player${playerId}/${modalita}${scalataPart}/${classeLocal}/Game${gameId}/Round${roundId}/Turn${orderTurno}/TestReport`;
+		return `/VolumeT0/FolderTree/StudentLogin/Player${playerId}/${modalita}${scalataPart}/${classeLocal}/Game${gameId}/Round${roundId}/Turn${orderTurno}/TestReport`;
 	} else {
 		console.error("Errore: modalità non trovata");
 		window.location.href = "/main";
@@ -104,55 +106,73 @@ ______ _____  _____   ____   _____
 |______|_|  \_\_|  \_\\____/|_____/  
 `;
 
-function getConsoleTextCoverage(valori_csv, gameScore, coverageDetails) {
+function getConsoleTextCoverage(valori_csv, robotEvoSuiteCoverage, coverageDetails, robotJacocoCoverage) {
+	let lineCoveragePercentage = roundToTwoDecimals(coverageDetails.line.covered / (coverageDetails.line.covered + coverageDetails.line.missed) * 100);
+	let BranchCoveragePercentage = roundToTwoDecimals(coverageDetails.branch.covered / (coverageDetails.branch.covered + coverageDetails.branch.missed) * 100);
+	let instructionCoveragePercentage = roundToTwoDecimals(coverageDetails.instruction.covered / (coverageDetails.instruction.covered + coverageDetails.instruction.missed) * 100);
 
-	let lineCoveragePercentage = (coverageDetails.line.covered / (coverageDetails.line.covered + coverageDetails.line.missed)) * 100;
-	let BranchCoveragePercentage = (coverageDetails.branch.covered / (coverageDetails.branch.covered + coverageDetails.branch.missed)) * 100;
-	let instructionCoveragePercentage = (coverageDetails.instruction.covered / (coverageDetails.instruction.covered + coverageDetails.instruction.missed)) * 100;
+	let robotLineCoveragePercentage = roundToTwoDecimals(robotJacocoCoverage.line.covered / (robotJacocoCoverage.line.covered + robotJacocoCoverage.line.missed) * 100);
+	let robotBranchCoveragePercentage = roundToTwoDecimals(robotJacocoCoverage.branch.covered / (robotJacocoCoverage.branch.covered + robotJacocoCoverage.branch.missed) * 100);
+	let robotInstructionCoveragePercentage = roundToTwoDecimals(robotJacocoCoverage.instruction.covered / (robotJacocoCoverage.instruction.covered + robotJacocoCoverage.instruction.missed) * 100);
 
-	var consoleText = 
-`============================== Results ===============================
-Il tuo punteggio: ${gameScore}pt
-============================== JaCoCo ===============================
-Line Coverage COV%:  ${lineCoveragePercentage}% LOC
+	consoleText =
+`============================== JaCoCo ===============================
+Your Line Coverage COV%:  ${lineCoveragePercentage}% LOC
 covered: ${coverageDetails.line.covered}  
 missed: ${coverageDetails.line.missed}
+Robot Line Coverage COV%:  ${robotLineCoveragePercentage}% LOC
+robot covered: ${robotJacocoCoverage.line.covered}
+robot missed: ${robotJacocoCoverage.line.missed}
 ----------------------------------------------------------------------
-Branch Coverage COV%:  ${BranchCoveragePercentage}% LOC
+Your Branch Coverage COV%:  ${BranchCoveragePercentage}% LOC
 covered: ${coverageDetails.branch.covered} 
 missed: ${coverageDetails.branch.missed}
+Robot Branch Coverage COV%:  ${robotBranchCoveragePercentage}% LOC
+robot covered: ${robotJacocoCoverage.branch.covered}
+robot missed: ${robotJacocoCoverage.branch.missed}
 ----------------------------------------------------------------------
-Instruction Coverage COV%:  ${instructionCoveragePercentage}% LOC
+Your Instruction Coverage COV%:  ${instructionCoveragePercentage}% LOC
 covered: ${coverageDetails.instruction.covered} 
 missed: ${coverageDetails.instruction.missed}
+Robot Instruction Coverage COV%:  ${robotInstructionCoveragePercentage}% LOC
+robot covered: ${robotJacocoCoverage.instruction.covered}
+robot missed: ${robotJacocoCoverage.instruction.missed}
 ============================== EvoSuite ===============================
-la tua Coverage:  ${valori_csv[0]*100}% LOC
+Il tuo punteggio EvoSuite:  ${roundToTwoDecimals(valori_csv[0]*100)}% Line
+Il punteggio EvoSuite del robot:  ${roundToTwoDecimals(robotEvoSuiteCoverage[0])}% Line
 ----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${valori_csv[1]*100}% Branch
+Il tuo punteggio EvoSuite: ${roundToTwoDecimals(valori_csv[1]*100)}% Branch
+Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robotEvoSuiteCoverage[1])}% Branch
 ----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${valori_csv[2]*100}% Exception
+Il tuo punteggio EvoSuite: ${roundToTwoDecimals(valori_csv[2]*100)}% Exception
+Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robotEvoSuiteCoverage[2])}% Exception
 ----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${valori_csv[3]*100}% WeakMutation
+Il tuo punteggio EvoSuite: ${roundToTwoDecimals(valori_csv[3]*100)}% WeakMutation
+Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robotEvoSuiteCoverage[3])}% WeakMutation
 ----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${valori_csv[4]*100}% Output
-----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${valori_csv[5]*100}% Method
-----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${valori_csv[6]*100}% MethodNoException
-----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${valori_csv[7]*100}% CBranch
+Il tuo punteggio EvoSuite: ${roundToTwoDecimals(valori_csv[7]*100)}% CBranch
+Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robotEvoSuiteCoverage[7])}% CBranch
 ======================================================================`;
 
 	// Restituisce il testo generato
 	return consoleText;
 }
 
-function getConsoleTextRun(valori_csv, coverageDetails, punteggioRobot, gameScore, isWinner) {
-	let lineCoveragePercentage = (coverageDetails.line.covered / (coverageDetails.line.covered + coverageDetails.line.missed)) * 100;
-	let BranchCoveragePercentage = (coverageDetails.branch.covered / (coverageDetails.branch.covered + coverageDetails.branch.missed)) * 100;
-	let instructionCoveragePercentage = (coverageDetails.instruction.covered / (coverageDetails.instruction.covered + coverageDetails.instruction.missed)) * 100;
-	
-	var consoleText2 = (isWinner) ? you_win : you_lose;
+ 
+function roundToTwoDecimals(numStr) {
+	return (Math.round(parseFloat(numStr * 100)) / 100).toFixed(2);
+}
+
+function getConsoleTextRun(valori_csv, robotEvoSuiteCoverage, coverageDetails, robotJacocoCoverage, gameScore, robotScore, isWinner) {
+	let lineCoveragePercentage = roundToTwoDecimals(coverageDetails.line.covered / (coverageDetails.line.covered + coverageDetails.line.missed) * 100);
+	let BranchCoveragePercentage = roundToTwoDecimals(coverageDetails.branch.covered / (coverageDetails.branch.covered + coverageDetails.branch.missed) * 100);
+	let instructionCoveragePercentage = roundToTwoDecimals(coverageDetails.instruction.covered / (coverageDetails.instruction.covered + coverageDetails.instruction.missed) * 100);
+
+	let robotLineCoveragePercentage = roundToTwoDecimals(robotJacocoCoverage.line.covered / (robotJacocoCoverage.line.covered + robotJacocoCoverage.line.missed) * 100);
+	let robotBranchCoveragePercentage = roundToTwoDecimals(robotJacocoCoverage.branch.covered / (robotJacocoCoverage.branch.covered + robotJacocoCoverage.branch.missed) * 100);
+	let robotInstructionCoveragePercentage = roundToTwoDecimals(robotJacocoCoverage.instruction.covered / (robotJacocoCoverage.instruction.covered + robotJacocoCoverage.instruction.missed) * 100);
+
+	var consoleText2 = (valori_csv[0]*100) >= robotScore ? you_win : you_lose;
 	consoleText =
 `===================================================================== \n` +
 		consoleText2 +
@@ -160,35 +180,43 @@ function getConsoleTextRun(valori_csv, coverageDetails, punteggioRobot, gameScor
 `============================== Results ===============================
 Il tuo punteggio:${gameScore}pt
 ----------------------------------------------------------------------
-La coverage del robot:${punteggioRobot}% LOC
+Il punteggio del robot:${robotScore}pt
 ============================== JaCoCo ===============================
-Line Coverage COV%:  ${lineCoveragePercentage}% LOC
+Your Line Coverage COV%:  ${lineCoveragePercentage}% LOC
 covered: ${coverageDetails.line.covered}  
 missed: ${coverageDetails.line.missed}
+Robot Line Coverage COV%:  ${robotLineCoveragePercentage}% LOC
+robot covered: ${robotJacocoCoverage.line.covered}
+robot missed: ${robotJacocoCoverage.line.missed}
 ----------------------------------------------------------------------
-Branch Coverage COV%:  ${BranchCoveragePercentage}% LOC
+Your Branch Coverage COV%:  ${BranchCoveragePercentage}% LOC
 covered: ${coverageDetails.branch.covered} 
 missed: ${coverageDetails.branch.missed}
+Robot Branch Coverage COV%:  ${robotBranchCoveragePercentage}% LOC
+robot covered: ${robotJacocoCoverage.branch.covered}
+robot missed: ${robotJacocoCoverage.branch.missed}
 ----------------------------------------------------------------------
-Instruction Coverage COV%:  ${instructionCoveragePercentage}% LOC
+Your Instruction Coverage COV%:  ${instructionCoveragePercentage}% LOC
 covered: ${coverageDetails.instruction.covered} 
 missed: ${coverageDetails.instruction.missed}
+Robot Instruction Coverage COV%:  ${robotInstructionCoveragePercentage}% LOC
+robot covered: ${robotJacocoCoverage.instruction.covered}
+robot missed: ${robotJacocoCoverage.instruction.missed}
 ============================== EvoSuite ===============================
-la tua Coverage:  ${valori_csv[0]*100}% LOC
+Il tuo punteggio EvoSuite:  ${roundToTwoDecimals(valori_csv[0]*100)}% Line
+Il punteggio EvoSuite del robot:  ${roundToTwoDecimals(robotEvoSuiteCoverage[0])}% Line
 ----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${valori_csv[1]*100}% Branch
+Il tuo punteggio EvoSuite: ${roundToTwoDecimals(valori_csv[1]*100)}% Branch
+Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robotEvoSuiteCoverage[1])}% Branch
 ----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${valori_csv[2]*100}% Exception
+Il tuo punteggio EvoSuite: ${roundToTwoDecimals(valori_csv[2]*100)}% Exception
+Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robotEvoSuiteCoverage[2])}% Exception
 ----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${valori_csv[3]*100}% WeakMutation
+Il tuo punteggio EvoSuite: ${roundToTwoDecimals(valori_csv[3]*100)}% WeakMutation
+Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robotEvoSuiteCoverage[3])}% WeakMutation
 ----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${valori_csv[4]*100}% Output
-----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${valori_csv[5]*100}% Method
-----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${valori_csv[6]*100}% MethodNoException
-----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${valori_csv[7]*100}% CBranch
+Il tuo punteggio EvoSuite: ${roundToTwoDecimals(valori_csv[7]*100)}% CBranch
+Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robotEvoSuiteCoverage[7])}% CBranch
 ======================================================================`;
 
 	// Restituisce il testo generato
@@ -285,12 +313,18 @@ function setStatus(statusName) {
     }
 }
 
-function highlightCodeCoverage(reportContent, editor) {
+function highlightCodeCoverage(reportContent, robotContent, editor) {
 	// Analizza il contenuto del file di output di JaCoCo per individuare le righe coperte, non coperte e parzialmente coperte
 	// Applica lo stile appropriato alle righe del tuo editor
 	var coveredLines = [];
 	var uncoveredLines = [];
 	var partiallyCoveredLines = [];
+
+	var coveredLinesRobot = [];
+	var uncoveredLinesRobot = [];
+	var partiallyCoveredLinesRobot = [];
+
+	console.log("coverage content robot ", reportContent);
 
 	reportContent.querySelectorAll("line").forEach(function (line) {
 		if (line.getAttribute("mi") == 0)
@@ -300,22 +334,48 @@ function highlightCodeCoverage(reportContent, editor) {
 		else uncoveredLines.push(line.getAttribute("nr"));
 	});
 
-	coveredLines.forEach(function (lineNumber) {
+	robotContent.querySelectorAll("line").forEach(function (line) {
+		if (line.getAttribute("mi") == 0)
+			coveredLinesRobot.push(line.getAttribute("nr"));
+		else if (line.getAttribute("mb") > 0 && line.getAttribute("cb") > 0)
+			partiallyCoveredLinesRobot.push(line.getAttribute("nr"));
+		else uncoveredLinesRobot.push(line.getAttribute("nr"));
+	});
+
+	coveredLinesRobot.forEach(function (lineNumber) {
 		editor.removeLineClass(lineNumber - 2, "gutter", "bg-danger");
 		editor.removeLineClass(lineNumber - 2, "gutter", "bg-warning");
 		editor.addLineClass	(lineNumber - 2, "gutter", "  bg-success");
 	});
 
-	uncoveredLines.forEach(function (lineNumber) { 
+	uncoveredLinesRobot.forEach(function (lineNumber) {
 		editor.removeLineClass(lineNumber - 2, "gutter", "bg-warning");
 		editor.removeLineClass(lineNumber - 2, "gutter", "bg-success");
 		editor.addLineClass	(lineNumber - 2, "gutter", "bg-danger");
 	});
 
-	partiallyCoveredLines.forEach(function (lineNumber) { 
+	partiallyCoveredLinesRobot.forEach(function (lineNumber) {
 		editor.removeLineClass(lineNumber - 2, "gutter", "bg-danger");
 		editor.removeLineClass(lineNumber - 2, "gutter", "bg-success");
 		editor.addLineClass	(lineNumber - 2, "gutter", "bg-warning");
+	});
+
+	coveredLines.forEach(function (lineNumber) {
+		editor.removeLineClass(lineNumber - 2, "background", "bg-coverage-danger");
+		editor.removeLineClass(lineNumber - 2, "background", "bg-coverage-warning");
+		editor.addLineClass	(lineNumber - 2, "background", " bg-coverage-success");
+	});
+
+	uncoveredLines.forEach(function (lineNumber) {
+		editor.removeLineClass(lineNumber - 2, "background", "bg-coverage-warning");
+		editor.removeLineClass(lineNumber - 2, "background", "bg-coverage-success");
+		editor.addLineClass	(lineNumber - 2, "background", "bg-coverage-danger");
+	});
+
+	partiallyCoveredLines.forEach(function (lineNumber) {
+		editor.removeLineClass(lineNumber - 2, "background", "bg-coverage-danger");
+		editor.removeLineClass(lineNumber - 2, "background", "bg-coverage-success");
+		editor.addLineClass	(lineNumber - 2, "background", "bg-coverage-warning");
 	});
 }
 

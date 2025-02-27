@@ -1,4 +1,4 @@
-package com.groom.manvsclass.controller.Authentication;
+package com.groom.manvsclass.controller.authentication;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;

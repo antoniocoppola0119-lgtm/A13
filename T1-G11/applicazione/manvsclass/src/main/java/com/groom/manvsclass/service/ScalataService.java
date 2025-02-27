@@ -28,10 +28,6 @@ public class ScalataService {
 
     private static final Logger logger = LoggerFactory.getLogger(ScalataService.class);
 
-    public ModelAndView showGamePageScalata(HttpServletRequest request, String jwt) {
-        return new ModelAndView("scalata");
-    }
-
     public ResponseEntity<?> uploadScalata(Scalata scalata, String jwt) {
         if (!jwtService.isJwtValid(jwt)) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("(POST /configureScalata) Attenzione, non sei loggato!");

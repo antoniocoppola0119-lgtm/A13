@@ -16,10 +16,10 @@ import (
 
 	"github.com/alarmfox/game-repository/api"
 	"github.com/alarmfox/game-repository/api/game"
+	"github.com/alarmfox/game-repository/api/playerhascategoryachievement"
 	"github.com/alarmfox/game-repository/api/robot"
 	"github.com/alarmfox/game-repository/api/round"
 	"github.com/alarmfox/game-repository/api/scalatagame"
-	"github.com/alarmfox/game-repository/api/playerhascategoryachievement"
 	"github.com/alarmfox/game-repository/api/turn"
 	"github.com/alarmfox/game-repository/limiter"
 	"github.com/alarmfox/game-repository/model"
@@ -232,8 +232,8 @@ func run(ctx context.Context, c Configuration) error {
 			robotController = robot.NewController(robot.NewRobotStorage(db))
 			// scalatagame endpoint
 			scalataController = scalatagame.NewController(scalatagame.NewRepository(db))
-            // phca endpoint
-            phcaController = playerhascategoryachievement.NewController(playerhascategoryachievement.NewRepository(db))
+      // phca endpoint
+      phcaController = playerhascategoryachievement.NewController(playerhascategoryachievement.NewRepository(db))
 		)
 
 		/* Registra gli endpoint API.
@@ -550,6 +550,12 @@ func setupRoutes(gc *game.Controller, rc *round.Controller, tc *turn.Controller,
 		// Get robot with filter
 		r.Get("/", api.HandlerFunc(roc.FindByFilter))
 
+		// Get available robots type for exercise (by testClassId)
+		r.Get("/all", api.HandlerFunc(roc.GetAllAvailableRobots))
+
+		// Get EvoSuite coverage for robot (by testClassId, robotType and difficulty)
+		r.Get("/evosuitecoverage", api.HandlerFunc(roc.GetEvoSuiteCoverageBy))
+
 		// Create robots in bulk
 		r.With(middleware.AllowContentType("application/json")).
 			Post("/", api.HandlerFunc(roc.CreateBulk))
@@ -579,12 +585,12 @@ func setupRoutes(gc *game.Controller, rc *round.Controller, tc *turn.Controller,
 
 	})
 
-    r.Route("/phca", func(r chi.Router) {
-        // List PHCAs
-        r.Get("/", api.HandlerFunc(pc.FindAll))
+	r.Route("/phca", func(r chi.Router) {
+		// List PHCAs
+		r.Get("/", api.HandlerFunc(pc.FindAll))
 
-        // Get PHCA by Player ID
-        r.Get("/{pid}", api.HandlerFunc(pc.FindByPID))
+		// Get PHCA by Player ID
+		r.Get("/{pid}", api.HandlerFunc(pc.FindByPID))
 
 		// Create PHCA
 		r.With(middleware.AllowContentType("application/json")).
@@ -596,7 +602,7 @@ func setupRoutes(gc *game.Controller, rc *round.Controller, tc *turn.Controller,
 
 		// Delete achievement
 		r.Delete("/{pid}/{statistic}", api.HandlerFunc(pc.Delete))
-    })
+	})
 
 	return r
 }

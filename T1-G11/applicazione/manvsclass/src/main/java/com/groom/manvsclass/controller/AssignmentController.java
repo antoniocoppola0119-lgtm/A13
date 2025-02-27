@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.groom.manvsclass.model.Assignment;
 import com.groom.manvsclass.service.AssignmentService;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
 
 @CrossOrigin
 @Controller
@@ -22,14 +25,12 @@ public class AssignmentController {
     @Autowired
     private AssignmentService assignmentService;
 
-    //Modifica 07/12/2024
     @PostMapping("/creaAssignment/{idTeam}")
     @ResponseBody
     public ResponseEntity<?> creaAssignment(@PathVariable("idTeam") String idTeam,@RequestBody Assignment assignment, @CookieValue(name = "jwt", required = false) String jwt){
         return assignmentService.creaAssignment(assignment, idTeam, jwt);
     }
 
-    //Modifica 08/12/2024 aggiunta nuove rotte
     @GetMapping("/visualizzaTeamAssignments/{idTeam}")
     @ResponseBody
     public ResponseEntity<?> visualizzaTeamAssignments(@PathVariable("idTeam") String idTeam, @CookieValue(name = "jwt", required = false) String jwt){

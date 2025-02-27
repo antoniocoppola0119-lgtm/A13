@@ -56,7 +56,6 @@ public class GameController {
         this.gameServiceManager = gameServiceManager;
     }
 
-
     /*    LATO CLIENT
      *    On load document - check game -> da usare in fetchPrevisusGame
      *    

@@ -1,82 +1,70 @@
 package robot
 
 import (
-	"encoding/json"
-	"fmt"
-	"strings"
-	"time"
-
-	"github.com/alarmfox/game-repository/api"
 	"github.com/alarmfox/game-repository/model"
+	"time"
 )
 
 type Robot struct {
-	ID          int64     `json:"id"`
-	TestClassId string    `json:"testClassId"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	Difficulty  string    `json:"difficulty"`
-	Type        RobotType `json:"type"`
-	Scores      string    `json:"scores"`
-}
-type RobotType int8
-
-const (
-	randoop RobotType = iota
-	evosuite
-)
-
-func (rb RobotType) Parse(s string) (RobotType, error) {
-	switch strings.ToLower(s) {
-	case randoop.String():
-		return randoop, nil
-	case evosuite.String():
-		return evosuite, nil
-	default:
-		return RobotType(0), fmt.Errorf("%w: unsupported test engine",
-			api.ErrInvalidParam)
-	}
-}
-
-func (rb RobotType) String() string {
-	switch rb {
-	case randoop:
-		return "randoop"
-	case evosuite:
-		return "evosuite"
-	default:
-		panic("unreachable")
-	}
-}
-
-func (rb RobotType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(rb.String())
-}
-
-func (rb *RobotType) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
-		return err
-	}
-	v, err := rb.Parse(s)
-	if err != nil {
-		return err
-	}
-
-	*rb = v
-	return nil
-
-}
-
-func (rb RobotType) AsInt8() int8 {
-	return int8(rb)
+	ID                        int64     `json:"id"`
+	TestClassId               string    `json:"testClassId"`
+	CreatedAt                 time.Time `json:"createdAt"`
+	UpdatedAt                 time.Time `json:"updatedAt"`
+	Difficulty                string    `json:"difficulty"`
+	Type                      string    `json:"type"`
+	Coverage                  string    `json:"coverage"`
+	JacocoLineCovered         int       `json:"jacocoLineCovered"`
+	JacocoBranchCovered       int       `json:"jacocoBranchCovered"`
+	JacocoInstructionCovered  int       `json:"jacocoInstructionCovered"`
+	JacocoLineMissed          int       `json:"jacocoLineMissed"`
+	JacocoBranchMissed        int       `json:"jacocoBranchMissed"`
+	JacocoInstructionMissed   int       `json:"jacocoInstructionMissed"`
+	EvoSuiteLine              int       `json:"evoSuiteLine"`
+	EvoSuiteBranch            int       `json:"evoSuiteBranch"`
+	EvoSuiteException         int       `json:"evoSuiteException"`
+	EvoSuiteWeakMutation      int       `json:"evoSuiteWeakMutation"`
+	EvoSuiteOutput            int       `json:"evoSuiteOutput"`
+	EvoSuiteMethod            int       `json:"evoSuiteMethod"`
+	EvoSuiteMethodNoException int       `json:"evoSuiteMethodNoException"`
+	EvoSuiteCBranch           int       `json:"evoSuiteCBranch"`
 }
 
 type CreateSingleRequest struct {
-	TestClassId string    `json:"testClassId"`
-	Scores      string    `json:"scores"`
-	Difficulty  string    `json:"difficulty"`
-	Type        RobotType `json:"type"`
+	TestClassId               string `json:"testClassId"`
+	Difficulty                string `json:"difficulty"`
+	Type                      string `json:"type"`
+	Coverage                  string `json:"coverage"`
+	JacocoLineCovered         int    `json:"jacocoLineCovered"`
+	JacocoBranchCovered       int    `json:"jacocoBranchCovered"`
+	JacocoInstructionCovered  int    `json:"jacocoInstructionCovered"`
+	JacocoLineMissed          int    `json:"jacocoLineMissed"`
+	JacocoBranchMissed        int    `json:"jacocoBranchMissed"`
+	JacocoInstructionMissed   int    `json:"jacocoInstructionMissed"`
+	EvoSuiteLine              int    `json:"evoSuiteLine"`
+	EvoSuiteBranch            int    `json:"evoSuiteBranch"`
+	EvoSuiteException         int    `json:"evoSuiteException"`
+	EvoSuiteWeakMutation      int    `json:"evoSuiteWeakMutation"`
+	EvoSuiteOutput            int    `json:"evoSuiteOutput"`
+	EvoSuiteMethod            int    `json:"evoSuiteMethod"`
+	EvoSuiteMethodNoException int    `json:"evoSuiteMethodNoException"`
+	EvoSuiteCBranch           int    `json:"evoSuiteCBranch"`
+}
+
+type AvailableRobot struct {
+	TestClassId string `json:"testClassId"`
+	RobotType   string `json:"robotType"`
+	Difficulty  int    `json:"difficulty"`
+}
+
+type EvoSuiteCoverage struct {
+	EvoSuiteLine              int `json:"evoSuiteLine"`
+	EvoSuiteBranch            int `json:"evoSuiteBranch"`
+	EvoSuiteException         int `json:"evoSuiteException"`
+	EvoSuiteWeakMutation      int `json:"evoSuiteWeakMutation"`
+	EvoSuiteOutput            int `json:"evoSuiteOutput"`
+	EvoSuiteMethod            int `json:"evoSuiteMethod"`
+	EvoSuiteMethodNoException int `json:"evoSuiteMethodNoException"`
+	EvoSuiteCBranch           int `json:"evoSuiteCBranch"`
 }
 
 func (r CreateSingleRequest) Validate() error {
@@ -117,12 +105,26 @@ func (CustomString) Validate() error {
 
 func fromModel(r *model.Robot) *Robot {
 	return &Robot{
-		ID:          r.ID,
-		CreatedAt:   r.CreatedAt,
-		UpdatedAt:   r.UpdatedAt,
-		TestClassId: r.TestClassId,
-		Difficulty:  r.Difficulty,
-		Type:        RobotType(r.Type),
-		Scores:      r.Scores,
+		ID:                        r.ID,
+		CreatedAt:                 r.CreatedAt,
+		UpdatedAt:                 r.UpdatedAt,
+		TestClassId:               r.TestClassId,
+		Difficulty:                r.Difficulty,
+		Type:                      r.Type,
+		Coverage:                  r.Coverage,
+		JacocoLineCovered:         r.JacocoLineCovered,
+		JacocoBranchCovered:       r.JacocoBranchCovered,
+		JacocoInstructionCovered:  r.JacocoInstructionCovered,
+		JacocoLineMissed:          r.JacocoLineMissed,
+		JacocoBranchMissed:        r.JacocoBranchMissed,
+		JacocoInstructionMissed:   r.JacocoInstructionMissed,
+		EvoSuiteLine:              r.EvoSuiteLine,
+		EvoSuiteBranch:            r.EvoSuiteBranch,
+		EvoSuiteException:         r.EvoSuiteException,
+		EvoSuiteWeakMutation:      r.EvoSuiteWeakMutation,
+		EvoSuiteOutput:            r.EvoSuiteOutput,
+		EvoSuiteMethod:            r.EvoSuiteMethod,
+		EvoSuiteMethodNoException: r.EvoSuiteMethodNoException,
+		EvoSuiteCBranch:           r.EvoSuiteCBranch,
 	}
 }

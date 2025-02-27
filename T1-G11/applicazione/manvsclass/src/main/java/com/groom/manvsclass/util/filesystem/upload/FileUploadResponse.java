@@ -1,4 +1,4 @@
-package com.groom.manvsclass.model.filesystem.upload;
+package com.groom.manvsclass.util.filesystem.upload;
 
 public class FileUploadResponse {
 	private String fileName;

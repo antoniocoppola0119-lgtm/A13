@@ -2127,6 +2127,7 @@
   }
 
   function updateLineBackground(cm, lineView) {
+    //console.log("lineView: ", lineView);
     var cls = lineView.bgClass ? lineView.bgClass + " " + (lineView.line.bgClass || "") : lineView.line.bgClass;
     if (cls) { cls += " CodeMirror-linebackground"; }
     if (lineView.background) {
@@ -2163,6 +2164,7 @@
     if (built.bgClass != lineView.bgClass || built.textClass != lineView.textClass) {
       lineView.bgClass = built.bgClass;
       lineView.textClass = built.textClass;
+      console.log(lineView);
       updateLineClasses(cm, lineView);
     } else if (cls) {
       lineView.text.className = cls;
@@ -2179,6 +2181,10 @@
     lineView.text.className = textClass || "";
   }
 
+  /*
+  * Aggiunge il background alle linee di codice renderizzate
+  * per rappresentare la coverage
+  */
   function updateLineGutter(cm, lineView, lineN, dims) {
     if (lineView.gutter) {
       lineView.node.removeChild(lineView.gutter);
@@ -2190,8 +2196,8 @@
     }
     if (lineView.line.gutterClass) {
       var wrap = ensureLineWrapped(lineView);
-      lineView.gutterBackground = elt("div", null, "CodeMirror-gutter-background " + lineView.line.gutterClass,
-                                      ("left: " + (cm.options.fixedGutter ? dims.fixedPos : -dims.gutterTotalWidth) + "px; width: " + (dims.gutterTotalWidth) + "px"));
+      lineView.gutterBackground = elt("div", null, "CodeMirror-gutter-background ", //+ lineView.line.robotCoverage,
+                                      ("margin-right: 20px display: flex; gap: 10px; left: " + (cm.options.fixedGutter ? dims.fixedPos : -dims.gutterTotalWidth) + "px; width: " + (dims.gutterTotalWidth) + "px"));
       cm.display.input.setUneditable(lineView.gutterBackground);
       wrap.insertBefore(lineView.gutterBackground, lineView.text);
     }
@@ -2205,10 +2211,29 @@
       if (lineView.line.gutterClass)
         { gutterWrap.className += " " + lineView.line.gutterClass; }
       if (cm.options.lineNumbers && (!markers || !markers["CodeMirror-linenumbers"]))
-        { lineView.lineNumber = gutterWrap.appendChild(
-          elt("div", lineNumberFor(cm.options, lineN),
-              "CodeMirror-linenumber CodeMirror-gutter-elt",
-              ("left: " + (dims.gutterLeft["CodeMirror-linenumbers"]) + "px; width: " + (cm.display.lineNumInnerWidth) + "px"))); }
+        {
+          let container = elt("div", null, "CodeMirror-linenumber-container",
+            `display: flex; gap: 10px; width: ${cm.display.lineNumInnerWidth + 10}px;`);
+
+          let lineNumber1 = elt("div", lineNumberFor(cm.options, lineN),
+            "CodeMirror-linenumber CodeMirror-gutter-elt " + lineView.line.gutterClass ? lineView.line.gutterClass : "",
+            `width: ${cm.display.lineNumInnerWidth}px;`
+          );
+
+          /*
+          console.log("lineView.line.robotCoverage: ": lineView.line.robotCoverage);
+
+          let lineNumber2 = elt("div", "",
+            "CodeMirror-linenumber CodeMirror-gutter-elt " + lineView.line.robotCoverage ? lineView.line.robotCoverage : "",
+            `width: ${cm.display.lineNumInnerWidth / 2}px;`);
+
+          container.appendChild(lineNumber1);
+          container.appendChild(lineNumber2);
+          */
+
+          container.appendChild(lineNumber1);
+          lineView.lineNumber = gutterWrap.appendChild(container);
+        }
       if (markers) { for (var k = 0; k < cm.display.gutterSpecs.length; ++k) {
         var id = cm.display.gutterSpecs[k].className, found = markers.hasOwnProperty(id) && markers[id];
         if (found)
@@ -6377,16 +6402,18 @@
     },
 
     addLineClass: docMethodOp(function(handle, where, cls) {
-      return changeLine(this, handle, where == "gutter" ? "gutter" : "class", function (line) {
+      return changeLine(this, handle, where, function (line) {
         var prop = where == "text" ? "textClass"
                  : where == "background" ? "bgClass"
                  : where == "gutter" ? "gutterClass" : "wrapClass";
+
         if (!line[prop]) { line[prop] = cls; }
         else if (classTest(cls).test(line[prop])) { return false }
         else { line[prop] += " " + cls; }
         return true
       })
     }),
+
     removeLineClass: docMethodOp(function(handle, where, cls) {
       return changeLine(this, handle, where == "gutter" ? "gutter" : "class", function (line) {
         var prop = where == "text" ? "textClass"
@@ -6401,6 +6428,7 @@
           var end = found.index + found[0].length;
           line[prop] = cur.slice(0, found.index) + (!found.index || end == cur.length ? "" : " ") + cur.slice(end) || null;
         }
+
         return true
       })
     }),

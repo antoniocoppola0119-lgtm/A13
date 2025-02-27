@@ -15,7 +15,7 @@
  *   limitations under the License.
  */
 
-package com.groom.manvsclass.controller;
+package com.groom.manvsclass.service;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -35,7 +35,6 @@ import org.springframework.stereotype.Service;
 
 import com.groom.manvsclass.model.Assignment;
 import com.groom.manvsclass.model.Team;
-import com.groom.manvsclass.service.StudentService;
 
 @Service
 public class EmailService {

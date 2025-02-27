@@ -2,6 +2,7 @@ package robot
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 
 	"github.com/alarmfox/game-repository/api"
@@ -23,12 +24,28 @@ func NewRobotStorage(db *gorm.DB) *RobotStorage {
 func (rs *RobotStorage) CreateBulk(r *CreateRequest) (int, error) {
 	robots := make([]model.Robot, len(r.Robots))
 
+	log.Println(r)
+
 	for i, robot := range r.Robots {
 		robots[i] = model.Robot{
-			TestClassId: robot.TestClassId,
-			Scores:      robot.Scores,
-			Difficulty:  robot.Difficulty,
-			Type:        robot.Type.AsInt8(),
+			TestClassId:               robot.TestClassId,
+			Difficulty:                robot.Difficulty,
+			Type:                      robot.Type,
+			Coverage:                  robot.Coverage,
+			JacocoLineCovered:         robot.JacocoLineCovered,
+			JacocoBranchCovered:       robot.JacocoBranchCovered,
+			JacocoInstructionCovered:  robot.JacocoInstructionCovered,
+			JacocoLineMissed:          robot.JacocoLineMissed,
+			JacocoBranchMissed:        robot.JacocoBranchMissed,
+			JacocoInstructionMissed:   robot.JacocoInstructionMissed,
+			EvoSuiteLine:              robot.EvoSuiteLine,
+			EvoSuiteBranch:            robot.EvoSuiteBranch,
+			EvoSuiteException:         robot.EvoSuiteException,
+			EvoSuiteWeakMutation:      robot.EvoSuiteWeakMutation,
+			EvoSuiteOutput:            robot.EvoSuiteOutput,
+			EvoSuiteMethod:            robot.EvoSuiteMethod,
+			EvoSuiteMethodNoException: robot.EvoSuiteMethodNoException,
+			EvoSuiteCBranch:           robot.EvoSuiteCBranch,
 		}
 	}
 
@@ -42,46 +59,89 @@ func (rs *RobotStorage) CreateBulk(r *CreateRequest) (int, error) {
 	return len(robots), api.MakeServiceError(err)
 }
 
-func (gs *RobotStorage) FindByFilter(testClassId string, difficulty string, t RobotType) (Robot, error) {
+func (gs *RobotStorage) FindByFilter(testClassId string, difficulty string, robotType string) (Robot, error) {
 	var (
 		robot model.Robot
 		ids   []int64
 	)
 
 	err := gs.db.Transaction(func(tx *gorm.DB) error {
-		err := tx.
-			Model(&model.Robot{}).
-			Select("id").
+		query := tx.Model(&model.Robot{}).
 			Where(&model.Robot{
 				TestClassId: testClassId,
 				Difficulty:  difficulty,
+				Type:        robotType,
 			}).
-			Where("type = ? ", t.AsInt8()).
-			Find(&ids).
-			Error
+			Where("type = ?", robotType)
 
-		if err != nil {
+		// Recupera solo gli ID
+		if err := query.Select("id").Find(&ids).Error; err != nil {
 			return err
 		}
+
 		if len(ids) == 0 {
 			return gorm.ErrRecordNotFound
 		}
 		var id int64
-		switch t {
-		case evosuite:
-			id = ids[0]
-		case randoop:
-			pos := rand.Intn(len(ids))
-			id = ids[pos]
-		default:
-			return fmt.Errorf("%w: unsupported test engine", api.ErrInvalidParam)
-		}
+		pos := rand.Intn(len(ids))
+		id = ids[pos]
 
 		return tx.First(&robot, id).Error
-
 	})
 
+	//fmt.Printf("Robot extracted: %+v\n", robot)
+
 	return *fromModel(&robot), api.MakeServiceError(err)
+}
+
+func (gs *RobotStorage) GetAllAvailableRobots() ([]AvailableRobot, error) {
+	var robots []AvailableRobot
+
+	err := gs.db.Model(&model.Robot{}).
+		Select("test_class_id, type AS robot_type, difficulty").
+		Find(&robots).Error
+
+	if err != nil {
+		return nil, api.MakeServiceError(err)
+	}
+
+	if len(robots) == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+
+	//fmt.Println("Robots extracted:", robots)
+
+	return robots, nil
+}
+
+func (gs *RobotStorage) GetEvoSuiteCoverageBy(testClassId string, difficulty string, robotType string) (EvoSuiteCoverage, error) {
+	var evoSuiteCoverage EvoSuiteCoverage
+	fmt.Println("GetEvoSuiteCoverageBy")
+
+	err := gs.db.Model(&model.Robot{}).
+		Select(`
+			evo_suite_line, 
+			evo_suite_branch, 
+			evo_suite_exception, 
+			evo_suite_weak_mutation, 
+			evo_suite_output, 
+			evo_suite_method, 
+			evo_suite_method_no_exception, 
+			evo_suite_c_branch
+		`).
+		Where("test_class_id = ? AND difficulty = ? AND type = ?", testClassId, difficulty, robotType).
+		First(&evoSuiteCoverage).Error
+
+	fmt.Println("Coverage extracted:", evoSuiteCoverage)
+	fmt.Println("Error:", err)
+
+	if err != nil {
+		return EvoSuiteCoverage{}, api.MakeServiceError(err)
+	}
+
+	fmt.Printf("Coverage extracted: %v\n", evoSuiteCoverage)
+
+	return evoSuiteCoverage, nil
 }
 
 func (rs *RobotStorage) DeleteByTestClass(testClassId string) error {

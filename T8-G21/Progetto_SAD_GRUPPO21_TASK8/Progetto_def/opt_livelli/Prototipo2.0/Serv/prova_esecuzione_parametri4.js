@@ -7,6 +7,7 @@
 const http = require('http');
 const fs = require('fs');
 const { exec, fork } = require('child_process');
+const { spawn } = require('child_process');
 
 // exec, utilizzata per eseguire comandi shell; prende come input una stringa che rappresenta il comando da eseguire
 // e restituisce un oggetto ChildProcess, che rappresenta il processo figlio avviato per eseguire il comando
@@ -20,11 +21,10 @@ const { url } = require('inspector');
 console.log("(prova_esecuzione_parametri4.js) Creazione server HTTP...");
 
 const server = http.createServer((req, res) => {
-
     //Verifica che la richiesta sia presso un endpoint API controllando che l'URL inizi con /api/
     console.log("(prova_esecuzione_parametri4.js) Verifica che la richiesta sia presso un endpoint API");
 
-    if (req.url.startsWith('/api/')) {
+    if (req.url.startsWith('/api/VolumeT0')) {
 
         console.log("(prova_esecuzione_parametri4.js) endpoint /api/");
         //Imposta l'header per consentire le richieste da tutte le origini '*'
@@ -208,7 +208,7 @@ const server = http.createServer((req, res) => {
                                     res.setHeader('Content-Type', 'text/csv');
                                     res.setHeader(
                                         'Content-Disposition',
-                                        `attachment; filename="${className}.csv"`
+                                        `attachment; filename="${className}_robot.csv"`
                                     );
                                     
                                     //Send the content of the file as the body of the HTTP response
@@ -256,7 +256,9 @@ const server = http.createServer((req, res) => {
                 res.end(data);
             }
         });
-    } else if (req.url.startsWith('/remove-allenamento')) {
+    }
+
+    else if (req.url.startsWith('/remove-allenamento')) {
         // Rimozione delle cartelle di allenamento
 
         console.log("(prova_esecuzione_parametri4.js), la richiesta inizia con /remove-allenamento\n");
@@ -291,12 +293,66 @@ const server = http.createServer((req, res) => {
             res.writeHead(500, { 'Content-Type': 'text/plain' });
             res.end('Errore durante la rimozione della cartella');
         }
-    } else {
-        res.end('Richiesta http per test non andata a buon fine');
+    }
+
+    else if (req.url.startsWith("/coverage/randoop")) {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+
+        //Gestione evento ricezione dei dati della richiesta concatenando i chunk ricevuti in una stringa
+        let body = '';
+        req.on('data', chunk => {
+            body += chunk.toString(); // convert Buffer to string
+        });
+
+        //Gestione evento di completamento della ricezione dei dati della richiesta
+        req.on('end', () => {
+            const jsonBody = JSON.parse(body); // Converte la stringa in JSON
+            console.log("body: ", jsonBody);
+
+            const classUTName = jsonBody.classUTName;
+            const classUTPath = jsonBody.classUTPath;
+            const classUTPackage = jsonBody.classUTPackage;
+            const unitTestPath = jsonBody.unitTestPath;
+            const evoSuitWorkingDir = jsonBody.evoSuitWorkingDir;
+
+            console.log("sourceClassName: " + classUTName);
+            console.log("classUTPackage: " + classUTPackage);
+            console.log("sourceClassPath: " + classUTPath);
+            console.log("unitTestPath: " + unitTestPath);
+            console.log("evoSuitWorkingDir: " + evoSuitWorkingDir);
+
+            //Gestione evento di completamento della ricezione dei dati della richiesta
+            const parametri = `${classUTPath} ${classUTName} ${classUTPackage} ${unitTestPath} ${evoSuitWorkingDir}`;
+            const command = `sh coverage_randoop.sh ${parametri}`;
+
+            exec(command, (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`Errore durante l'esecuzione dello script: `, error);
+                } else {
+                    console.log(`stdout: ${stdout}`);
+                    console.log(`stderr: ${stderr}`);
+
+                    // Se non ci sono errori nello stderr, leggiamo il CSV
+                    if (stderr === "") {
+                        try {
+                            let result = {}
+                            result[classUTPackage] = fs.readFileSync(`${unitTestPath}/statistics.csv`, 'utf8')
+                            res.setHeader('Content-Type', 'application/json');
+                            console.log("Invio del contenuto aggregato in formato JSON");
+                            res.end(JSON.stringify(result, null, 2));
+                        } catch (readErr) {
+                            console.error(`Errore nella lettura del CSV per ${unitTestPath}: `, readErr);
+                        }
+                    } else {
+                        console.error(`Errore nello script: ${stderr}`);
+                    }
+                }
+            });
+        });
     }
 });
 
-const port = 3080;
+const port = 3081;
 server.listen(port, () => {
     console.log(`(prova_esecuzione_parametri4.js) Server listening on port ${port}`);
 });
