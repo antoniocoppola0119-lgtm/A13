@@ -48,8 +48,8 @@ zuul:
       url: http://t6-g12-app-1:80/run
     loadingresult-service:
       sensitiveHeaders:
-      path: /api/VolumeT8/FolderTree/**
-      url:  http://prototipo20-t8_generazione-1:3080/api/VolumeT8/FolderTree
+      path: /api/VolumeT0/FolderTree/**
+      url:  http://prototipo20-t8_generazione-1:3080/api/VolumeT0/FolderTree
     compile-and-codecoverage-service:
       sensitiveHeaders:
       path: /api/compile-and-codecoverage/**

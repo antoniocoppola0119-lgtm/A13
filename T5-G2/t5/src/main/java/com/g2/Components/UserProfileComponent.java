@@ -16,12 +16,11 @@
  */
 package com.g2.Components;
 
-import java.util.List;
+import java.util.Collections;
 import java.util.Map;
 
 import com.g2.Interfaces.ServiceManager;
 import com.g2.Model.User;
-import com.g2.Service.AchievementService;
 
 /**
  * Componente che recupera i dati del profilo utente dal servizio e li inserisce
@@ -30,10 +29,10 @@ import com.g2.Service.AchievementService;
 public class UserProfileComponent extends GenericObjectComponent {
 
     private final ServiceManager serviceManager;
-    private final AchievementService achievementService;
-    private final User user;
-    private final String playerID;
-    private final Boolean IsFriendProfile;
+    private final boolean IsFriendProfile;
+    private final String userID;
+    private final String FriendID;
+
     /**
      * Costruttore per il componente.
      *
@@ -45,17 +44,26 @@ public class UserProfileComponent extends GenericObjectComponent {
      * @param action l'azione da eseguire per ottenere il profilo.
      */
     public UserProfileComponent(ServiceManager serviceManager,
-            User user,
-            String playerID,
-            AchievementService achievementService,
-            Boolean IsFriendProfile
+            Boolean IsFriendProfile,
+            String userID
     ) {
         super(null, null);  // Il costruttore della superclasse è invocato senza parametri
         this.serviceManager = serviceManager;
-        this.user = user;
-        this.playerID = playerID;
-        this.achievementService = achievementService;
         this.IsFriendProfile = IsFriendProfile;
+        this.userID = userID;
+        this.FriendID = null;
+    }
+
+    public UserProfileComponent(ServiceManager serviceManager,
+            Boolean IsFriendProfile,
+            String userID,
+            String FriendID
+    ) {
+        super(null, null);  // Il costruttore della superclasse è invocato senza parametri
+        this.serviceManager = serviceManager;
+        this.IsFriendProfile = IsFriendProfile;
+        this.userID = userID;
+        this.FriendID = FriendID;
     }
 
     /**
@@ -64,26 +72,26 @@ public class UserProfileComponent extends GenericObjectComponent {
      *
      * @return una mappa con i dati del profilo utente.
      */
-    @SuppressWarnings("unchecked")
     @Override
     public Map<String, Object> getModel() {
         try {
             // Inserisce i dati del profilo utente nel modello con la chiave specificata
-            this.Model.put("user", this.user);
-            // Ottieni follower e following
-            List<User> followersList = (List<User>) serviceManager.handleRequest("T23", "getFollowers", this.playerID);
-            List<User> followingList = (List<User>) serviceManager.handleRequest("T23", "getFollowing", this.playerID);
-            this.Model.put("followersList", followersList);
-            this.Model.put("followingList", followingList);
+            User user = serviceManager.handleRequest("T23", "GetUser", User.class, this.userID);
+            if (this.IsFriendProfile) {
+                User FriendUser = (User) serviceManager.handleRequest("T23", "GetUser", this.FriendID);
+                this.Model.put("user", FriendUser);
+                this.Model.put("viewID", user.getUserProfile().getId());
+            } else {
+                // profilo privato dell'utente 
+                this.Model.put("user", user);
+                this.Model.put("viewID", null);
+            }
+            this.Model.put("isFriendProfile", IsFriendProfile);
             return this.Model;
         } catch (Exception e) {
             // Gestione delle eccezioni, ad esempio log dell'errore
             System.err.println("[UserProfileComponent]Errore durante il recupero del profilo utente: " + e.getMessage());
-            return null;
+            return Collections.emptyMap();
         }
-    }
-
-    public String getUserId() {
-        return playerID;
     }
 }

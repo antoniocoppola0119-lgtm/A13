@@ -158,11 +158,12 @@ Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robotEvoSuiteCoverage[7])}
 	return consoleText;
 }
 
+ 
 function roundToTwoDecimals(numStr) {
 	return (Math.round(parseFloat(numStr * 100)) / 100).toFixed(2);
 }
 
-function getConsoleTextRun(valori_csv, robotEvoSuiteCoverage, coverageDetails, robotJacocoCoverage, gameScore, robotScore) {
+function getConsoleTextRun(valori_csv, robotEvoSuiteCoverage, coverageDetails, robotJacocoCoverage, gameScore, robotScore, isWinner) {
 	let lineCoveragePercentage = roundToTwoDecimals(coverageDetails.line.covered / (coverageDetails.line.covered + coverageDetails.line.missed) * 100);
 	let BranchCoveragePercentage = roundToTwoDecimals(coverageDetails.branch.covered / (coverageDetails.branch.covered + coverageDetails.branch.missed) * 100);
 	let instructionCoveragePercentage = roundToTwoDecimals(coverageDetails.instruction.covered / (coverageDetails.instruction.covered + coverageDetails.instruction.missed) * 100);
@@ -381,21 +382,9 @@ function highlightCodeCoverage(reportContent, robotContent, editor) {
 // Funzione per ottenere i dati del form da inviare
 function getFormData() {
 	const formData = new FormData();
-	const className = localStorage.getItem("underTestClassName");
-
-	//formData.append("testingClassName", `Test${className}.java`);
 	formData.append("testingClassCode", editor_utente.getValue());
-	formData.append("underTestClassName", `${className}.java`);
-	formData.append("underTestClassCode", editor_robot.getValue());
-	formData.append("className", className);
 	formData.append("playerId", String(parseJwt(getCookie("jwt")).userId));
-	formData.append("turnId", localStorage.getItem("turnId"));
-	formData.append("difficulty", localStorage.getItem("difficulty"));
-	formData.append("type", localStorage.getItem("robot"));
-	formData.append("order", orderTurno);
-	formData.append("username", localStorage.getItem("username"));
-	formData.append("testClassId", className);
-	formData.append("eliminaGame", false);
+	formData.append("mode", "sfida"); //Gestire modalità di gioco 
 	return formData;
 }
 

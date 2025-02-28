@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.client.RestTemplate;
 
 import com.g2.Components.GenericObjectComponent;
 import com.g2.Components.PageBuilder;
@@ -33,48 +32,44 @@ import com.g2.Service.AchievementService;
 public class UserProfileController {
 
     private final ServiceManager serviceManager;
-    @Autowired
     private AchievementService achievementService;
 
-    public UserProfileController(RestTemplate restTemplate) {
-        this.serviceManager = new ServiceManager(restTemplate);
+    @Autowired
+    public UserProfileController(ServiceManager serviceManager, AchievementService achievementService) {
+        this.serviceManager = serviceManager;
+        this.achievementService = achievementService;
+    }
+
+    @GetMapping("/SearchFriend")
+    public String search_page(Model model, @CookieValue(name = "jwt", required = false) String jwt){
+        PageBuilder search_page = new PageBuilder(serviceManager, "search", model, jwt);
+        search_page.SetAuth();  // Gestisce l'autenticazione
+        return search_page.handlePageRequest();
     }
 
     @GetMapping("/profile")
     public String profilePagePersonal(Model model, @CookieValue(name = "jwt", required = false) String jwt) {
-        return handleProfileRequest(model, jwt, null);
+        PageBuilder profile = new PageBuilder(serviceManager, "profile", model, jwt);
+        profile.SetAuth();  // Gestisce l'autenticazione
+        String userId = profile.getUserId();
+        profile.setObjectComponents(new UserProfileComponent(serviceManager,false, userId));
+        return profile.handlePageRequest();
     }
 
     @GetMapping("/friend/{playerID}")
     public String friendProfilePage(Model model, @PathVariable("playerID") String playerID, @CookieValue(name = "jwt", required = false) String jwt) {
-        return handleProfileRequest(model, jwt, playerID);
-    }
-
-    private String handleProfileRequest(Model model, String jwt, String playerID) {
-        // Se il playerID è null, significa che stiamo gestendo il profilo dell'utente corrente
         PageBuilder profile = new PageBuilder(serviceManager, "profile", model, jwt);
         profile.SetAuth();  // Gestisce l'autenticazione
-
-        String userId = (playerID != null) ? playerID : profile.getUserId();
-        if (userId == null) {
-            // Gestisci errore se l'ID non è valido
-            return "error";
+        
+        String userId = profile.getUserId();
+        if(userId.equals(playerID)){
+            return "redirect:/profile";
         }
 
-        // Recupera l'utente con l'ID specificato
-        User user = (User) serviceManager.handleRequest("T23", "GetUser", userId);
-        if (user == null) {
-            // Gestisci caso in cui l'utente non esiste
-            return "error";
-        }
-
-        // Aggiungi il componente del profilo dell'utente
-        boolean isFriendProfile = playerID != null; // Se playerID è null, è il profilo dell'utente
         profile.setObjectComponents(
-                new UserProfileComponent(serviceManager, user, userId, achievementService, isFriendProfile)
-        );
-
-        return profile.handlePageRequest();
+            new UserProfileComponent(serviceManager, true, userId, playerID)
+        );    
+        return profile.handlePageRequest();      
     }
 
     @GetMapping("/Team")
@@ -83,12 +78,12 @@ public class UserProfileController {
         TeamPage.SetAuth();
 
         ResponseTeamComplete team = (ResponseTeamComplete) serviceManager.handleRequest("T1", "OttieniTeamCompleto", TeamPage.getUserId());
-        @SuppressWarnings("unchecked")
-        List<User> membri = (List<User>) serviceManager.handleRequest("T23", "GetUsersByList", team.getTeam().getStudenti());
-
-        model.addAttribute("response", team);
-        model.addAttribute("membri", membri);
-
+        if(team != null){
+            @SuppressWarnings("unchecked")
+            List<User> membri = (List<User>) serviceManager.handleRequest("T23", "GetUsersByList", team.getTeam().getStudenti());
+            model.addAttribute("response", team);
+            model.addAttribute("membri", membri);
+        }
         return TeamPage.handlePageRequest();
     }
 
@@ -113,13 +108,19 @@ public class UserProfileController {
         return achievement.handlePageRequest();
     }
 
-    @GetMapping("/notification")
+    @GetMapping("/Notification")
     public String ProfileNotificationPage(Model model, @CookieValue(name = "jwt", required = false) String jwt) {
         PageBuilder notification = new PageBuilder(serviceManager, "notification", model, jwt);
         notification.SetAuth();
         return "notification";
     }
 
+    @GetMapping("/Games")
+    public String profile_game(Model model, @CookieValue(name = "jwt", required = false) String jwt){
+        PageBuilder Games = new PageBuilder(serviceManager, "GameHistory", model, jwt);
+        Games.SetAuth();
+        return "GameHistory"; 
+    }
     /*
      *    TENERE QUESTA CHIAMATA SOLO PER DEBUG DA DISATTIVARE 
      * 
@@ -131,35 +132,12 @@ public class UserProfileController {
 
         PageBuilder profile = new PageBuilder(serviceManager, "profile", model);
         profile.SetAuth(jwt);
-        User user = (User) serviceManager.handleRequest("T23", "GetUser", playerID);
-        if (user == null) {
-            //Qua gestisco utente sbagliato
-        }
         profile.setObjectComponents(
-                new UserProfileComponent(serviceManager, user, playerID, achievementService, false)
+                new UserProfileComponent(serviceManager, false, playerID)
         );
         return profile.handlePageRequest();
     }
 
-    // @GetMapping("/friend/{playerID}")
-    // public String friendProfilePage(Model model, @PathVariable(value = "playerID") String playerID, 
-    //                                 @CookieValue(name = "jwt", required = false) String jwt) {
-    //     PageBuilder profile = new PageBuilder(serviceManager, "friend_profile", model, jwt);
-    //     profile.SetAuth();
-    //     User Friend_user = (User) serviceManager.handleRequest("T23", "GetUser", playerID);
-    //     if (Friend_user == null) {
-    //         //Qua gestisco utente sbagliato
-    //         return "error";
-    //     }
-    //     User user = (User) serviceManager.handleRequest("T23", "GetUser", profile.getUserId());
-    //     boolean isFollowing = Friend_user.getFollowersList().contains(user.getUserProfile().getID());
-    //     profile.setObjectComponents(
-    //             new UserProfileComponent(serviceManager, Friend_user, playerID, achievementService, true),
-    //             new GenericObjectComponent("isFollowing", isFollowing),
-    //             new GenericObjectComponent("userId", playerID)
-    //     );
-    //     return profile.handlePageRequest();
-    // }
     /*
          * Andrebbe gestito che ogni uno può mettere la foto che vuole con i tipi Blob nel DB
      */
