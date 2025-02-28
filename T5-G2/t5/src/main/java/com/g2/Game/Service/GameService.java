@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,53 +45,13 @@ public class GameService {
 
     /*
     *  Sfrutto T4 per avere i risultati dei robot
-     */
-    private int GetRobotScore(String testClass, String robot_type, String difficulty) {
-        logger.info("getRobotScore: Richiesta punteggio robot per testClass={}, robotType={}, difficulty={}.", testClass, robot_type, difficulty);
+    */
+    private CompileResult GetRobotCoverage(String testClass, String robot_type, String difficulty) {
         try {
-            String response_T4 = serviceManager.handleRequest("T4", "GetRisultati", String.class,
-                    testClass, robot_type, difficulty);
-
-            JSONObject jsonObject = new JSONObject(response_T4);
-            return jsonObject.getInt("scores");
-        } catch (JSONException e) {
-            logger.error("[GAMECONTROLLER] GetRobotScore: Errore nel parsing della risposta JSON", e);
-            throw new RuntimeException("Errore durante l'elaborazione della risposta del robot", e);
+            logger.info("Richiesta Coverage robot per testClass={}, robotType={}, difficulty={}.", testClass, robot_type, difficulty);
+            return new CompileResult(serviceManager, testClass, robot_type, difficulty);            
         } catch (Exception e) {
-            logger.error("[GAMECONTROLLER] GetRobotScore: Errore generico nella richiesta a T4", e);
-            throw new RuntimeException("Errore durante il recupero del punteggio del robot", e);
-        }
-    }
-
-    private JSONObject GetRobotCoverage(String testClass, String robot_type, String difficulty) {
-        try {
-            logger.info(robot_type);
-
-            String response_T4 = (String) serviceManager.handleRequest("T4", "GetRisultati",
-                    testClass, robot_type, difficulty);
-
-            JSONObject jsonObject = new JSONObject(response_T4);
-            JSONObject robotCoverage = new JSONObject();
-
-            JSONObject coverageDetails = new JSONObject();
-            coverageDetails.put("coverage", jsonObject.get("coverage"));
-            coverageDetails.put("line", new JSONObject()
-                    .put("covered", jsonObject.get("jacocoLineCovered"))
-                    .put("missed", jsonObject.get("jacocoLineMissed")));
-            coverageDetails.put("branch", new JSONObject()
-                    .put("covered", jsonObject.get("jacocoBranchCovered"))
-                    .put("missed", jsonObject.get("jacocoBranchMissed")));
-            coverageDetails.put("instruction", new JSONObject()
-                    .put("covered", jsonObject.get("jacocoInstructionCovered"))
-                    .put("missed", jsonObject.get("jacocoInstructionMissed")));
-            // Aggiungi l'oggetto di copertura al risultato finale
-            robotCoverage.put("robotCoverage", coverageDetails);
-
-            logger.info(jsonObject.toString());
-            //anche se scritto al plurale scores è un solo punteggio, cioè quello del robot
-            return robotCoverage;
-        } catch (Exception e) {
-            logger.error("[GAMECONTROLLER] GetRobotScore:", e);
+            logger.error("[GAMECONTROLLER] GetRobotCoverage:", e);
             return null;
         }
     }
@@ -152,26 +110,28 @@ public class GameService {
         return new CompileResult(Classname, testingClassCode, this.serviceManager);
     }
 
-    public GameResponseDTO handleGameLogic(CompileResult compileResult, GameLogic currentGame, Boolean isGameEnd) {
+    public GameResponseDTO handleGameLogic(CompileResult UsercompileResult, GameLogic currentGame, Boolean isGameEnd) {
         logger.info("handleGameLogic: Avvio logica di gioco per playerId={}.", currentGame.getPlayerID());
         /*
          *  Lo score è definito dalle performance del file XML del test 
          */
-        int userscore = currentGame.GetScore(compileResult);
-        JSONObject robotScore = GetRobotCoverage(currentGame.getClasseUT(), currentGame.getType_robot(), currentGame.getDifficulty());
+        CompileResult RobotCompileResult = GetRobotCoverage(currentGame.getClasseUT(), currentGame.getType_robot(), currentGame.getDifficulty());
+        
+        int userScore = currentGame.GetScore(UsercompileResult);
+        int robotScore = currentGame.GetScore(RobotCompileResult);
         /*
          *  Avanzo nel gioco 
          */
-        currentGame.NextTurn(userscore, robotScore);
+        currentGame.NextTurn(userScore, robotScore);
         Boolean gameFinished = isGameEnd || currentGame.isGameEnd();
         logger.info("handleGameLogic: Stato partita (gameFinished={}) per playerId={}.", gameFinished, currentGame.getPlayerID());
         if (gameFinished) {
             logger.info("handleGameLogic: Partita terminata per playerId={}. Avvio aggiornamento progressi e notifiche.", currentGame.getPlayerID());
             updateProgressAndNotifications(currentGame.getPlayerID());
-            EndGame(currentGame, userscore);
+            EndGame(currentGame, userScore);
         }
         logger.info("handleGameLogic: Risposta creata per playerId={}.", currentGame.getPlayerID());
-        return createResponseRun(compileResult, gameFinished, robotScore, userscore, currentGame.isWinner());
+        return createResponseRun(UsercompileResult, gameFinished, robotScore, userScore, currentGame.isWinner());
     }
 
     public void EndGame(GameLogic currentGame, int userscore) {
