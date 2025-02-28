@@ -16,6 +16,9 @@
  */
 package com.g2.Game;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,6 +41,8 @@ import com.g2.Game.GameModes.GameLogic;
 import com.g2.Game.Service.Exceptions.GameAlreadyExistsException;
 import com.g2.Game.Service.Exceptions.GameDontExistsException;
 import com.g2.Game.Service.GameServiceManager;
+
+import jakarta.validation.Valid;
 
 //Qui introduco tutte le chiamate REST per la logica di gioco/editor
 @CrossOrigin
@@ -70,7 +77,7 @@ public class GameController {
      *  se non esiste instanzia un nuovo gioco 
      */
     @PostMapping("/StartGame")
-    public ResponseEntity<StartGameResponseDTO> startGame(@RequestBody StartGameRequestDTO request) {
+    public ResponseEntity<StartGameResponseDTO> startGame(@Valid @RequestBody StartGameRequestDTO request) {
         try {
             // Mappare il DTO nel modello di dominio
             GameLogic game = gameServiceManager.CreateGameLogic(
@@ -87,7 +94,27 @@ public class GameController {
             logger.error("[GAMECONTROLLER][StartGame] " + e.getMessage());
             StartGameResponseDTO response = new StartGameResponseDTO(-1, "GameAlreadyExistsException");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        } catch (Exception e) {
+            logger.error("[GAMECONTROLLER][StartGame] Unexpected error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new StartGameResponseDTO(-1, "Internal Server Error"));
         }
+    }
+
+    /*
+     * Handler eccezione campi non validi 
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        /*
+         * Ottengo gli errori per ogni binding di un json e popolo la mappa così posso poi inviarla 
+         */
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+            errors.put(error.getField(), error.getDefaultMessage())
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 
 

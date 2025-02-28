@@ -43,25 +43,25 @@ public class GameServiceManager {
         /*
          * Compilo il test dell'utente  
          */
-        CompileResult compile = compileGame(currentGame, testingClassCode);
-        if (compile == null) {
+        CompileResult Usercompile = compileGame(currentGame, testingClassCode);
+        if (Usercompile == null) {
             throw new RuntimeException("compile is null");
         }
         /*
         *   getSuccess() mi dà l'esito della compilazione => se l'utente ha scritto un test senza errori 
-         */
-        if (compile.getSuccess()) {
+        */
+        if (Usercompile.getSuccess()) {
             /*
             *  vado avanti col gioco 
             *  restituisce l'oggetto json che rispecchia lo stato del game
             *  l'utente può imporre la fine del gioco con isGameEnd
              */
-            return gameService.handleGameLogic(compile, currentGame, isGameEnd);
+            return gameService.handleGameLogic(Usercompile, currentGame, isGameEnd);
         } else {
             /*
              * Restituisco un Json solo con info parziali 
              */
-            return gameService.createResponseRun(compile, false, 0, 0, false);
+            return gameService.createResponseRun(Usercompile, false, 0, 0, false);
         }
     }
 

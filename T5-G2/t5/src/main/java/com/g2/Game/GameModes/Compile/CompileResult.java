@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import com.g2.Interfaces.ServiceManager;
 
 public class CompileResult {
+
     /*
      * Campi 
      */
@@ -14,7 +15,7 @@ public class CompileResult {
     private final String XML_coverage;
 
     private CoverageResult LineCoverage = null;
-    private CoverageResult BranchCoverage = null; 
+    private CoverageResult BranchCoverage = null;
     private CoverageResult InstructionCoverage = null;
     /*
      * Servizi usati 
@@ -28,13 +29,13 @@ public class CompileResult {
     // Costruttore con XML coverage
     public CompileResult(String XML_coverage, String compileOutput, CoverageService coverageService, ServiceManager serviceManager) {
         this.serviceManager = serviceManager;
-        this.coverageService = coverageService; // Salvo il servizio
+        this.coverageService = coverageService;
         this.compileOutput = compileOutput;
         this.XML_coverage = XML_coverage;
         calculateCoverage(); // Calcola coverage
     }
 
-    // Costruttore con richiesta a T1 e T7
+    // Costruttore con richiesta a T1 e T7 per l'utente 
     public CompileResult(String ClassName, String testingClassCode, ServiceManager serviceManager) {
         String testingClassName = "Test" + ClassName + ".java";
         String underTestClassName = ClassName + ".java";
@@ -51,18 +52,45 @@ public class CompileResult {
         calculateCoverage(); // Calcolo coverage
     }
 
+    // Costruttore che chiama T4 per i robot 
+    public CompileResult(ServiceManager serviceManager, String testClass, String robot_type, String difficulty) {
+        this.serviceManager = serviceManager;
+        String response_T4 = this.serviceManager.handleRequest("T4", "GetRisultati",
+                String.class, testClass, robot_type, difficulty);
+
+        JSONObject JsonResponseT4 = new JSONObject(response_T4);
+
+        this.XML_coverage = JsonResponseT4.get("coverage").toString();
+        this.compileOutput = "Robot no console output";
+        this.coverageService = null;
+
+        this.LineCoverage = new CoverageResult(
+                JsonResponseT4.getInt("jacocoLineCovered"),
+                JsonResponseT4.getInt("jacocoLineMissed")
+        );
+
+        this.BranchCoverage = new CoverageResult(
+                JsonResponseT4.getInt("jacocoBranchCovered"),
+                JsonResponseT4.getInt("jacocoBranchMissed")
+        );
+
+        this.InstructionCoverage = new CoverageResult(
+                JsonResponseT4.getInt("jacocoInstructionCovered"),
+                JsonResponseT4.getInt("jacocoInstructionMissed")
+        );
+    }
+
     private void calculateCoverage() {
         if (this.XML_coverage != null) {
             this.LineCoverage = coverageService.getCoverage(this.XML_coverage, "LINE");
             this.BranchCoverage = coverageService.getCoverage(this.XML_coverage, "BRANCH");
             this.InstructionCoverage = coverageService.getCoverage(this.XML_coverage, "INSTRUCTION");
-        }else{
+        } else {
             logger.warn("XML coverage è nulla. Coverage results sarà nulla");
         }
     }
 
-
-    public Boolean getSuccess(){
+    public Boolean getSuccess() {
         //Se true Il test dell'utente è stato compilato => nessun errore di compilazione nel test
         return !(getXML_coverage() == null || getXML_coverage().isEmpty());
     }
