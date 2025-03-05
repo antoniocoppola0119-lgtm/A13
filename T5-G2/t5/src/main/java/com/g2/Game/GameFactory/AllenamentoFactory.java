@@ -1,4 +1,4 @@
-package com.g2.Game.GameFactory.ModesFactories;
+package com.g2.Game.GameFactory;
 
 import org.springframework.stereotype.Component;
 
@@ -17,3 +17,4 @@ public class AllenamentoFactory implements GameFactoryFunction {
         return new Allenamento(null, playerId, underTestClassName, type_robot, difficulty, "Allenamento");
     }
 }
+

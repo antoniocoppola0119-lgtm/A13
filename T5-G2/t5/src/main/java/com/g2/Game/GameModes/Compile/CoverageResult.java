@@ -3,7 +3,6 @@ package com.g2.Game.GameModes.Compile;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CoverageResult {
-
     @JsonProperty("covered")
     private final int covered;
     @JsonProperty("missed")

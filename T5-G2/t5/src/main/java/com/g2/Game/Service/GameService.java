@@ -1,8 +1,6 @@
 package com.g2.Game.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,81 +11,84 @@ import com.g2.Game.GameDTO.GameResponseDTO;
 import com.g2.Game.GameFactory.GameRegistry;
 import com.g2.Game.GameModes.Compile.CompileResult;
 import com.g2.Game.GameModes.GameLogic;
-import com.g2.Game.Service.Exceptions.GameAlreadyExistsException;
-import com.g2.Game.Service.Exceptions.GameDontExistsException;
 import com.g2.Interfaces.ServiceManager;
 import com.g2.Model.AchievementProgress;
 import com.g2.Model.User;
 import com.g2.Service.AchievementService;
+import com.g2.Session.Exceptions.GameModeAlreadyExist;
+import com.g2.Session.Exceptions.GameModeDontExist;
+import com.g2.Session.Exceptions.SessionDontExist;
+import com.g2.Session.SessionService;
 
 @Service
 public class GameService {
+
     private final ServiceManager serviceManager;
     private final GameRegistry gameRegistry;
     private final AchievementService achievementService;
-    //Gestisco qui tutti i giochi aperti sostituire con la sessione;
-    private final Map<String, GameLogic> activeGames;
-    //Logger
+    private final SessionService sessionService;
     private static final Logger logger = LoggerFactory.getLogger(GameService.class);
 
     @Autowired
-    public GameService(
-            ServiceManager serviceManager,
+    public GameService(ServiceManager serviceManager,
             GameRegistry gameRegistry,
-            AchievementService achievementService
-    ) {
+            AchievementService achievementService,
+            SessionService sessionService) {
         this.serviceManager = serviceManager;
-        this.activeGames = new ConcurrentHashMap<>();
         this.gameRegistry = gameRegistry;
         this.achievementService = achievementService;
+        this.sessionService = sessionService;
     }
 
-    public GameLogic CreateGame(String playerId, String mode,
+    // creare modello updateGame
+    public GameLogic CreateGame(String playerId,
+            String mode,
             String underTestClassName,
             String type_robot,
-            String difficulty) throws GameAlreadyExistsException {
+            String difficulty) throws GameModeAlreadyExist {
         try {
-            GetGame(mode, playerId);
-            logger.error("createGame: Esiste già una partita per il playerId={}.", playerId);
-            throw new GameAlreadyExistsException("Esiste già una partita per il giocatore con ID: " + playerId);
-        } catch (GameDontExistsException e) {
-            //Il game non esiste se lo cerco -> Posso creare la nuova partita
             /*
-             * gameRegistry istanzia dinamicamente uno degli oggetti gameLogic (sfida, allenamento, scalata e ecc)
-             * basta passargli il campo mode e dinamicamente se ne occupa lui  
+            * gameRegistry istanzia dinamicamente uno degli oggetti gameLogic (sfida, allenamento, scalata e ecc)
+            * basta passargli il campo mode e dinamicamente se ne occupa lui  
              */
             GameLogic gameLogic = gameRegistry.createGame(mode, serviceManager, playerId, underTestClassName, type_robot, difficulty);
-            activeGames.put(playerId, gameLogic);
             /*
-             * Salvo su T4
+             * Creo nella sessione i dati di gioco 
+             */
+            sessionService.SetGameMode(playerId, gameLogic, null);
+            /*
+             * Salvo il game in T4
              */
             gameLogic.CreateGame();
             logger.info("createGame: Inizio creazione partita per playerId={}, mode={}.", playerId, mode);
             return gameLogic;
+        } catch (SessionDontExist e) {
+            logger.info("createGame: SessionDontExist per playerId={}, mode={}.", playerId, mode);
+        } catch (Exception e) {
+            logger.info("createGame: Exception per playerId={}, mode={}.", playerId, mode);
+        }
+        return null;
+    }
+
+    public GameLogic GetGame(String mode, String playerId) throws GameModeDontExist {
+        try {
+            logger.info("getGame: Recupero partita per playerId={}, mode={}.", playerId, mode);
+            GameLogic game = sessionService.getGameMode(playerId, mode);
+            game.setServiceManager(serviceManager);
+            logger.info("getGame: Partita recuperata con successo per playerId={} e modalità={}.", playerId, mode);
+            return game;
+        } catch ( SessionDontExist e) {
+            throw new GameModeDontExist("Game don't exist ");
         }
     }
 
-    /*
-    *     Recupero il Game 
-     */
-    public GameLogic GetGame(String mode, String playerId) throws GameDontExistsException {
-        logger.info("getGame: Recupero partita per playerId={}, mode={}.", playerId, mode);
-        GameLogic gameLogic = activeGames.get(playerId);
-        if (gameLogic == null) {
-            logger.error("getGame: Nessuna partita trovata per playerId={}, mode={}.", playerId, mode);
-            throw new GameDontExistsException("Non esiste un game per il giocatore con ID: " + playerId + "con modalità: " + mode);
+    public boolean destroyGame(String playerId, String mode) {
+        try {
+            sessionService.removeGameMode(playerId, mode, null);
+            return true;
+        } catch (Exception e) {
+            return false;
         }
-        logger.info("getGame: Partita recuperata con successo per playerId={}.", playerId);
-        return gameLogic;
-    }
-
-    /*
-    * Elimina un game
-     */
-    public Boolean destroyGame(String playerId) {
-        activeGames.remove(playerId);
-        logger.info("destroyGame: Distruzione partita per playerId={}.", playerId);
-        return true;
     }
 
     public CompileResult handleCompile(String Classname, String testingClassCode) {
@@ -102,12 +103,12 @@ public class GameService {
         try {
             logger.info("Richiesta Coverage robot per testClass={}, robotType={}, difficulty={}.",
                     currentGame.getClasseUT(),
-                    currentGame.getType_robot(),
+                    currentGame.getTypeRobot(),
                     currentGame.getDifficulty()
             );
             return new CompileResult(serviceManager,
                     currentGame.getClasseUT(),
-                    currentGame.getType_robot(),
+                    currentGame.getTypeRobot(),
                     currentGame.getDifficulty()
             );
         } catch (Exception e) {
@@ -142,8 +143,9 @@ public class GameService {
         }
         /*
         *   Preparo il DTO di Risposta 
-        */
+         */
         logger.info("createResponseRun: Creazione risposta per la partita (gameFinished={}, userScore={}, robotScore={}).", gameFinished, userScore, robotScore);
+        // metodo "UpdateGame"
         return new GameResponseDTO(
                 UsercompileResult,
                 RobotcompileResult,
@@ -156,11 +158,15 @@ public class GameService {
 
     public void EndGame(GameLogic currentGame, int userscore) {
         logger.info("endGame: Terminazione partita per playerId={}.", currentGame.getPlayerID());
-        //L'utente ha deciso di terminare o la modalità è arrivata al termine 
-        //Salvo la partita  
+        /*
+        *   L'utente ha deciso di terminare la partita o 
+        *    la modalità di gioco ha determianto il termine
+        *   Salvo la partita 
+        *   Distruggo la partita salvata in sessione  
+         */
         currentGame.EndRound();
         currentGame.EndGame(userscore);
-        destroyGame(currentGame.getPlayerID());
+        destroyGame(currentGame.getPlayerID(), currentGame.getMode());
     }
 
     //Gestione Trofei e notifiche
