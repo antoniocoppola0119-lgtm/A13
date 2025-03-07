@@ -1,9 +1,10 @@
 package com.g2.Session;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -17,39 +18,44 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @Configuration
 public class RedisConfig {
 
-    private final String redisHost = "host.docker.internal";
-    private final int redisPort = 6379;
+    @Value("${REDIS_HOST:redis}") // Se non specificato, usa "redis"
+    private String redisHost;
+
+    @Value("${REDIS_PORT:6379}") // Se non specificato, usa 6379
+    private int redisPort;
 
     @Bean
-    public JedisConnectionFactory jedisConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisHost, redisPort);
-        return new JedisConnectionFactory(config);
+    public LettuceConnectionFactory redisConnectionFactory() {
+        return new LettuceConnectionFactory(new RedisStandaloneConfiguration(redisHost, redisPort));
     }
 
     @Bean
-    public RedisTemplate<String, Sessione> redisTemplate() {
-        RedisTemplate<String, Sessione> template = new RedisTemplate<>();
-        template.setConnectionFactory(jedisConnectionFactory());
-
-        // Serializer per le chiavi
-        template.setKeySerializer(new StringRedisSerializer());
-
-        // Configuriamo un ObjectMapper che registri il modulo JavaTimeModule
-        // e attivi il typing predefinito per includere le informazioni di tipo.
+    public ObjectMapper redisObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        // Attiva il default typing per includere il metadato del tipo (NON_FINAL per tutti i tipi non final)
         mapper.activateDefaultTyping(
                 LaissezFaireSubTypeValidator.instance,
                 ObjectMapper.DefaultTyping.NON_FINAL,
                 JsonTypeInfo.As.PROPERTY
         );
+        return mapper;
+    }
 
+    @Bean
+    public RedisTemplate<String, Sessione> redisTemplate(LettuceConnectionFactory redisConnectionFactory, ObjectMapper redisObjectMapper) {
+        RedisTemplate<String, Sessione> template = new RedisTemplate<>();
+        template.setConnectionFactory(redisConnectionFactory);
+
+        // Serializer per le chiavi
+        template.setKeySerializer(new StringRedisSerializer());
+
+        StringRedisSerializer stringSerializer = new StringRedisSerializer();
         // Creiamo il serializer usando l'ObjectMapper configurato
-        GenericJackson2JsonRedisSerializer valueSerializer = new GenericJackson2JsonRedisSerializer(mapper);
+        GenericJackson2JsonRedisSerializer valueSerializer = new GenericJackson2JsonRedisSerializer(redisObjectMapper);
+        template.setKeySerializer(stringSerializer);
         template.setValueSerializer(valueSerializer);
-        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashKeySerializer(stringSerializer);
         template.setHashValueSerializer(valueSerializer);
 
         template.afterPropertiesSet();

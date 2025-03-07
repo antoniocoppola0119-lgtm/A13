@@ -21,6 +21,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.g2.Game.GameModes.Compile.CompileResult;
 import com.g2.Interfaces.ServiceManager;
@@ -28,8 +29,11 @@ import com.g2.Interfaces.ServiceManager;
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public class Sfida extends GameLogic {
 
+    @JsonProperty("currentTurn")
     private int currentTurn;
+    @JsonProperty("userScore")
     private int userScore;
+    @JsonProperty("robotScore")
     private int robotScore;
 
     public Sfida(){

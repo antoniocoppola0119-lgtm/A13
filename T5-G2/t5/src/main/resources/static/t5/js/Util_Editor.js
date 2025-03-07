@@ -156,7 +156,6 @@ Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robotEvoSuiteCoverage[7])}
 	return consoleText;
 }
 
- 
 function roundToTwoDecimals(numStr) {
 	return (Math.round(parseFloat(numStr * 100)) / 100).toFixed(2);
 }
@@ -226,47 +225,6 @@ function getConsoleTextError(){
 			+ error +  "\n" +
 			`============================== Results =============================== \n
 			Ci sono stati errori di compilazione, controlla la console !`;
-}
-
-// === FUNZIONI PER LA SESSIONE ===
-async function fetchPreviousGameData() {
-    const playerId = String(parseJwt(getCookie("jwt")).userId);
-    const current_mode = GetMode();
-    try {
-        const response = await fetch(`/session/${playerId}`);
-        const data = await response.json();
-        if (
-            data && 
-            data.modalita &&
-            data.modalita[current_mode] && 
-            data.modalita[current_mode].gameobject) 
-        {
-            console.log("[fetchPreviousGameData] Trovato gameobject per la modalità " + current_mode + ":", data.modalita[current_mode].gameobject);
-            return data.modalita[current_mode].gameobject;
-        }
-        return null;
-    } catch (error) {
-        console.error("Errore durante il recupero della sessione:", error);
-        return null;
-    }
-}
-
-async function getFormData() {
-	const formData = new FormData();
-    const gameObject = await fetchPreviousGameData();
-    if (gameObject) {
-        console.log("[getFormData] Recuperato game object dalla sessione:", gameObject);
-        formData.append("playerId", gameObject.player_id);
-        formData.append("mode", gameObject.mode.toLowerCase());
-        formData.append("underTestClassName", gameObject.class_ut);
-        if (gameObject.game_id) formData.append("gameId", gameObject.game_id);
-        if (gameObject.round_id) formData.append("roundId", gameObject.round_id);
-        formData.append("testingClassCode", editor_utente.getValue());
-    } else {
-        console.warn("[getFormData] Nessun game object trovato in sessione;");
-    }
-
-	return formData;
 }
 
 // Funzione per analizzare l'output di Maven
@@ -556,9 +514,6 @@ async function ajaxRequest_ForRun(
 }
 
 
-
-
-
 function controlloScalata(
 	iswin,
 	current_round_scalata,
@@ -713,14 +668,13 @@ function getParameterByName(name) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
-//DA CONTROLLARE
 function GetMode() {
     const mode = getParameterByName("mode");
     if (mode) {
-        const trimmed = mode.replace(/[^a-zA-Z0-9\s]/g, " ").trim();
-        return (trimmed.toLowerCase() === "sfida") ? "Sfida" : trimmed;
+        const cleanedMode = mode.replace(/[^\w]/g, "").trim(); // Rimuove caratteri non alfanumerici
+        return cleanedMode;
     }
-    return "Sfida";
+    return null;
 }
 
 // modal info

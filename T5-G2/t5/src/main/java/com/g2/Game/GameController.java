@@ -46,7 +46,6 @@ import com.g2.Session.Exceptions.GameModeDontExist;
 @CrossOrigin
 @RestController
 public class GameController {
-
     /*
      * Interfaccia per gestire gli endpoint
      */
@@ -82,9 +81,6 @@ public class GameController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new StartGameResponseDTO(-1, "Request body is missing"));
         }
 
-        String userId = request.getPlayerId();
-        logger.info("[START_GAME] UserID estratto dal JWT: {}", userId);
-
         // Log dei parametri inviati
         logger.info("[START_GAME] Dati ricevuti: playerId={}, typeRobot={}, difficulty={}, mode={}, underTestClassName={}",
                 request.getPlayerId(), request.getTypeRobot(), request.getDifficulty(),
@@ -92,12 +88,13 @@ public class GameController {
 
         try {
             GameLogic game = gameServiceManager.CreateGameLogic(
-                    request.getPlayerId(),
-                    request.getMode(),
-                    request.getUnderTestClassName(),
-                    request.getTypeRobot(),
-                    request.getDifficulty());
-            logger.info("[START_GAME] Partita creata con successo. GameID={}", game.getGameID());
+                                                                    request.getPlayerId(),
+                                                                    request.getMode(),
+                                                                    request.getUnderTestClassName(),
+                                                                    request.getTypeRobot(),
+                                                                    request.getDifficulty()
+                                                                );
+            logger.info("[START_GAME] Partita creata con successo. GameID={}, mode={}", game.getGameID(), game.getMode());
             return ResponseEntity.ok(
                     new StartGameResponseDTO(game.getGameID(),
                             "created")
@@ -135,10 +132,11 @@ public class GameController {
      */
     @PostMapping(value = "/run", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<GameResponseDTO> Runner(
-            @RequestParam(value = "testingClassCode", required = false, defaultValue = "") String testingClassCode,
-            @RequestParam(value = "playerId") String playerId,
-            @RequestParam("mode") String mode,
-            @RequestParam("isGameEnd") boolean isGameEnd) {
+                                                    @RequestParam(value = "testingClassCode", required = false, defaultValue = "") String testingClassCode,
+                                                    @RequestParam(value = "playerId") String playerId,
+                                                    @RequestParam("mode") String mode,
+                                                    @RequestParam("isGameEnd") boolean isGameEnd
+                                                ) {
         try {
             GameResponseDTO response = gameServiceManager.PlayGame(playerId, mode, testingClassCode, isGameEnd);
             return ResponseEntity.ok().body(response);
@@ -146,7 +144,7 @@ public class GameController {
             /*
              * Il player non ha impostato una partita prima di arrivare all'editor
              */
-            logger.error("[GAMECONTROLLER][StartGame] " + e.getMessage());
+            logger.error("[GAMECONTROLLER][run] " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }

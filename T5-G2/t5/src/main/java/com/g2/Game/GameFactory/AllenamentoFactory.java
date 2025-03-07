@@ -8,13 +8,14 @@ import com.g2.Interfaces.ServiceManager;
 
 @Component("Allenamento")
 public class AllenamentoFactory implements GameFactoryFunction {
+
     @Override
     public GameLogic create(ServiceManager sm, String playerId, String underTestClassName,
-            String type_robot, String difficulty, String mode) {
+                            String type_robot, String difficulty, String mode) {
         /*
         * ServiceManager è null, poiché Allenamento non deve salvare
          */
-        return new Allenamento(null, playerId, underTestClassName, type_robot, difficulty, "Allenamento");
+        return new Allenamento(null, playerId, underTestClassName, type_robot, difficulty, mode);
     }
 }
 

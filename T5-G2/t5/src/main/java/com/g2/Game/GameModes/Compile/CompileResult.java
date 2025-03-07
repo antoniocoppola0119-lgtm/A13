@@ -1,15 +1,12 @@
 package com.g2.Game.GameModes.Compile;
 
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.g2.Interfaces.ServiceManager;
 
 public class CompileResult {
-
     /*
      * Istanza di default 
      */
@@ -42,9 +39,6 @@ public class CompileResult {
     private ServiceManager serviceManager;
     @JsonIgnore
     private CoverageService coverageService;
-
-    // Logger per la classe
-    private static final Logger logger = LoggerFactory.getLogger(CompileResult.class);
 
     //Costruttore Vuoto
     public CompileResult(){
@@ -110,7 +104,6 @@ public class CompileResult {
             this.BranchCoverage = coverageService.getCoverage(this.XML_coverage, "BRANCH");
             this.InstructionCoverage = coverageService.getCoverage(this.XML_coverage, "INSTRUCTION");
         } else {
-            logger.warn("XML coverage è nulla. Coverage results sarà nulla");
             this.LineCoverage = new CoverageResult(0, 0);
             this.BranchCoverage = new CoverageResult(0, 0);
             this.InstructionCoverage = new CoverageResult(0, 0);
@@ -119,7 +112,8 @@ public class CompileResult {
 
     public Boolean getSuccess() {
         //Se true Il test dell'utente è stato compilato => nessun errore di compilazione nel test
-        return !(getXML_coverage() == null || getXML_coverage().isEmpty());
+        String XML= getXML_coverage();
+        return !(XML == null || XML.isEmpty());
     }
 
     // Getter per il risultato della copertura

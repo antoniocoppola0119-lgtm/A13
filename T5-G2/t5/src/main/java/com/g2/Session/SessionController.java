@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.g2.Game.GameDTO.GameLogicDTO;
+import com.g2.Game.GameFactory.GameRegistry;
 import com.g2.Game.GameModes.GameLogic;
 import com.g2.Session.Exceptions.GameModeAlreadyExist;
 import com.g2.Session.Exceptions.GameModeDontExist;
@@ -29,9 +31,11 @@ import com.g2.Session.Exceptions.SessionDontExist;
 public class SessionController {
 
     private final SessionService sessionService;
+    private final GameRegistry gameRegistry;
 
     @Autowired
-    public SessionController(SessionService sessionService) {
+    public SessionController(SessionService sessionService,GameRegistry gameRegistry ) {
+        this.gameRegistry = gameRegistry;
         this.sessionService = sessionService;
     }
 
@@ -163,16 +167,20 @@ public class SessionController {
     }
 
     /**
-     * POST /session/gamemode/{playerId}?mode={mode} Crea una nuova entry per la
+     * POST /session/gamemode/{playerId} Crea una nuova entry per la
      * modalità nella sessione del player. Il corpo della richiesta contiene il
      * gameObject (in formato JSON) da associare.
      */
-    @PostMapping("/gamemode/{playerId}")
-    public ResponseEntity<?> createGameMode(@PathVariable String playerId,
-            @RequestParam String mode,
-            @RequestBody GameLogic gameObject) {
+    @PostMapping("/gamemode/{playerId}")    
+    public ResponseEntity<?> createGameMode(@RequestBody GameLogicDTO gameLogicDTO) {
         try {
-            sessionService.SetGameMode(playerId, gameObject);
+            GameLogic gameObject = gameRegistry.createGame(gameLogicDTO.getMode(), 
+                                                           null, 
+                                                           gameLogicDTO.getPlayerId(), 
+                                                           gameLogicDTO.getUnderTestClassName(), 
+                                                           gameLogicDTO.getTypeRobot(), 
+                                                           gameLogicDTO.getDifficulty());
+            sessionService.SetGameMode(gameLogicDTO.getPlayerId(), gameObject);
             return ResponseEntity.ok("Modalità Creata");
         } catch (SessionDontExist e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
@@ -194,11 +202,15 @@ public class SessionController {
      * esistente nella sessione del player.
      */
     @PutMapping("/gamemode/{playerId}")
-    public ResponseEntity<?> updateGameMode(@PathVariable String playerId,
-            @RequestParam String mode,
-            @RequestBody GameLogic gameObject) {
+    public ResponseEntity<?> updateGameMode(@RequestBody GameLogicDTO gameLogicDTO) {
         try {
-            sessionService.updateGameMode(playerId, gameObject);
+            GameLogic gameObject = gameRegistry.createGame(gameLogicDTO.getMode(), 
+                                                           null, 
+                                                           gameLogicDTO.getPlayerId(), 
+                                                           gameLogicDTO.getUnderTestClassName(), 
+                                                           gameLogicDTO.getTypeRobot(), 
+                                                           gameLogicDTO.getDifficulty());
+            sessionService.updateGameMode(gameLogicDTO.getPlayerId(), gameObject);
             return ResponseEntity.ok("Modalità Creata");
         } catch (SessionDontExist e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(

@@ -20,6 +20,14 @@
    (Dipende da Util_Editor.js, che deve essere caricato prima.)
 */
 
+async function getFormData() {
+	const formData = new FormData();
+	formData.append("playerId", 		jwtData.userId);
+	formData.append("mode",     		GetMode());
+	formData.append("testingClassCode", editor_utente.getValue());
+	return formData;
+}
+
 // === FUNZIONE PER LA RICHIESTA AJAX DEL GIOCO ===
 async function runGameAction(url, formData, isGameEnd) {
     try {
@@ -60,19 +68,15 @@ async function handleGameAction(isGameEnd) {
     isActionInProgress = true; // Imposta il flag per bloccare altre azioni
     run_button.disabled = true; // Disabilita il pulsante di esecuzione
     coverage_button.disabled = true; // Disabilita il pulsante di coverage
-
     // Determina le chiavi per il caricamento e il pulsante in base a isGameEnd
     const loadingKey = isGameEnd ? "loading_run" : "loading_cov";
     const buttonKey = isGameEnd ? "runButton" : "coverageButton";
-
     // Mostra l'indicatore di caricamento
     toggleLoading(true, loadingKey, buttonKey);
     // Aggiorna lo stato a "sending"
     setStatus("sending"); 
-
     // Otteniamo il FormData (con debug sul codice dell'editor)
     const formData = await getFormData();
-    console.log("[handleGameAction] Dati inviati:", Object.fromEntries(formData.entries()));
     try {
         //Esegue l'azione di gioco 
         const response = await runGameAction("/run", formData, isGameEnd);
@@ -85,14 +89,16 @@ async function handleGameAction(isGameEnd) {
 }
 
 function handleResponse(response, formData, isGameEnd, loadingKey, buttonKey) {
-    const { robotScore, userScore, gameId, roundId,
+    const { 
+            robotScore, userScore, 
+            gameId, roundId,
             userJacocoCoverage, robotJacocoCoverage,
-            isWinner} = response;
+            isWinner
+        } = response;
 
     const userOutputCompile = userJacocoCoverage.compileOutput;
     const userCoverage = userJacocoCoverage.xml_coverage;
     const robotCoverage = robotJacocoCoverage.xml_coverage;
-
     // Aggiorna i dati del modulo con gameId e roundId
     formData.append("gameId", gameId);
     formData.append("roundId", roundId);
@@ -106,7 +112,12 @@ function handleResponse(response, formData, isGameEnd, loadingKey, buttonKey) {
     }
 
     // Se la copertura è disponibile, la processa
-    processCoverage(userCoverage, formData, robotScore, userScore, isGameEnd, loadingKey, buttonKey, userJacocoCoverage, robotJacocoCoverage, robotCoverage, isWinner);
+    processCoverage(userCoverage, formData, 
+                    robotScore, userScore, 
+                    isGameEnd, loadingKey, 
+                    buttonKey, userJacocoCoverage, 
+                    robotJacocoCoverage, robotCoverage, 
+                    isWinner);
 }
 
 // Processa la copertura del codice e aggiorna i dati di gioco

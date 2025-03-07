@@ -31,9 +31,9 @@ public class GameService {
 
     @Autowired
     public GameService(ServiceManager serviceManager,
-            GameRegistry gameRegistry,
-            AchievementService achievementService,
-            SessionService sessionService) {
+                        GameRegistry gameRegistry,
+                        AchievementService achievementService,
+                        SessionService sessionService) {
         this.serviceManager = serviceManager;
         this.gameRegistry = gameRegistry;
         this.achievementService = achievementService;
@@ -51,16 +51,23 @@ public class GameService {
             * gameRegistry istanzia dinamicamente uno degli oggetti gameLogic (sfida, allenamento, scalata e ecc)
             * basta passargli il campo mode e dinamicamente se ne occupa lui  
              */
-            GameLogic gameLogic = gameRegistry.createGame(mode, serviceManager, playerId, underTestClassName, type_robot, difficulty);
-            /*
-             * Creo nella sessione i dati di gioco 
-             */
-            sessionService.SetGameMode(playerId, gameLogic, null);
+            GameLogic gameLogic = gameRegistry.createGame(  mode, 
+                                                            serviceManager, 
+                                                            playerId, 
+                                                            underTestClassName, 
+                                                            type_robot, 
+                                                            difficulty);
+            logger.info("createGame: oggetto game creato con successo per playerId={}, mode={}.", playerId, mode);
             /*
              * Salvo il game in T4
              */
             gameLogic.CreateGame();
             logger.info("createGame: Inizio creazione partita per playerId={}, mode={}.", playerId, mode);
+            /*
+            * Creo nella sessione i dati di gioco 
+            */
+            sessionService.SetGameMode(playerId, gameLogic);
+            logger.info("createGame: sessione aggiornata con successo per playerId={}, mode={}.", playerId, mode);
             return gameLogic;
         } catch (SessionDontExist e) {
             logger.info("createGame: SessionDontExist per playerId={}, mode={}.", playerId, mode);

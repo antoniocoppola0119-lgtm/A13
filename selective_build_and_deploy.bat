@@ -83,7 +83,7 @@ for %%i in (%SELECTION%) do (
             exit /b 1
         )
         cd /d "%ROOT_DIR%"
-    ) else if %%i==6 (
+    ) else if %%i==5 (
         echo Building T7-G31
         cd /d "%ROOT_DIR%\T7-G31\RemoteCCC"
         call mvn clean package -DskipTests=true || (echo Error in T7-G31 build & exit /b 1)
@@ -94,7 +94,7 @@ for %%i in (%SELECTION%) do (
             exit /b 1
         )
         cd /d "%ROOT_DIR%"
-    ) else if %%i==7 (
+    ) else if %%i==6 (
         echo Building T8-G21
         cd /d "%ROOT_DIR%\T8-G21\Progetto_SAD_GRUPPO21_TASK8\Progetto_def\opt_livelli\Prototipo2.0\Serv"
         call mvn clean package || (echo Error in T8-G21 build & exit /b 1)
@@ -106,7 +106,7 @@ for %%i in (%SELECTION%) do (
             exit /b 1
         )
         cd /d "%ROOT_DIR%"
-    ) else if %%i==8 (
+    ) else if %%i==7 (
         echo Building T9-G19
         cd /d "%ROOT_DIR%\T9-G19\Progetto-SAD-G19-master"
         call mvn clean package || (echo Error in T9-G19 build & exit /b 1)
@@ -117,7 +117,7 @@ for %%i in (%SELECTION%) do (
             exit /b 1
         )
         cd /d "%ROOT_DIR%"
-    ) else if %%i==9 (
+    ) else if %%i==8 (
         echo Building ui_gateway
         cd /d "%ROOT_DIR%\ui_gateway"
         docker build -t mick0974/a13:ui-gateway .
@@ -127,7 +127,7 @@ for %%i in (%SELECTION%) do (
             exit /b 1
         )
         cd /d "%ROOT_DIR%"
-    ) else if %%i==10 (
+    ) else if %%i==9 (
         echo Building api_gateway
         cd /d "%ROOT_DIR%\api_gateway"
         call mvn clean package || (echo Error in api_gateway build & exit /b 1)
