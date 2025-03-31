@@ -114,7 +114,7 @@
 												<span id="gamemode_modalita"> </span>
 											</li>
 											<li class="list-group-item">
-												<label th:text="#{time_limit}"></label>
+												<label th:text="#{time_limit_no_min}"></label>
 												<span id="gamemode_time_limit"> </span>
 											</li>
 										</ul>
@@ -163,6 +163,15 @@
 		<script th:inline="javascript">
 			// Contiene i robot disponibili in T4 data la classe scelta
 			let availableRobots = /*[[${available_robots}]]*/ [];
+			let easy = /*[[#{d_facile}]]*/ "Facile";
+			let medium = /*[[#{d_medio}]]*/ "Medio";
+			let hard = /*[[#{d_difficile}]]*/ "Difficile";
+
+			let difficulty = {
+				"1": /*[[#{d_facile}]]*/ "Facile",
+				"2": /*[[#{d_medio}]]*/ "Medio",
+				"3": /*[[#{d_difficile}]]*/ "Difficile",
+			};
 		</script>
 		<script
 			th:src="@{/t5/js/Gamemode_logic.js}"

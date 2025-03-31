@@ -94,15 +94,17 @@ async function handleGameAction(isGameEnd, compileUponEndTime=false) {
 
     if (isGameEnd) {
         try {
-            //Esegue l'azione di gioco
+            //Esegue la terminazione del gioco
             if (!compileUponEndTime)
                 requestBody["testingClassCode"] = "";
             const response = await runGameAction("/EndGame", requestBody);
             console.log("/EndGame", response);
             setStatus("game_end");
-            handleGameEnd(response, loadingKey, buttonKey);
+            handleGameEnd(response);
+            toggleLoading(false, loadingKey, buttonKey);
         } catch (error) {
             console.error("[handleGameAction] Errore durante l'esecuzione:", error);
+            handleServerInternalError(error, loadingKey, buttonKey);
         }
     } else {
         try {
@@ -110,14 +112,32 @@ async function handleGameAction(isGameEnd, compileUponEndTime=false) {
             const response = await runGameAction("/run", requestBody);
             setStatus("compiling");
             handleGameRun(response, loadingKey, buttonKey);
+            resetButtons();
         } catch (error) {
-            console.error("[handleGameAction] Errore durante l'esecuzione:", error);
+            handleServerInternalError(error, loadingKey, buttonKey);
         }
     }
     isActionInProgress = false;
 }
 
-function handleGameEnd(response, loadingKey, buttonKey) {
+function handleServerInternalError(error, loadingKey, buttonKey) {
+    console.error("[handleGameAction] Errore durante l'esecuzione:", error);
+
+    try {
+        // Rendo il json leggibile
+        const formattedError = JSON.stringify(JSON.parse(error.responseText), null, 4);
+        console_robot.setValue(formattedError);
+    } catch (e) {
+        // Se non è un JSON valido stampo l'errore raw
+        console_robot.setValue(error.responseText);
+    }
+
+    toggleLoading(false, loadingKey, buttonKey); // Nasconde l'indicatore di caricamento
+    resetButtons(); // Reimposta i pulsanti
+}
+
+
+function handleGameEnd(response) {
     const {userScore, robotScore, isWinner, expGained} = response;
     generateEndGameMessage(userScore, robotScore, isWinner, expGained); // Gestisce la fine del gioco
 
@@ -127,8 +147,6 @@ function handleGameEnd(response, loadingKey, buttonKey) {
 
     // Disattivo la chiamata a POST /leave all'uscita dalla pagina
     window.removeEventListener("beforeunload", handleBeforeUnload);
-
-    toggleLoading(false, loadingKey, buttonKey);
 }
 
 function handleGameRun(response, loadingKey, buttonKey) {
@@ -174,8 +192,6 @@ async function processCoverage(userCoverage_ForHighlight, robotCoverage_ForHighl
     displayUserPoints(userCoverageDetails, robotCoverageDetails, canWin, userScore, robotScore); // Mostra i punti dell'utente
     if (unlockedAchievements.length !== 0)
         handleUnlockedAchievements(unlockedAchievements);
-
-    resetButtons();
 }
 
 // Mostra i punti dell'utente nella console
@@ -218,7 +234,7 @@ function generateEndGameMessage(userScore, robotScore, isWinner, expGained) {
 function handleUnlockedAchievements(unlockedAchievements) {
     openModalWithText(
         unlockedNewAchievementMessage.title,
-        `${unlockedNewAchievementMessage.text}\n${unlockedAchievements.map(a => ` - ${achievementData[a]?.name || a}\n`).join("")}`,
+        `${unlockedNewAchievementMessage.descr}\n${unlockedAchievements.map(a => ` - ${achievementData[a]?.name || a}\n`).join("")}`,
         [{ tagName: "button", text: "Chiudi", data_bs_dismiss: "modal", class: 'btn btn-primary' }]
     );
 }

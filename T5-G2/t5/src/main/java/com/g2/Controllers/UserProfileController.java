@@ -69,14 +69,6 @@ public class UserProfileController {
         profile.SetAuth();  // Gestisce l'autenticazione
         String userId = profile.getUserId();
         profile.setObjectComponents(new UserProfileComponent(serviceManager,false, userId));
-
-        /*
-         * Richiedo a T4 i punti esperienza correnti dell'utente
-         */
-        // ServiceObjectComponent userExperience = new ServiceObjectComponent(serviceManager, "user_experience", "T4", "getUserExperiencePoints", profile.getUserId());
-        // profile.setObjectComponents(userExperience);
-        Experience userCurrentExperience = (Experience) serviceManager.handleRequest("T4", "getUserExperiencePoints", Integer.parseInt(profile.getUserId()));
-        model.addAttribute("user_experience", userCurrentExperience);
         return profile.handlePageRequest();
     }
 
@@ -145,7 +137,7 @@ public class UserProfileController {
         /*
          * Richiedo a T4 gli achievement sbloccati dall'utente
          */
-        List<UserGameStatistics> achievements = (List<UserGameStatistics>) serviceManager.handleRequest("T4", "getUserAchievements", Long.parseLong(achievement.getUserId()));
+        List<UserGameProgress> achievements = (List<UserGameProgress>) serviceManager.handleRequest("T4", "getAllUserGameProgresses", Integer.parseInt(achievement.getUserId()));
         model.addAttribute("achievements", achievements);
 
         return achievement.handlePageRequest();

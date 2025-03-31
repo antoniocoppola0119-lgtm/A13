@@ -239,21 +239,23 @@ public class Controller {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error initializing experience points. Please retry to subscribe.");
         }
 
+        /*
+         * Il mancato invio della mail di conferma non è più bloccante per il redirect.
+         * L'utente viene registrato prima dell'invio della mail di avvenuta registrazione. Non ha senso che il mancato
+         * invio impedisca il redirect e restituisca un errore di registrazione. Inoltre Gmail prevede un numero max di
+         * mail inviate per giorno, superato il limite Get /login restituirebbe sempre errore.
+         */
         try {
             emailService.sendMailRegister(email, ID);
-
-            //MODIFICA (03/02/2024) : Redirect
-            //Modifica (18/06/2024) : Cambiato il codice per consentire il reindirizzamento
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Location", "/login_success");
-            return new ResponseEntity<String>(headers,HttpStatus.MOVED_PERMANENTLY);
-            //FINE MODIFICA
-
-            //return ResponseEntity.ok("Registration completed successfully!");
-
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to confirm your registration");
+            System.out.println("[POST /register] Errore nell'invio della mail di conferma registrazione: " + e.getMessage());
+            // return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to confirm your registration");
         }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", "/login_success");
+        return new ResponseEntity<String>(headers,HttpStatus.MOVED_PERMANENTLY);
+
     }
 
     //Verifica del recaptcha

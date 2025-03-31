@@ -189,9 +189,10 @@ async function putGameMode() {
 
 async function deleteModalita(mode) {
 	const playerId = String(parseJwt(getCookie("jwt")).userId);
+	// const url = `/session/gamemode/${playerId}?mode=${mode}`
+	const url = `/SurrenderGame/${playerId}?mode=${mode}`;
 	try {
-		// Ora il path è DELETE /session/gamemode/{playerId}?mode={mode}
-		const response = await fetch(`/session/gamemode/${playerId}?mode=${mode}`, {
+		const response = await fetch(url, {
 			method: "DELETE",
 		});
 		const result = await response.text();
@@ -249,9 +250,9 @@ async function startGame() {
 		startGameRequest(requestData)
 			.then((response) => {
 				if (mode === "PartitaSingola")
-					window.location.href = `/editor?ClassUT=${underTestClassName}&mode=${mode}&remainingTime=${remainingTime}`;
-				else
-					window.location.href = `/editor?ClassUT=${underTestClassName}&mode=${mode}`;
+					timer_remainingTime = remainingTime;
+
+				window.location.href = `/editor?ClassUT=${underTestClassName}&mode=${mode}`;
 			})
 			.catch((error) => {
 				console.error("Errore nell'avvio della partita:", error);
@@ -280,7 +281,7 @@ function updateDOMWithPreviousGameData(previousGameObject) {
 		document.getElementById("gamemode_robot").innerText =
 			previousGameObject.type_robot || "";
 		document.getElementById("gamemode_difficulty").innerText =
-			previousGameObject.difficulty || "";
+			difficulty[previousGameObject.difficulty] || "";
 		document.getElementById("gamemode_modalita").innerText =
 			previousGameObject.mode || "";
 

@@ -136,6 +136,16 @@
 
 		<!-- FOOTER -->
 		<div th:replace="fragments/footer :: footer"></div>
+
+		<script th:inline="javascript">
+			let difficulty = {
+				"1": /*[[#{d_facile}]]*/ "Facile",
+				"2": /*[[#{d_medio}]]*/ "Medio",
+				"3": /*[[#{d_difficile}]]*/ "Difficile",
+			};
+
+		</script>
+
 		<script>
 			/**
  * Effettua una chiamata AJAX per ottenere la cronologia delle partite di un giocatore.
@@ -149,6 +159,7 @@ function fetchGameHistory(playerId, callback) {
         dataType: "json",
         success: function (response) {
             if (Array.isArray(response)) {
+				console.log("Games history: ", response);
                 callback(response);
             } else {
                 console.error("La risposta non è un array di partite.");
@@ -193,12 +204,13 @@ function renderGameHistory(games) {
             ? '<span class="badge text-bg-success"> WIN </span>'
             : '<span class="badge text-bg-danger"> LOSS </span>';
 
+
         const gameItem = `
             <a href="#" class="list-group-item list-group-item-action" aria-current="true">
                 <div class="d-flex justify-content-between">
                     <div>
                         <h4 class="mb-1">${game.description}</h4>
-                        <p class="mb-0">${game.name} - ${game.difficulty}</p>
+                        <p class="mb-0">${game.name} - ${difficulty[game.difficulty]}</p>
                         <small>${formattedDate}</small>
                     </div>
                     <div class="text-center p-3">

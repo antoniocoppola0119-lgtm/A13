@@ -502,19 +502,16 @@ window.addEventListener("load", function () {
 		startTimer();
 });
 
-function getRemainingTime(){
-	return getParameterByName("remainingTime");
-}
-
 function startTimer() {
-	timer_remainingTime = getRemainingTime();
+	console.log("StartTimer: ", timer_remainingTime);
 	timer = setInterval(function () {
 		document.getElementById('timerDisplay').innerHTML = formatTime(timer_remainingTime);
-		timer_remainingTime--;
 
-		if (timer_remainingTime < 0) {
+		if (timer_remainingTime <= 0) {
 			clearInterval(timer);
 			onTimerEnd();
+		} else {
+			timer_remainingTime--;
 		}
 	}, 1000);
 }
@@ -538,7 +535,9 @@ function formatTime(seconds) {
 }
 
 function onTimerEnd() {
-	console.log("OnTimerEnd");
+	isActionInProgress = true; // Imposta il flag per bloccare altre azioni
+	run_button.disabled = true; // Disabilita il pulsante di esecuzione
+	coverage_button.disabled = true; // Disabilita il pulsante di coverage
 	openModalWithText(
 		"Oh no! Il tempo è scaduto!",
 		"Vuoi consegnare il codice corrente o mantenere l'ultimo compilato?",

@@ -126,6 +126,23 @@ public class GameController {
     }
 
     /*
+     * Handler eccezione runtime
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+
+        // Recupera il messaggio dell'errore
+        errorResponse.put("error", ex.getMessage());
+
+        // Recupera la riga più importante dello stacktrace
+        StackTraceElement relevantStackTrace = ex.getStackTrace()[0];
+        errorResponse.put("cause", relevantStackTrace.toString());
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    /*
      *  Chiamata principale del game engine, l'utente ogni volta può comunicare la sua richiesta di
      *  calcolare la coverage/compilazione, il campo isGameEnd è da utilizzato per indicare se è anche un submit e
      *  quindi vuole terminare la partita ed ottenere i risultati del robot
@@ -198,6 +215,21 @@ public class GameController {
              * Il player non ha impostato una partita prima di arrivare all'editor
              */
             logger.error("[GAMECONTROLLER][EndGame] " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
+
+    @DeleteMapping(value = "/SurrenderGame/{playerId}")
+    public ResponseEntity<EndGameResponseDTO> SurrenderGame(@PathVariable String playerId, @RequestParam String mode) {
+        try {
+            EndGameResponseDTO response = gameServiceManager.EndGame(playerId, mode);
+            logger.error("[DELETE /SurrenderGame] Invio risposta per playerId={}: {} ", playerId, response);
+            return ResponseEntity.ok().body(response);
+        } catch (GameModeDontExist e) {
+            /*
+             * Il player non ha impostato una partita prima di arrivare all'editor
+             */
+            logger.error("[GAMECONTROLLER][AbandonGame] " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }

@@ -54,4 +54,14 @@ public class EndGameResponseDTO {
     public void setExpGained(int expGained) {
         this.expGained = expGained;
     }
+
+    @Override
+    public String toString() {
+        return "EndGameResponseDTO{" +
+                "robotScore=" + robotScore +
+                ", userScore=" + userScore +
+                ", isWinner=" + isWinner +
+                ", expGained=" + expGained +
+                '}';
+    }
 }
