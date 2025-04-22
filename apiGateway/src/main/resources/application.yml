@@ -14,11 +14,11 @@ spring:
     gateway:
       httpclient:
         connect-timeout: 5000  # Timeout di connessione (5 secondi)
-        response-timeout: 150s   # Timeout di risposta (30 secondi)
+        response-timeout: 660s   # Timeout di risposta (11 minuti)
         wiretap: true  # Abilita log dettagliati delle richieste
         pool:
           type: fixed
-          max-connections: 500  # Numero massimo di connessioni simultanee
+          max-connections: 30  # Numero massimo di connessioni simultanee
           acquire-timeout: 5000  # Tempo massimo di attesa per una connessione libera
       routes:
         - id: fallback-route
@@ -61,12 +61,22 @@ spring:
             - Path=/compile/randoop/**
           filters:
             - RewritePath=/compile/randoop/(?<segment>.*), /${segment}
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 2
+                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.requestedTokens: 1
         - id: T8-route
           uri: http://t8-controller:8088
           predicates:
             - Path=/compile/evosuite/**
           filters:
             - RewritePath=/compile/evosuite/(?<segment>.*), /${segment}
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 2
+                redis-rate-limiter.burstCapacity: 15
+                redis-rate-limiter.requestedTokens: 1
         - id: T1-route
           uri: http://t1-controller:8081
           predicates:
