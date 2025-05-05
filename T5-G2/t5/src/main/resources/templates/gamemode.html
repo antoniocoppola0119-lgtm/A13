@@ -13,9 +13,7 @@
 				<div class="col">
 					<!-- Scheda nuovo gioco -->
 					<div class="card" id="scheda_nuovo">
-						<h5
-							class="card-header text-center selectedMode"
-						></h5>
+						<h5 class="card-header text-center selectedMode"></h5>
 						<div class="card-body">
 							<!-- Form di selezione -->
 							<div class="row">
@@ -172,6 +170,13 @@
 				"2": /*[[#{d_medio}]]*/ "Medio",
 				"3": /*[[#{d_difficile}]]*/ "Difficile",
 			};
+
+			const gameMode = {
+				PartitaSingola: /*[[#{singola}]]*/ "Partita Singola",
+				Allenamento: /*[[#{allenamento}]]*/ "Allenamento",
+				Multiplayer: /*[[#{multiplayer}]]*/ "Multi-giocatore",
+				Scalata: /*[[#{scalata}]]*/ "Scalata",
+			}
 		</script>
 		<script
 			th:src="@{/t5/js/Gamemode_logic.js}"

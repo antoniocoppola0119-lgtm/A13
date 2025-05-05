@@ -125,7 +125,7 @@ public class GameServiceManager {
         logger.info("[LeaveGame] GameLogic aggiornato: gameID={}", currentGame.getGameID());
     }
 
-    public EndGameResponseDTO EndGame(String playerId, String mode) {
+    public EndGameResponseDTO EndGame(String playerId, String mode, boolean surrendered) {
         logger.info("[EndGame] Inizio terminazione partita per playerId={} e mode={}", playerId, mode);
         /*
          * Recupero la sessione di gioco
@@ -135,7 +135,7 @@ public class GameServiceManager {
         /*
          * Eseguo le operazioni di end game
          */
-        return gameService.handleGameEnd(currentGame);
+        return gameService.handleGameEnd(currentGame, surrendered);
     }
 
 }

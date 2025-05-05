@@ -42,7 +42,7 @@ function SetMode(setM) {
 	if (!setM) {
 		const elements = document.querySelectorAll(".selectedMode");
 		elements.forEach((element) => {
-			element.textContent += " " + currentMode;
+			element.textContent += " " + gameMode[currentMode];
 		});
 	}
 	const selectRobotElement = document.getElementById("robot_selector");
@@ -85,7 +85,7 @@ async function getGameMode(playerId, mode) {
 			throw new Error(`Errore nella richiesta: ${response.statusText}`);
 		}
 
-		// Parsea la risposta come JSON
+		// Parsa la risposta come JSON
 		const data = await response.json();
 		return data; // Restituisce i dati della risposta JSON
 	} catch (error) {
@@ -283,7 +283,7 @@ function updateDOMWithPreviousGameData(previousGameObject) {
 		document.getElementById("gamemode_difficulty").innerText =
 			difficulty[previousGameObject.difficulty] || "";
 		document.getElementById("gamemode_modalita").innerText =
-			previousGameObject.mode || "";
+			gameMode[previousGameObject.mode] || "";
 
 		if (previousGameObject.mode === "PartitaSingola")
 			document.getElementById("gamemode_time_limit").innerText =

@@ -124,9 +124,9 @@
     <div class="container mt-4">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Achievements Ottenuti</span>
+                <span th:text="#{achievements_list}"></span>
                 <select id="game-mode-select" class="form-select w-auto">
-                    <option value="PartitaSingola">PartitaSingola</option>
+                    <option value="PartitaSingola"></option>
                 </select>
             </div>
             <div class="card-body d-flex flex-wrap" id="achievements-container"></div>
@@ -153,10 +153,18 @@
             descr: /*[[#{instructionsAndWeakMutation_descr}]]*/ "Ottenuto superando il robot sia nel numero di istruzioni coperte che nella metrica weakMutation."
         },
     };
+    const gameMode = {
+        PartitaSingola: /*[[#{singola}]]*/ "Partita Singola",
+        Allenamento: /*[[#{allenamento}]]*/ "Allenamento",
+        Multiplayer: /*[[#{multiplayer}]]*/ "Multi-giocatore",
+        Scalata: /*[[#{scalata}]]*/ "Scalata",
+    }
 </script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        document.querySelector('option[value="PartitaSingola"]').textContent = gameMode.PartitaSingola;
+
         let progressContainer = document.querySelector('.progress_container');
         let progress = parseFloat(progressContainer.getAttribute('data-progress'));
         let progressFill = document.querySelector(".progress_fill");
@@ -174,7 +182,6 @@
         function renderAchievements(selectedMode) {
             let container = document.getElementById("achievements-container");
             container.innerHTML = "";
-            let hasAchievements = false; // Flag per verificare se ci sono obiettivi
 
             if (achievements && achievements.length > 0) {
                 let filteredAchievements = achievements.filter(a => a.game_mode === selectedMode);
@@ -185,7 +192,7 @@
                     classUTDiv.innerHTML = `<div class='class-ut'>${classUT}</div>`;
 
                     let groupedByRobot = groupBy(groupedByClassUT[classUT], "robot_type");
-
+                    let hasAchievements = false; // Flag per verificare se ci sono obiettivi
                     for (let robotType in groupedByRobot) {
                         let robotDiv = document.createElement("div");
                         let groupedByDifficulty = groupBy(groupedByRobot[robotType], "difficulty");

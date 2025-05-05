@@ -228,7 +228,7 @@ public class GameController {
                 gameServiceManager.PlayGame(playerId, mode, updateGameParams);
 
             logger.info("[POST /EndGame] Ricevuta richiesta terminazione partita per playerId={}", playerId);
-            EndGameResponseDTO response = gameServiceManager.EndGame(playerId, mode);
+            EndGameResponseDTO response = gameServiceManager.EndGame(playerId, mode, false);
             logger.info("[POST /EndGame] Invio risposta per playerId={}", playerId);
             return ResponseEntity.ok().body(response);
         } catch (GameModeDontExist e) {
@@ -243,7 +243,7 @@ public class GameController {
     @DeleteMapping(value = "/SurrenderGame/{playerId}")
     public ResponseEntity<EndGameResponseDTO> SurrenderGame(@PathVariable String playerId, @RequestParam String mode) {
         try {
-            EndGameResponseDTO response = gameServiceManager.EndGame(playerId, mode);
+            EndGameResponseDTO response = gameServiceManager.EndGame(playerId, mode, true);
             logger.error("[DELETE /SurrenderGame] Invio risposta per playerId={}: {} ", playerId, response);
             return ResponseEntity.ok().body(response);
         } catch (GameModeDontExist e) {

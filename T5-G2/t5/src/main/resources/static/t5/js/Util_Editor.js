@@ -47,62 +47,6 @@ ______ _____  _____   ____   _____
 |______|_|  \_\_|  \_\\____/|_____/  
 `;
 
-function getConsoleTextCoverage(userCoverageDetails, robotCoverageDetails) {
-	let lineCoveragePercentage = roundToTwoDecimals(userCoverageDetails.jacoco_line.covered / (userCoverageDetails.jacoco_line.covered + userCoverageDetails.jacoco_line.missed) * 100);
-	let BranchCoveragePercentage = roundToTwoDecimals(userCoverageDetails.jacoco_branch.covered / (userCoverageDetails.jacoco_branch.covered + userCoverageDetails.jacoco_branch.missed) * 100);
-	let instructionCoveragePercentage = roundToTwoDecimals(userCoverageDetails.jacoco_instruction.covered / (userCoverageDetails.jacoco_instruction.covered + userCoverageDetails.jacoco_instruction.missed) * 100);
-
-
-	let robotLineCoveragePercentage = roundToTwoDecimals(robotCoverageDetails.jacoco_line.covered / (robotCoverageDetails.jacoco_line.covered + robotCoverageDetails.jacoco_line.missed) * 100);
-	let robotBranchCoveragePercentage = roundToTwoDecimals(robotCoverageDetails.jacoco_branch.covered / (robotCoverageDetails.jacoco_branch.covered + robotCoverageDetails.jacoco_branch.missed) * 100);
-	let robotInstructionCoveragePercentage = roundToTwoDecimals(robotCoverageDetails.jacoco_instruction.covered / (robotCoverageDetails.jacoco_instruction.covered + robotCoverageDetails.jacoco_instruction.missed) * 100);
-	consoleText =
-`============================== JaCoCo ===============================
-Your Line Coverage COV%:  ${lineCoveragePercentage}% LOC
-covered: ${userCoverageDetails.jacoco_line.covered}  
-missed: ${userCoverageDetails.jacoco_line.missed}
-Robot Line Coverage COV%:  ${robotLineCoveragePercentage}% LOC
-robot covered: ${robotCoverageDetails.jacoco_line.covered}
-robot missed: ${robotCoverageDetails.jacoco_line.missed}
-----------------------------------------------------------------------
-Your Branch Coverage COV%:  ${BranchCoveragePercentage}% LOC
-covered: ${userCoverageDetails.jacoco_branch.covered} 
-missed: ${userCoverageDetails.jacoco_branch.missed}
-Robot Branch Coverage COV%:  ${robotBranchCoveragePercentage}% LOC
-robot covered: ${robotCoverageDetails.jacoco_branch.covered}
-robot missed: ${robotCoverageDetails.jacoco_branch.missed}
-----------------------------------------------------------------------
-Your Instruction Coverage COV%:  ${instructionCoveragePercentage}% LOC
-covered: ${userCoverageDetails.jacoco_instruction.covered} 
-missed: ${userCoverageDetails.jacoco_instruction.missed}
-Robot Instruction Coverage COV%:  ${robotInstructionCoveragePercentage}% LOC
-robot covered: ${robotCoverageDetails.jacoco_instruction.covered}
-robot missed: ${robotCoverageDetails.jacoco_instruction.missed}
-============================== EvoSuite ===============================
-Il tuo punteggio EvoSuite:  ${roundToTwoDecimals(userCoverageDetails.evosuite_line)}% Line
-Il punteggio EvoSuite del robot:  ${roundToTwoDecimals(robotCoverageDetails.evosuite_line)}% Line
-----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${roundToTwoDecimals(userCoverageDetails.evosuite_branch)}% Branch
-Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robotCoverageDetails.evosuite_branch)}% Branch
-----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${roundToTwoDecimals(userCoverageDetails.evosuite_exception)}% Exception
-Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robotCoverageDetails.evosuite_exception)}% Exception
-----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${roundToTwoDecimals(userCoverageDetails.evosuite_weak_mutation)}% WeakMutation
-Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robotCoverageDetails.evosuite_weak_mutation)}% WeakMutation
-----------------------------------------------------------------------
-Il tuo punteggio EvoSuite: ${roundToTwoDecimals(userCoverageDetails.evosuite_cbranch)}% CBranch
-Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robotCoverageDetails.evosuite_cbranch)}% CBranch
-======================================================================`;
-
-	// Restituisce il testo generato
-	return consoleText;
-}
-
-function roundToTwoDecimals(numStr) {
-	return (Math.round(parseFloat(numStr * 100)) / 100).toFixed(2);
-}
-
 function getConsoleTextRun(userCoverageDetails, robotCoverageDetails, canWin, gameScore, robotScore) {
 	function roundToTwoDecimals(value) {
 		return Math.round(value * 100) / 100;
@@ -111,36 +55,43 @@ function getConsoleTextRun(userCoverageDetails, robotCoverageDetails, canWin, ga
 	function getCoverageStats(label, user, robot, isLast) {
 		let userPercentage = roundToTwoDecimals(user.covered / (user.covered + user.missed) * 100);
 		let robotPercentage = roundToTwoDecimals(robot.covered / (robot.covered + robot.missed) * 100);
+
+		let translated_label = label
+		if (label === "Line")
+			translated_label = terminalMessages.lines;
+		else if (label === "instruction")
+			translated_label = terminalMessages.instructions;
+
 		return (
-			`${label} Coverage COV%:  ${userPercentage}% LOC\n` +
-			`covered: ${user.covered}  missed: ${user.missed}\n` +
-			`Robot ${label} Coverage COV%:  ${robotPercentage}% LOC\n` +
-			`robot covered: ${robot.covered} robot missed: ${robot.missed}\n` +
+			`${terminalMessages.coverage_capitalized} ${translated_label} COV%: ${userPercentage}% LOC\n` +
+			`${terminalMessages.covered}: ${user.covered}  ${terminalMessages.missed}: ${user.missed}\n` +
+			`Robot ${terminalMessages.coverage_capitalized} ${translated_label} COV%: ${robotPercentage}% LOC\n` +
+			`${terminalMessages.covered}: ${robot.covered} ${terminalMessages.missed}: ${robot.missed}\n` +
 			(isLast ? "" : `----------------------------------------------------------------------\n`)
 		);
 	}
 
 	function getEvoSuiteStats(label, user, robot, isLast) {
 		return (
-			`Il tuo punteggio EvoSuite: ${roundToTwoDecimals(user)}% ${label}\n` +
-			`Il punteggio EvoSuite del robot: ${roundToTwoDecimals(robot)}% ${label}\n` +
+			`${terminalMessages.your_evosuite_points}: ${roundToTwoDecimals(user)}% ${label}\n` +
+			`${terminalMessages.robot_evosuite_points}: ${roundToTwoDecimals(robot)}% ${label}\n` +
 			(isLast ? "" : `----------------------------------------------------------------------\n`)
 		);
 	}
 
 	let consoleText2 = canWin ? `===================================================================== \n` +
-		"Puoi vincere la partita" + "\n" : "";
+		`${terminalMessages.you_can_win}` + "\n" : "";
 
 	let consoleText =
 		consoleText2 +
-		`============================== Results ===============================\n` +
-		`Il tuo punteggio:${gameScore}pt\n` +
+		`============================== ${terminalMessages.results} ===============================\n` +
+		`${terminalMessages.your_points}:${gameScore}pt\n` +
 		"----------------------------------------------------------------------\n" +
-		`Il punteggio del robot:${robotScore}pt\n` +
+		`${terminalMessages.robot_points}:${robotScore}pt\n` +
 		"============================== JaCoCo ================================\n" +
-		getCoverageStats("Your Line", userCoverageDetails.jacoco_line, robotCoverageDetails.jacoco_line, false) +
-		getCoverageStats("Your Branch", userCoverageDetails.jacoco_branch, robotCoverageDetails.jacoco_branch, false) +
-		getCoverageStats("Your Instruction", userCoverageDetails.jacoco_instruction, robotCoverageDetails.jacoco_instruction, true) +
+		getCoverageStats("Line", userCoverageDetails.jacoco_line, robotCoverageDetails.jacoco_line, false) +
+		getCoverageStats("Branch", userCoverageDetails.jacoco_branch, robotCoverageDetails.jacoco_branch, false) +
+		getCoverageStats("Instruction", userCoverageDetails.jacoco_instruction, robotCoverageDetails.jacoco_instruction, true) +
 		"============================== EvoSuite ===============================\n" +
 		getEvoSuiteStats("Line", userCoverageDetails.evosuite_line, robotCoverageDetails.evosuite_line, false) +
 		getEvoSuiteStats("Branch", userCoverageDetails.evosuite_branch, robotCoverageDetails.evosuite_branch, false) +
@@ -156,8 +107,8 @@ function getConsoleTextRun(userCoverageDetails, robotCoverageDetails, canWin, ga
 function getConsoleTextError(){
 	return  `===================================================================== \n` 
 			+ error +  "\n" +
-			`============================== Results =============================== \n
-			Ci sono stati errori di compilazione, controlla la console !`;
+			`============================== ${terminalMessages.results} =============================== \n
+			${terminalMessages.compilation_error}`;
 }
 
 // Funzione per analizzare l'output di Maven

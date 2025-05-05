@@ -237,7 +237,7 @@ function generateEndGameMessage(userScore, robotScore, isWinner, expGained) {
     openModalWithText(
         gameEndData.game_end,
         `${gameEndData.game_score}: ${userScore} pt.\n${resultMessage}\n${expMessage}`,
-        [{ tagName: "a", text: "Vai alla home", href: '/main', class: 'btn btn-primary' }]
+        [{ tagName: "a", text: `${modalButtonText.go_to_home}`, href: '/main', class: 'btn btn-primary' }]
     );
 }
 
@@ -245,7 +245,7 @@ function handleUnlockedAchievements(unlockedAchievements) {
     openModalWithText(
         unlockedNewAchievementMessage.title,
         `${unlockedNewAchievementMessage.descr}\n${unlockedAchievements.map(a => ` - ${achievementData[a]?.name || a}\n`).join("")}`,
-        [{ tagName: "button", text: "Chiudi", data_bs_dismiss: "modal", class: 'btn btn-primary' }]
+        [{ tagName: "button", text: `${modalButtonText.close}`, data_bs_dismiss: "modal", class: 'btn btn-primary' }]
     );
 }
 

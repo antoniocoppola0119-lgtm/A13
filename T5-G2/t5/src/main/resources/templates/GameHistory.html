@@ -14,11 +14,13 @@
 			<!-- Active Match -->
 			<div class="row"></div>
 			<!-- Search bar-->
+			<div style="margin-bottom: 20px"></div> <!-- Da rimuovere dopo aver aggiunto la logica e ripristinato la searching bar -->
+			<!--
 			<div
 				class="d-flex align-items-center justify-content-between p-3 my-3 rounded shadow-sm bg-dark-subtle"
 			>
 				<div class="d-flex">
-					<!-- filtro tipo -->
+					<!- filtro tipo ->
 					<div id="checkbox-menu" class="mt-2">
 						<div class="form-check form-check-inline">
 							<input
@@ -57,7 +59,7 @@
 							</label>
 						</div>
 					</div>
-					<!-- filtro lette-->
+					<!- filtro lette ->
 					<div class="dropdown">
 						<button
 							class="btn btn-secondary dropdown-toggle"
@@ -83,12 +85,12 @@
 							</li>
 						</ul>
 					</div>
-					<!-- Ordine -->
+					<!- Ordine ->
 					<button id="toggleOrderBtn" class="btn">
 						<i class="bi bi-sort-down"></i>
 					</button>
 				</div>
-				<!-- Bottoni -->
+				<!- Bottoni ->
 				<nav>
 					<ul class="pagination m-0">
 						<li class="page-item">
@@ -107,6 +109,7 @@
 					</ul>
 				</nav>
 			</div>
+			-->
 			<!-- match history -->
 			<div class="list-group" id="match_history">
 				<a
@@ -114,22 +117,6 @@
 					class="list-group-item list-group-item-action"
 					aria-current="true"
 				>
-					<div class="d-flex justify-content-between">
-						<div>
-							<h4 class="mb-1">Sfida</h4>
-							<p class="mb-0">Calcolatrice - Randoop - Level 1</p>
-							<small>12/05/2025</small>
-						</div>
-
-						<div class="text-center p-3">
-							<div class="text-center">
-								<h4 class="mb-0 fw-semibold lh-1">
-									<span class="badge text-bg-success"> WIN </span>
-								</h4>
-								<small> 14pt. </small>
-							</div>
-						</div>
-					</div>
 				</a>
 			</div>
 		</div>
@@ -138,12 +125,20 @@
 		<div th:replace="fragments/footer :: footer"></div>
 
 		<script th:inline="javascript">
-			let difficulty = {
+			const difficulty = {
 				"1": /*[[#{d_facile}]]*/ "Facile",
 				"2": /*[[#{d_medio}]]*/ "Medio",
 				"3": /*[[#{d_difficile}]]*/ "Difficile",
 			};
 
+			const gameMode = {
+				PartitaSingola: /*[[#{singola}]]*/ "Partita Singola",
+				Allenamento: /*[[#{allenamento}]]*/ "Allenamento",
+				Multiplayer: /*[[#{multiplayer}]]*/ "Multi-giocatore",
+				Scalata: /*[[#{scalata}]]*/ "Scalata",
+			}
+
+			const coverage_capitalized= /*[[#{coverage_capitalized}]]*/ "Copertura";
 		</script>
 
 		<script>
@@ -209,13 +204,13 @@ function renderGameHistory(games) {
             <a href="#" class="list-group-item list-group-item-action" aria-current="true">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="mb-1">${game.description}</h4>
+                        <h4 class="mb-1">${gameMode[game.description]}</h4>
                         <p class="mb-0">${game.name} - ${difficulty[game.difficulty]}</p>
                         <small>${formattedDate}</small>
                     </div>
                     <div class="text-center p-3">
                         <h4 class="mb-0 fw-semibold lh-1">${badge}</h4>
-                        <small>${game.score}pt.</small>
+                        <small>${coverage_capitalized} ${game.score}pt.</small>
                     </div>
                 </div>
             </a>

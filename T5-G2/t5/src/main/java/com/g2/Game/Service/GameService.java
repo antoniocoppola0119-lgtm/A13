@@ -257,7 +257,7 @@ public class GameService {
         return Integer.parseInt(difficulty);
     }
 
-    public EndGameResponseDTO handleGameEnd(GameLogic currentGame) {
+    public EndGameResponseDTO handleGameEnd(GameLogic currentGame, boolean surrendered) {
         logger.info("handleGameEnd: Inizio operazioni di terminazione partita per playerId={}. Avvio aggiornamento progressi e notifiche.", currentGame.getPlayerID());
 
         /*
@@ -265,9 +265,9 @@ public class GameService {
          */
         if (currentGame.getUserCompileResult() == null ||
                 !currentGame.getUserCompileResult().hasSuccess() ||
-                !currentGame.isWinner()) {
+                surrendered ) {
             /*
-             * Se l'utente non ha compilato, la compilazione ha generato errori oppure ha perso:
+             * Se l'utente non ha compilato, la compilazione ha generato errori o si è arreso:
              *  - Chiudo la partita in T4 e chiudo sessione
              *  - Invio la risposta di fallimento al frontend
              */
@@ -275,7 +275,7 @@ public class GameService {
             return new EndGameResponseDTO(0, 0, false, 0);
         } else {
             /*
-             * Se l'utente ha vinto la partita
+             * Se l'utente ha vinto o perso la partita
              *  - Gestisco il calcolo e l'aggiornamento dei punti esperienza
              *  - Gestisco notifiche e trofei
              *  - Chiudo la partita in T4 e chiudo sessione
@@ -295,7 +295,7 @@ public class GameService {
         logger.info("EndGame: Terminazione partita per playerId={}.", currentGame.getPlayerID());
         /*
         *       L'utente ha deciso di terminare la partita o 
-        *       la modalità di gioco ha determianto il termine
+        *       la modalità di gioco ha determinato il termine
         *       Salvo la partita 
         *       Distruggo la partita salvata in sessione  
         */
