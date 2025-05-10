@@ -735,13 +735,30 @@ public class TestClasse {
 			const achievementData = {
 				"instructions": {
 					name: /*[[#{instructions_name}]]*/ "Coverage Master",
-					descr: /*#[[${instructions_desc}]]*/ "Ottenuto superando il robot nel numero di istruzioni coperte per la classe sotto test."
+					descr: /*[[#{instructions_descr}]]*/ "Ottenuto superando il robot nel numero di istruzioni coperte per la classe sotto test."
 				},
 				"instructionsAndWeakMutation": {
 					name: /*[[#{instructionsAndWeakMutation_name}]]*/ "Signore delle Weak Mutation",
-					descr: /*#[[${instructionsAndWeakMutation_desc}]]*/ "Ottenuto superando il robot sia nel numero di istruzioni coperte che nella metrica weakMutation."
+					descr: /*[[#{instructionsAndWeakMutation_descr}]]*/ "Ottenuto superando il robot sia nel numero di istruzioni coperte che nella metrica weakMutation."
 				},
+				"firstMatchWon": {
+					name: /*[[#{firstMatchWon_text}]]*/ "Primi passi",
+					descr: /*[[#{firstMatchWon_descr}]]*/ "Ottenuto vincendo la tua prima partita."
+				},
+				"thirdMatchWon": {
+					name: /*[[#{thirdMatchWon_text}]]*/ "In ritmo",
+					descr: /*[[#{thirdMatchWon_descr}]]*/ "Ottenuto vincendo la tua terza partita."
+				},
+				"allBeatenOneClass": {
+					name: /*[[#{allBeatenOneClass_text}]]*/ "Classe completata",
+					descr: /*[[#{allBeatenOneClass_descr}]]*/ "Ottenuto superando tutti gli avversari di una classe."
+				},
+				"allBeatenTwoClass": {
+					name: /*[[#{allBeatenTwoClass_text}]]*/ "Doppia padronanza",
+					descr: /*[[#{allBeatenTwoClass_descr}]]*/ "Ottenuto superando tutti gli avversari di due classi."
+				}
 			};
+
 			const gameEndData = {
 				game_score: /*[[#{game_score}]]*/ "Hai terminato la tua partita con un punteggio",
 				game_end: /*[[#{game_end}]]*/ "Partita terminata",
@@ -772,6 +789,11 @@ public class TestClasse {
 				you_can_win: /*[[#{you_can_win}]]*/ "Puoi vincere la partita!",
 				your_evosuite_points: /*[[#{your_evosuite_points}]]*/ "Il tuo punteggio EvoSuite!",
 				robot_evosuite_points: /*[[#{robot_evosuite_points}]]*/ "Il punteggio EvoSuite del robot!",
+				points_descr: /*[[#{points_descr}]]*/ "In basso trovi il dettaglio dei livelli di copertura raggiunti sia dai tuoi test che da quelli del Robot - Chi vincerà la battaglia dei Bug?",
+				you_cant_win: /*[[#{you_cant_win}]]*/ "Ci sei quasi! Il Robot è ancora in vantaggio, ma lo stai raggiungendo in fretta. Aggiungi qualche test case in più alla tua suite e conquista la vittoria - i bug non hanno scampo!",
+				you: /*[[#{you}]]*/ "You",
+				robot: /*[[#{robot_title}]]*/ "Robot",
+				metrics: /*[[#{metrics}]]*/ "Metriche",
 			}
 
 			const modalButtonText = {

@@ -60,6 +60,14 @@ public class T4Service extends BaseService {
         registerAction("getUserGameProgress", new ServiceActionDefinition(
                 params -> getUserGameProgress((int) params[0], (String) params[1], (String) params[2],
                         (String) params[3], (String) params[4]), Integer.class, String.class, String.class, String.class, String.class
+                ));
+
+        registerAction("getGlobalAchievements", new ServiceActionDefinition(
+                params -> getGlobalAchievements((int) params[0]), Integer.class
+        ));
+
+        registerAction("updateGlobalAchievements", new ServiceActionDefinition(
+                params -> updateGlobalAchievements((int) params[0], (String[]) params[1]), Integer.class, String[].class
         ));
 
         registerAction("getAllUserGameProgresses", new ServiceActionDefinition(
@@ -171,6 +179,19 @@ public class T4Service extends BaseService {
         final String endpoint =  String.format("/progress/%s", playerId);
         return callRestGET(endpoint, null, new ParameterizedTypeReference<List<UserGameProgress>>() {
         });
+    }
+
+    private GeneralAchievement getGlobalAchievements(int playerId) {
+        final String endpoint =  String.format("/progress/global-achievements/%s", playerId);
+        return callRestGET(endpoint, null, GeneralAchievement.class);
+    }
+
+    private GeneralAchievement updateGlobalAchievements(int playerId, String[] achievements) {
+        final String endpoint =  String.format("/progress/global-achievements/%s", playerId);
+
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("achievements", achievements);
+        return callRestPut(endpoint, requestBody, null, null, GeneralAchievement.class);
     }
 
     // Usa PUT /progress/achievements/{matchId} per aggiungere nuovi achievement ottenuti dall'utente su quel match
