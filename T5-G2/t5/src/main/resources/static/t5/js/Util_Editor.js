@@ -266,19 +266,46 @@ function highlightCodeCoverage(reportContent, robotContent, editor) {
 	var partiallyCoveredLinesRobot = [];
 
 	reportContent.querySelectorAll("line").forEach(function (line) {
-		if (line.getAttribute("mi") == 0)
+		const mi = parseInt(line.getAttribute("mi"));
+		const ci = parseInt(line.getAttribute("ci"));
+		const mb = parseInt(line.getAttribute("mb"));
+		const cb = parseInt(line.getAttribute("cb"));
+
+		const totalInstructions = mi + ci;
+		const totalBranches = mb + cb;
+
+		const allInstructionsCovered = (mi === 0);
+		const allBranchesCovered = (totalBranches === 0 || mb === 0);
+
+		if (allInstructionsCovered && allBranchesCovered) {
 			coveredLines.push(line.getAttribute("nr"));
-		else if (line.getAttribute("mb") > 0 && line.getAttribute("cb") > 0)
+		} else if ((ci > 0 || cb > 0)) {
 			partiallyCoveredLines.push(line.getAttribute("nr"));
-		else uncoveredLines.push(line.getAttribute("nr"));
+		} else {
+			uncoveredLines.push(line.getAttribute("nr"));
+		}
 	});
 
+
 	robotContent.querySelectorAll("line").forEach(function (line) {
-		if (line.getAttribute("mi") == 0)
-			coveredLinesRobot.push(line.getAttribute("nr"));
-		else if (line.getAttribute("mb") > 0 && line.getAttribute("cb") > 0)
-			partiallyCoveredLinesRobot.push(line.getAttribute("nr"));
-		else uncoveredLinesRobot.push(line.getAttribute("nr"));
+		const mi = parseInt(line.getAttribute("mi"));
+		const ci = parseInt(line.getAttribute("ci"));
+		const mb = parseInt(line.getAttribute("mb"));
+		const cb = parseInt(line.getAttribute("cb"));
+
+		const totalInstructions = mi + ci;
+		const totalBranches = mb + cb;
+
+		const allInstructionsCovered = (mi === 0);
+		const allBranchesCovered = (totalBranches === 0 || mb === 0);
+
+		if (allInstructionsCovered && allBranchesCovered) {
+			coveredLines.push(line.getAttribute("nr"));
+		} else if ((ci > 0 || cb > 0)) {
+			partiallyCoveredLines.push(line.getAttribute("nr"));
+		} else {
+			uncoveredLines.push(line.getAttribute("nr"));
+		}
 	});
 
 	let decreaseRobotLines = 1;
