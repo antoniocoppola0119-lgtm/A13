@@ -1,9 +1,9 @@
 # TestingRobotChallenge
-TestingRobotChallenge is a web application designed to support the learning of software testing through gamification, where players compete against preconfigured opponents. The goal for each player is to write JUnit test code for a given Java class, aiming to outperform — or at least match — the score achieved by the selected opponent.
+TestingRobotChallenge is a web application designed to support the learning of software testing through gamification, where players compete against preconfigured opponents. The goal for each player is to write JUnit4 test code for a given Java class, aiming to outperform — or at least match — the score achieved by the selected opponent.
 
 ## Key Features
 - Role-based access: users can register either as administrators or players. Administrators — typically instructors — can upload new Java classes to be tested and configure opponents (called robots). Players — typically students — can then challenge these robots;
-- Experience points and achievements**: players earn experience points for each defeated robot, which contribute to their level progression. Completing specific challenges also unlocks achievements;
+- Experience points and achievements: players earn experience points for each defeated robot, which contribute to their level progression. Completing specific challenges also unlocks achievements;
 - Match history: a dedicated section allows players to review their past matches, showing which were won or lost;
 - Multiple game modes: the platform currently supports two gameplay modes:
   - Practice: players can freely test their skills on a Java class without competing against a robot and without being scored.
