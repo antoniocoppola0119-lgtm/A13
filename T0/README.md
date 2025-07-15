@@ -13,16 +13,15 @@ Both scripts accept the following input parameters:
 - `class_name`: the name of the target Java class to test;
 - `package_name`: the package name of the target Java class. Optional;
 - `class_path`: absolute path on the host to the directory containing the target class;
-- `num_levels`: number of test difficulty levels to generate;
 - `host_output_dir`: absolute path on the host where the generated tests will be saved. Inside this directory, tests generated with EvoSuite will be stored in the `EvoSuiteTest` folder, while tests generated with Randoop will be stored in the `RandoopTest` folder.
 
 ## Example
 Suppose you want to generate one level of test for the class FTPFile, which doesn't have a package, on Linux. The command will be similar to the following:
 ```bash
-bash generate.sh evosuite FTPFile /absolute/path/source/FTPFile.java 1 /absolute/path/destination
+bash generate.sh evosuite FTPFile /absolute/path/source/FTPFile.java /absolute/path/destination
 ```
 
 For example:
 ```bash
-bash generate.sh evosuite FTPFile /home/username/classes/FTPFile.java 3 /home/username/generation_results 
+bash generate.sh evosuite FTPFile /home/username/classes/FTPFile.java /home/username/generation_results 
 ```

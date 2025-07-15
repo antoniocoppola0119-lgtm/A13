@@ -55,7 +55,10 @@ public class GameController {
     })
     @GetMapping("/{gameId}")
     public ResponseEntity<Game> getGameById(@PathVariable("gameId") Long gameId) {
-        return ResponseEntity.ok(gameService.getGameById(gameId));
+        logger.debug("[GET /games/{}] Received request", gameId);
+        Game game = gameService.getGameById(gameId);
+        logger.debug("[GET /games/{}] Game returned: {}", gameId, game);
+        return ResponseEntity.ok(game);
     }
 
     @Operation(
@@ -76,7 +79,10 @@ public class GameController {
     public ResponseEntity<List<Game>> getAllPlayerGames(
             @Parameter(name = "playerId", description = "Id of the player", required = true)
             @PathVariable("playerId") Long playerId) {
-        return ResponseEntity.ok(gameService.getAllPlayerGames(playerId));
+        logger.debug("[GET /games/{}] Received request", playerId);
+        List<Game> games = gameService.getAllPlayerGames(playerId);
+        logger.debug("[GET /games/{}] Games returned: {}", playerId, games);
+        return ResponseEntity.ok(games);
     }
 
     @Operation(
@@ -95,8 +101,10 @@ public class GameController {
     })
     @GetMapping("")
     public ResponseEntity<List<Game>> getAllGames() {
-        logger.info("[POST /games] Received request");
-        return ResponseEntity.ok(gameService.getAllGames());
+        logger.debug("[GET /games] Received request");
+        List<Game> games = gameService.getAllGames();
+        logger.debug("[GET /games] Games returned: {}", games);
+        return ResponseEntity.ok(games);
     }
 
     @Operation(
@@ -123,9 +131,9 @@ public class GameController {
     })
     @PostMapping("")
     public ResponseEntity<Object> createGame(@Validated @RequestBody CreateGameDTO createGameDTO) {
-        logger.info("[POST /games] Received request with body: {}", createGameDTO);
+        logger.debug("[POST /games] Received request with body: {}", createGameDTO);
         Game createdGame = gameService.createGame(createGameDTO.getGameMode(), createGameDTO.getPlayers());
-
+        logger.debug("[POST /games] Created game: {}", createdGame);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdGame);
     }
 
@@ -156,8 +164,9 @@ public class GameController {
             @Parameter(name = "gameId", description = "Id of the game", required = true)
             @PathVariable("gameId") Long gameId,
             @Validated @RequestBody CreateRoundDTO createRoundDTO) {
+        logger.debug("[POST /games/{}/rounds] Received request with body: {}", gameId, createRoundDTO);
         Round newRound = gameService.startRound(gameId, createRoundDTO.getClassUT(), createRoundDTO.getType(), createRoundDTO.getDifficulty());
-
+        logger.debug("[POST /games/{}/rounds] Round created: {}", gameId, newRound);
         return ResponseEntity.status(HttpStatus.CREATED).body(newRound);
     }
 
@@ -188,9 +197,9 @@ public class GameController {
             @Parameter(name = "gameId", description = "Id of the game", required = true)
             @PathVariable("gameId") Long gameId,
             @Validated @RequestBody CreateTurnDTO turnDTO) {
-        logger.info("[POST /{}/rounds/last/turns}] Received request with body {}", gameId, turnDTO);
+        logger.debug("[POST /games/{}/rounds/last/turns}] Received request with body {}", gameId, turnDTO);
         Turn newTurn = gameService.startTurn(gameId, turnDTO.getPlayerId());
-        logger.info("[POST /{}/rounds/last/turns}] Created new turn {}", gameId, newTurn);
+        logger.debug("[POST /games/{}/rounds/last/turns}] Created new turn {}", gameId, newTurn);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newTurn.getTurnNumber());
     }
@@ -224,8 +233,9 @@ public class GameController {
             @Parameter(name = "turnNumber", description = "The number of the turn of the last round to close", required = true)
             @PathVariable("turnNumber") int turnNumber,
             @Validated @RequestBody CloseTurnDTO closeTurnDTO) {
-        logger.info("[PUT /{}/rounds/last/turns/{}] Received request with body: {}", gameId, turnNumber, closeTurnDTO);
+        logger.debug("[PUT /games/{}/rounds/last/turns/{}] Received request with body: {}", gameId, turnNumber, closeTurnDTO);
         Turn closedTurn = gameService.endTurn(gameId, closeTurnDTO.getPlayerId(), turnNumber, TurnScoreMapper.toEntity(closeTurnDTO));
+        logger.debug("[PUT /games/{}/rounds/last/turns/{}] Closed turn as: {}", gameId, turnNumber, closedTurn);
 
         return ResponseEntity.ok(closedTurn);
     }
@@ -248,7 +258,9 @@ public class GameController {
     public ResponseEntity<Round> closeRound(
             @Parameter(name = "gameId", description = "Id of the game", required = true)
             @PathVariable(value = "gameId") Long gameId) {
+        logger.debug("[PUT /games/{}/rounds/last] Received request", gameId);
         Round closedRound = gameService.endRound(gameId);
+        logger.debug("[PUT /games/{}/rounds/last] Closed round as", closedRound);
         return ResponseEntity.ok(closedRound);
     }
 
@@ -279,11 +291,13 @@ public class GameController {
             @Parameter(name = "gameId", description = "Id of the game", required = true)
             @PathVariable(value = "gameId") Long gameId,
             @Validated @RequestBody CloseGameDTO closeGameDTO) {
+        logger.debug("[PUT /games/{}] Received request with body: {}", gameId, closeGameDTO);
         Map<Long, PlayerResult> results = new HashMap<>();
         for (Long playerId : closeGameDTO.getResults().keySet())
             results.put(playerId, PlayerResultMapper.toEntity(closeGameDTO.getResults().get(playerId)));
 
-        Game updatedGame = gameService.endGame(gameId, results);
-        return ResponseEntity.ok(updatedGame);
+        Game closedGame = gameService.endGame(gameId, results);
+        logger.debug("[PUT /games/{}] Closed game as: {}", gameId, closedGame);
+        return ResponseEntity.ok(closedGame);
     }
 }
