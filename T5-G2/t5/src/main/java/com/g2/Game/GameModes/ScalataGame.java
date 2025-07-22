@@ -22,28 +22,31 @@ import java.util.List;
 
 import com.g2.Game.GameModes.Compile.CompileResult;
 import com.g2.Interfaces.ServiceManager;
+import testrobotchallenge.commons.models.opponent.GameMode;
+import testrobotchallenge.commons.models.opponent.OpponentDifficulty;
+import testrobotchallenge.commons.models.opponent.OpponentType;
 
 public class ScalataGame extends GameLogic {
     private final List<Sfida> games;
     private int currentRound;
     private int currentGameIndex;
 
-    public ScalataGame(ServiceManager serviceManager, String playerID, String classeUT,
-                       List<String> typesRobot, List<String> difficulties, String mode, String testingClassCode) {
+    public ScalataGame(ServiceManager serviceManager, Long playerID, String classeUT,
+                       List<OpponentType> typesRobot, List<OpponentDifficulty> difficulties, GameMode mode, String testingClassCode) {
         super(serviceManager, playerID, classeUT, typesRobot.get(0), difficulties.get(0), mode, testingClassCode);
         this.games = new ArrayList<>();
         this.currentRound = 1; // Inizia dal round 1
         this.currentGameIndex = 0; // Indice del gioco corrente
 
         for (int i = 0; i < typesRobot.size(); i++) {
-            String typeRobot = typesRobot.get(i);
-            String difficulty = difficulties.get(i);
+            OpponentType typeRobot = typesRobot.get(i);
+            OpponentDifficulty difficulty = difficulties.get(i);
             games.add(new Sfida(serviceManager, playerID, classeUT, typeRobot, difficulty, mode, testingClassCode));
         }
     }
 
     @Override
-    public void NextTurn(int userScore, int robotScore) {
+    public void NextTurn(CompileResult userScore, CompileResult robotScore) {
         if (currentGameIndex < games.size()) {
             Sfida currentGame = games.get(currentGameIndex);
             currentGame.NextTurn(userScore, robotScore);

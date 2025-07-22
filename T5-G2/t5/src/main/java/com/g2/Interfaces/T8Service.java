@@ -3,6 +3,7 @@ package com.g2.Interfaces;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import testrobotchallenge.commons.models.dto.score.EvosuiteCoverageDTO;
 
 @Service
 public class T8Service extends BaseService {
@@ -24,9 +25,9 @@ public class T8Service extends BaseService {
 
     }
 
-    private String evosuiteUserCoverage(String testClassName, String testClassCode, String classUTName,
-                                      String classUTCode, String classUTPackage) {
-        final String endpoint = "/api/VolumeT0";
+    private EvosuiteCoverageDTO evosuiteUserCoverage(String testClassName, String testClassCode, String classUTName,
+                                                     String classUTCode, String classUTPackage) {
+        final String endpoint = "/coverage/player";
 
         JSONObject requestBody = new JSONObject();
         requestBody.put("testClassName", testClassName);
@@ -35,6 +36,6 @@ public class T8Service extends BaseService {
         requestBody.put("classUTCode", classUTCode);
         requestBody.put("classUTPackage", classUTPackage);
 
-        return callRestPost(endpoint, requestBody, null, null, String.class);
+        return callRestPost(endpoint, requestBody, null, null, EvosuiteCoverageDTO.class);
     }
 }

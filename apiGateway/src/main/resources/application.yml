@@ -50,6 +50,7 @@ spring:
             - Path=/gamerepo/**
           filters:
             - RewritePath=/gamerepo/(?<segment>.*), /${segment}
+            - name: AuthenticationFilter
             - name: RedisCacheFilter
               args:
                 ttl: 60
@@ -58,9 +59,10 @@ spring:
         - id: T7-route
           uri: http://t7-controller:8087
           predicates:
-            - Path=/compile/randoop/**
+            - Path=/compile/jacoco/**
           filters:
-            - RewritePath=/compile/randoop/(?<segment>.*), /${segment}
+            - RewritePath=/compile/jacoco/(?<segment>.*), /${segment}
+            - name: AuthenticationFilter
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 2
@@ -72,6 +74,7 @@ spring:
             - Path=/compile/evosuite/**
           filters:
             - RewritePath=/compile/evosuite/(?<segment>.*), /${segment}
+            - name: AuthenticationFilter
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 2

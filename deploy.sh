@@ -28,9 +28,9 @@ cd "$ROOT_DIR/T23-G1"
 docker compose up -d || { echo "Error deploying T23-G1"; exit 1; }
 cd "$ROOT_DIR"
 
-echo "Deploying T4-G18"
-cd "$ROOT_DIR/T4-G18"
-docker compose up -d || { echo "Error deploying T4-G18"; exit 1; }
+echo "Deploying T4"
+cd "$ROOT_DIR/T4/gamerepo"
+docker compose up -d || { echo "Error deploying T4"; exit 1; }
 
 echo "Deploying T5-G2"
 cd "$ROOT_DIR/T5-G2/t5"

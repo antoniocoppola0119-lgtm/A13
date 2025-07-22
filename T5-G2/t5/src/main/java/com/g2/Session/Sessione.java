@@ -28,6 +28,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.g2.Game.GameModes.GameLogic;
+import lombok.Setter;
+import testrobotchallenge.commons.models.opponent.GameMode;
 
 /**
  * Classe che rappresenta una sessione di un utente. Contiene una mappa delle
@@ -38,8 +40,9 @@ public class Sessione implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @Setter
     @JsonProperty("id_sess")
-    private String idSessione;
+    private Long idSessione;
 
     @JsonProperty("id_user")
     private final String userId;
@@ -56,7 +59,7 @@ public class Sessione implements Serializable {
 
     // Mappa che contiene le modalità di gioco associate a un wrapper
     @JsonProperty("modalita")
-    private Map<String, ModalitaWrapper> modalita;
+    private Map<GameMode, ModalitaWrapper> modalita;
 
     /**
      * Costruttore per inizializzare una sessione.
@@ -65,14 +68,14 @@ public class Sessione implements Serializable {
      * @param userId Identificativo dell'utente proprietario della sessione
      */
     public Sessione(
-        String idSessione, 
-        String userId
+            Long idSessione,
+            String userId
     ) {
         this.idSessione = Objects.requireNonNull(idSessione, "idSessione non può essere null");
         this.userId = Objects.requireNonNull(userId, "userId non può essere null");
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
-        this.modalita = new HashMap<>();
+        this.modalita = new HashMap<GameMode, ModalitaWrapper>();
     }
 
     /*
@@ -80,29 +83,29 @@ public class Sessione implements Serializable {
      */
     @JsonCreator
     public Sessione(
-        @JsonProperty("id_sess")    String idSessione,
+        @JsonProperty("id_sess") Long idSessione,
         @JsonProperty("id_user")    String userId,
         @JsonProperty("created_at") Instant createdAt,
         @JsonProperty("updated_at") Instant updatedAt,
-        @JsonProperty("modalita")   Map<String, ModalitaWrapper> modalita
+        @JsonProperty("modalita") Map<GameMode, ModalitaWrapper> modalita
     ) {
         this.idSessione = idSessione;
         this.userId = userId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.modalita = modalita != null ? modalita : new HashMap<>();
+        this.modalita = modalita != null ? modalita : new HashMap<GameMode, ModalitaWrapper>();
     }
 
     // Costruttore vuoto per deserializzazione
     public Sessione() {
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
-        this.modalita = new HashMap<>();
+        this.modalita = new HashMap<GameMode, ModalitaWrapper>();
         this.userId = "";
     }
 
     // Getters e setters
-    public String getIdSessione() {
+    public Long getIdSessione() {
         return idSessione;
     }
 
@@ -118,11 +121,11 @@ public class Sessione implements Serializable {
         return updatedAt;
     }
 
-    public Map<String, ModalitaWrapper> getModalita() {
+    public Map<GameMode, ModalitaWrapper> getModalita() {
         return modalita;
     }
 
-    public void setModalita(Map<String, ModalitaWrapper> modalita) {
+    public void setModalita(Map<GameMode, ModalitaWrapper> modalita) {
         this.modalita = Objects.requireNonNull(modalita, "modalita non può essere null");
         this.updatedAt = Instant.now(); // Aggiorna il timestamp di update
     }
@@ -134,7 +137,7 @@ public class Sessione implements Serializable {
      * @return true se la modalità è stata rimossa, false se la modalità non
      * esisteva
      */
-    public boolean removeModalita(String key) {
+    public boolean removeModalita(GameMode key) {
         if (this.modalita.containsKey(key)) {
             this.modalita.remove(key);
             this.updatedAt = Instant.now(); // Aggiorna il timestamp di update
@@ -149,7 +152,7 @@ public class Sessione implements Serializable {
      * @param key Nome della modalità (es. "Sfida", "Allenamento")
      * @param game Oggetto GameLogic associato alla modalità
      */
-    public void addModalita(String key, GameLogic game) {
+    public void addModalita(GameMode key, GameLogic game) {
         Objects.requireNonNull(key, "La chiave della modalità non può essere null");
         Objects.requireNonNull(game, "L'oggetto GameLogic non può essere null");
         this.modalita.put(key, new ModalitaWrapper(game));
@@ -162,11 +165,11 @@ public class Sessione implements Serializable {
      * @param key Nome della modalità da cercare
      * @return true se la modalità esiste, false altrimenti
      */
-    public boolean hasModalita(String key) {
+    public boolean hasModalita(GameMode key) {
         return this.modalita.containsKey(key);
     }
 
-    public GameLogic getGame(String mode){
+    public GameLogic getGame(GameMode mode){
         return this.modalita.get(mode).gameobject;
     }
 
@@ -180,10 +183,6 @@ public class Sessione implements Serializable {
                 + ", updatedAt=" + updatedAt
                 + ", modalita=" + modalita
                 + '}';
-    }
-
-    public void setIdSessione(String idSessione) {
-        this.idSessione = idSessione;
     }
 
     /**

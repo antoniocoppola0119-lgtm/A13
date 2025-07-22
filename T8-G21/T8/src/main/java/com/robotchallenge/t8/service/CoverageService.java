@@ -11,7 +11,6 @@ import java.io.*;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -60,7 +59,7 @@ public class CoverageService {
         return result;
     }
 
-    public String calculateStudentCoverage(StudentCoverageRequestDTO request) throws RuntimeException {
+    public String calculatePLayerCoverage(StudentCoverageRequestDTO request) throws RuntimeException {
         String classUTName = request.getClassUTName();
         String classUTCode = request.getClassUTCode();
         String testClassCode = request.getTestClassCode();
@@ -96,43 +95,6 @@ public class CoverageService {
             logger.error("[calculateStudentCoverage] Errore durante la fase di cleanup: ", e);
             throw new RuntimeException("[calculateStudentCoverage] Errore durante la fase di cleanup: " + e);
         }
-    }
-
-    public int[] getCoveragePercentageStatistics(String content) {
-        List<Integer> values = new ArrayList<>();
-        String line;
-        String delimiter = ",";
-
-        try (BufferedReader br = new BufferedReader(new StringReader(content))) {
-            boolean firstLine = true; // salto la prima riga, che contiene i nomi delle colonne
-
-            while ((line = br.readLine()) != null) {
-                if (firstLine) {
-                    firstLine = false;
-                    continue;
-                }
-
-                String[] columns = line.split(delimiter);
-
-                // Verifico che esistano almeno 3 colonne, la percentuale di coverage si trova sulla terza
-                if (columns.length >= 3) {
-                    try {
-                        double value = Double.parseDouble(columns[2].trim()) * 100;
-                        values.add((int) value);
-                    } catch (NumberFormatException e) {
-                        logger.error("[getCoveragePercentageStatistics] Errore durante la conversione dei valori di copertura percentuale: {}", e.getMessage());
-                        throw new RuntimeException("[getCoveragePercentageStatistics] Errore durante la conversione dei valori di copertura percentuale: " + e.getMessage(), e);
-
-                    }
-                }
-            }
-        } catch (IOException e) {
-            logger.error("[getCoveragePercentageStatistics] Errore durante l'estrazione della colonna della copertura percentuale: {}", e.getMessage());
-            throw new RuntimeException("[getCoveragePercentageStatistics] Errore durante l'estrazione della colonna della copertura percentuale: " + e.getMessage(), e);
-        }
-
-        // Converto la lista in array di interi
-        return values.stream().mapToInt(i -> i).toArray();
     }
 
     private String calculateEvosuiteCoverage(String workingDir, String classUTPackage, String classUTName) {

@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @CrossOrigin
 @Controller
+@RequestMapping("/scalata")
 public class ScalataViewController {
 
     private final JwtService jwtService;
@@ -20,9 +21,8 @@ public class ScalataViewController {
         this.jwtService = jwtService;
     }
 
-    @GetMapping("/scalata")
+    @GetMapping("/main")
     public ModelAndView showScalata(HttpServletRequest request, @CookieValue(name = "jwt", required = false) String jwt) {
-        if (jwtService.isJwtValid(jwt)) {return new ModelAndView("/scalata");}
-        return new ModelAndView("redirect:/loginAdmin");
+        return new ModelAndView("/scalata/scalata_main");
     }
 }

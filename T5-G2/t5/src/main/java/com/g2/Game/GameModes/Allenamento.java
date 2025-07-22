@@ -1,29 +1,36 @@
 package com.g2.Game.GameModes;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.g2.Game.GameModes.Compile.CompileResult;
 import com.g2.Interfaces.ServiceManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import testrobotchallenge.commons.models.opponent.GameMode;
+import testrobotchallenge.commons.models.opponent.OpponentDifficulty;
+import testrobotchallenge.commons.models.opponent.OpponentType;
 
 public class Allenamento extends GameLogic{
+    @JsonIgnore
+    private static final Logger logger = LoggerFactory.getLogger(Allenamento.class);
 
-    @JsonProperty("currentTurn")
-    private int currentTurn;
     @JsonProperty("userScore")
     private int userScore;
     
     public Allenamento() {
     }
 
-    public Allenamento(ServiceManager serviceManager, String PlayerID, String ClasseUT,
-            String type_robot, String difficulty, String gamemode, String testingClassCode) {
+    public Allenamento(ServiceManager serviceManager, Long PlayerID, String ClasseUT,
+                       OpponentType type_robot, OpponentDifficulty difficulty, GameMode gamemode, String testingClassCode) {
         super(serviceManager, PlayerID, ClasseUT, type_robot, difficulty, gamemode, testingClassCode);
-        currentTurn = 0;
     }
 
     @Override
-    public void NextTurn(int userScore, int robotScore) {
-        currentTurn++;
-        System.out.println("[GAME] Turn " + currentTurn + " played. User Score: " + userScore + ", Robot Score: " + robotScore);
+    public void NextTurn(CompileResult userScore, CompileResult robotScore) {
+        CreateTurn();
+        logger.info("Created turn {} for game {}", this.getCurrentTurn(), this.getGameID());
+        EndTurn(userScore);
+        System.out.println("[GAME] Turn " + this.getCurrentTurn() + " played. User Score: " + userScore.getInstructionCoverage().getPercentage() + ", Robot Score: " + robotScore.getInstructionCoverage().getPercentage());
     }
 
     @Override
@@ -42,7 +49,7 @@ public class Allenamento extends GameLogic{
     }
     
     @Override
-    public void EndGame(int Score) {
+    public void EndGame() {
         // Il metodo è intenzionalmente vuoto: L'allenamento non deve creare 
     }
 
@@ -56,7 +63,7 @@ public class Allenamento extends GameLogic{
         // Calcolo della percentuale
         double locPerc = ((double) coverage) / 100;
         // Penalità crescente per ogni turno aggiuntivo
-        double penaltyFactor = Math.pow(0.9, currentTurn);
+        double penaltyFactor = Math.pow(0.9, this.getCurrentRound());
         // Calcolo del punteggio
         double score = locPerc * 100 * penaltyFactor;
         this.userScore = (int) Math.ceil(score);

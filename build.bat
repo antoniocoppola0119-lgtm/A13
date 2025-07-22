@@ -11,7 +11,7 @@ set "ROOT_DIR=%CD%"
 
 rem Build commons
 echo Building commons
-cd /d "%ROOT_DIR%\commons"
+cd /d "%ROOT_DIR%\T-shared"
 call mvn install
 echo Current directory: %CD%
 if ERRORLEVEL 1 (
@@ -46,8 +46,8 @@ docker build -t mick0974/a13:t23-g1 .
 cd /d "%ROOT_DIR%"
 
 rem Build T4-G18
-echo Building T4-G18
-cd /d "%ROOT_DIR%\T4-G18"
+echo Building T4
+cd /d "%ROOT_DIR%\T4"
 docker build -t mick0974/a13:t4-g18 .
 cd /d "%ROOT_DIR%"
 

@@ -1,7 +1,8 @@
 package com.g2.Service;
 
 import com.g2.Game.GameModes.Compile.CompileResult;
-import com.g2.Model.AvailableRobot;
+import com.g2.Model.DTO.GameProgressDTO;
+import com.g2.Model.OpponentSummary;
 import com.g2.Model.UserGameProgress;
 import com.g2.util.AchievementDefinition.NumberAllRobotForClassBeaten;
 import com.g2.util.AchievementDefinition.NumberRobotBeaten;
@@ -34,11 +35,11 @@ public class AchievementService {
         return unlocked;
     }
 
-    public Set<String> verifyNumberRobotBeaten(List<UserGameProgress> userGameProgresses) {
-        Map<String, Function<List<UserGameProgress>, Boolean>> achievements = NumberRobotBeaten.getAchievementFunctions();
+    public Set<String> verifyNumberRobotBeaten(List<GameProgressDTO> gameProgresses) {
+        Map<String, Function<List<GameProgressDTO>, Boolean>> achievements = NumberRobotBeaten.getAchievementFunctions();
         Set<String> unlocked = new HashSet<>();
         for (var entry : achievements.entrySet()) {
-            if (entry.getValue().apply(userGameProgresses)) {
+            if (entry.getValue().apply(gameProgresses)) {
                 unlocked.add(entry.getKey());
             }
         }
@@ -47,37 +48,37 @@ public class AchievementService {
     }
 
     public Set<String> verifyNumberAllRobotForClassBeaten(
-            List<UserGameProgress> userGameProgresses,
-            List<AvailableRobot> robots
+            List<GameProgressDTO> gameProgress,
+            List<OpponentSummary> robots
     ) {
-        Map<String, BiFunction<Map<String, List<UserGameProgress>>, Map<String, List<AvailableRobot>>, Boolean>> achievements =
+        Map<String, BiFunction<Map<String, List<GameProgressDTO>>, Map<String, List<OpponentSummary>>, Boolean>> achievements =
                 NumberAllRobotForClassBeaten.getAchievementFunctions();
-        Map<String, List<AvailableRobot>> availableRobotsByClass = new HashMap<>();
-        Map<String, List<UserGameProgress>> userGameProgressesByClass = new HashMap<>();
+        Map<String, List<OpponentSummary>> availableRobotsByClass = new HashMap<>();
+        Map<String, List<GameProgressDTO>> gameProgressesByClass = new HashMap<>();
 
-        for (AvailableRobot robot : robots) {
-            if (!availableRobotsByClass.containsKey(robot.getTestClassId())) {
-                ArrayList<AvailableRobot> arrayList = new ArrayList<>();
+        for (OpponentSummary robot : robots) {
+            if (!availableRobotsByClass.containsKey(robot.getClassUT())) {
+                ArrayList<OpponentSummary> arrayList = new ArrayList<>();
                 arrayList.add(robot);
-                availableRobotsByClass.put(robot.getTestClassId(), arrayList);
+                availableRobotsByClass.put(robot.getClassUT(), arrayList);
             } else {
-                availableRobotsByClass.get(robot.getTestClassId()).add(robot);
+                availableRobotsByClass.get(robot.getClassUT()).add(robot);
             }
         }
 
-        for (UserGameProgress progress : userGameProgresses) {
-            if (!userGameProgressesByClass.containsKey(progress.getClassUT())) {
-                ArrayList<UserGameProgress> arrayList = new ArrayList<>();
+        for (GameProgressDTO progress : gameProgress) {
+            if (!gameProgressesByClass.containsKey(progress.getClassUT())) {
+                ArrayList<GameProgressDTO> arrayList = new ArrayList<>();
                 arrayList.add(progress);
-                userGameProgressesByClass.put(progress.getClassUT(), arrayList);
+                gameProgressesByClass.put(progress.getClassUT(), arrayList);
             } else {
-                userGameProgressesByClass.get(progress.getClassUT()).add(progress);
+                gameProgressesByClass.get(progress.getClassUT()).add(progress);
             }
         }
 
         Set<String> unlocked = new HashSet<>();
         for (var entry : achievements.entrySet()) {
-            if (entry.getValue().apply(userGameProgressesByClass, availableRobotsByClass)) {
+            if (entry.getValue().apply(gameProgressesByClass, availableRobotsByClass)) {
                 unlocked.add(entry.getKey());
             }
         }

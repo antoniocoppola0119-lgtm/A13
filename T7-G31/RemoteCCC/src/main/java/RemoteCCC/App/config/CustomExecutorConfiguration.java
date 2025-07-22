@@ -1,8 +1,8 @@
 package RemoteCCC.App.config;
 
-import org.json.JSONObject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import testrobotchallenge.commons.models.dto.score.JacocoCoverageDTO;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -271,9 +271,9 @@ public class CustomExecutorConfiguration {
             this.monitor = monitor;
         }
 
-        public Future<JSONObject> submitTask(Callable<JSONObject> userTask) {
-            CompletableFuture<JSONObject> future = new CompletableFuture<>();
-            TimedTask<JSONObject> timedTask = new TimedTask<>(userTask, monitor, MAX_QUEUE_TIME, EXECUTION_TIME_THRESHOLD, future);
+        public Future<JacocoCoverageDTO> submitTask(Callable<JacocoCoverageDTO> userTask) {
+            CompletableFuture<JacocoCoverageDTO> future = new CompletableFuture<>();
+            TimedTask<JacocoCoverageDTO> timedTask = new TimedTask<>(userTask, monitor, MAX_QUEUE_TIME, EXECUTION_TIME_THRESHOLD, future);
 
             executor.execute(timedTask);
 

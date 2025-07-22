@@ -54,7 +54,7 @@ public class PageBuilder {
     //Lista codici d'errore ottenuti 
     private List<String> ErrorCode;
     // Aggiunto per memorizzare l'utente dal JWT
-    private String userId; 
+    private Long userId;
     private String JWT;
 
     //Logger 
@@ -181,7 +181,7 @@ public class PageBuilder {
     }
 
     // METODO PER ESTRARRE USER ID DAL JWT
-    private static String extractUserId(String jwt) {
+    private static Long extractUserId(String jwt) {
         try {
             if (jwt == null || jwt.split("\\.").length < 2) {
                 throw new IllegalArgumentException("JWT non valido: formato errato");
@@ -193,7 +193,7 @@ public class PageBuilder {
             if (userId == null) {
                 throw new IllegalArgumentException("JWT non valido: userId mancante");
             }
-            return userId.toString();
+            return Long.parseLong(userId.toString());
         } catch (Exception e) {
             logger.error("[PageBuilder] Errore nella decodifica del JWT: {}", e.getMessage());
             return null;
@@ -264,7 +264,7 @@ public class PageBuilder {
         return errorPageMap;
     }
 
-    public String getUserId() {
+    public Long getUserId() {
         return this.userId;
     }
 }

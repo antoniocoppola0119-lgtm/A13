@@ -38,7 +38,7 @@ if /i "%SELECTION%"=="all" (
 for %%i in (%SELECTION%) do (
     if %%i==0 (
         echo Building commons
-        cd /d "%ROOT_DIR%\commons"
+        cd /d "%ROOT_DIR%\T-shared"
         call mvn install || (echo Error in commons build & exit /b 1)
         cd /d "%ROOT_DIR%"
     ) else if %%i==1 (
@@ -65,7 +65,7 @@ for %%i in (%SELECTION%) do (
         cd /d "%ROOT_DIR%"
     ) else if %%i==3 (
         echo Building T4-G18
-        cd /d "%ROOT_DIR%\T4-G18"
+        cd /d "%ROOT_DIR%\T4"
         docker build -t mick0974/a13:t4-g18 .
         docker compose up -d
         if %ERRORLEVEL% neq 0 (

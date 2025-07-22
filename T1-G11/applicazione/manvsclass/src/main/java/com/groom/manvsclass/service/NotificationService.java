@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import com.groom.manvsclass.util.ServiceURL;
+import com.groom.manvsclass.api.ApiGatewayClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -20,12 +20,11 @@ public class NotificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
     private final RestTemplate restTemplate;
+    private final ApiGatewayClient apiGatewayClient;
 
-
-    ServiceURL serviceURL;
-    public NotificationService(ServiceURL serviceURL, RestTemplate restTemplate) {
-        this.serviceURL = serviceURL;
+    public NotificationService(RestTemplate restTemplate, ApiGatewayClient apiGatewayClient) {
         this.restTemplate = restTemplate;
+        this.apiGatewayClient = apiGatewayClient;
     }
 
     // Iniezione di RestTemplate tramite costruttore
@@ -37,26 +36,17 @@ public class NotificationService {
      */
 
     public String sendNotification(String email, Integer studentID, String title, String message, String type) {
-        String url = "http://" + serviceURL.getT23ServiceURL() + "/new_notification";
-
         // Verifica che almeno uno dei due identificatori sia fornito
         if (email == null && studentID == null) {
             logger.warn("Tentativo di invio notifica senza email né studentID.");
             return "Errore: Devi fornire almeno un identificatore (email o studentID)";
         }
 
-        // Headers della richiesta
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
         // Creazione dei parametri della richiesta
         MultiValueMap<String, String> params = prepareParams(email, studentID, title, message, type);
 
-        // Crea la richiesta HTTP
-        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
-
         try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            ResponseEntity<String> response = apiGatewayClient.callSendNotification(params);
 
             if (response.getStatusCode() == HttpStatus.OK) {
                 return "Notifica inviata con successo!";

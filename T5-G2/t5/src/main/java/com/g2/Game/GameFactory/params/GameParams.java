@@ -1,15 +1,19 @@
 package com.g2.Game.GameFactory.params;
 
+import testrobotchallenge.commons.models.opponent.GameMode;
+import testrobotchallenge.commons.models.opponent.OpponentDifficulty;
+import testrobotchallenge.commons.models.opponent.OpponentType;
+
 public class GameParams {
-    private final String playerId;
+    private final Long playerId;
     private final String underTestClassName;
-    private final String type_robot;
-    private final String difficulty;
-    private final String mode;
+    private final OpponentType type_robot;
+    private final OpponentDifficulty difficulty;
+    private final GameMode mode;
     private final String testingClassCode;
 
     // Costruttore che inizializza l'oggetto GameParams per creare una nuova GameLogic
-    public GameParams(String playerId, String underTestClassName, String type_robot, String difficulty, String mode) {
+    public GameParams(Long playerId, String underTestClassName, OpponentType type_robot, OpponentDifficulty difficulty, GameMode mode) {
         this.playerId = playerId;
         this.underTestClassName = underTestClassName;
         this.type_robot = type_robot;
@@ -28,7 +32,7 @@ public class GameParams {
         this.mode = null;
     }
 
-    public GameParams(String playerId, String underTestClassName, String type_robot, String difficulty, String mode, String testingClassCode) {
+    public GameParams(Long playerId, String underTestClassName, OpponentType type_robot, OpponentDifficulty difficulty, GameMode mode, String testingClassCode) {
         this.playerId = playerId;
         this.underTestClassName = underTestClassName;
         this.type_robot = type_robot;
@@ -37,7 +41,7 @@ public class GameParams {
         this.testingClassCode = testingClassCode;
     }
 
-    public String getPlayerId() {
+    public Long getPlayerId() {
         return playerId;
     }
 
@@ -45,15 +49,15 @@ public class GameParams {
         return underTestClassName;
     }
 
-    public String getType_robot() {
+    public OpponentType getType_robot() {
         return type_robot;
     }
 
-    public String getDifficulty() {
+    public OpponentDifficulty getDifficulty() {
         return difficulty;
     }
 
-    public String getMode() {
+    public GameMode getMode() {
         return mode;
     }
 

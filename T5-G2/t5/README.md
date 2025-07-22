@@ -1,23 +1,23 @@
 # T5 Service - User and Game Service
-The T5 service manages the user-facing side of the system, allowing players to start and play matches, view their current status as a player, and analyze the history of completed games.
+The T5 service manages the player-facing side of the system, allowing players to start and play matches, view their current status as a player, and analyze the history of completed games.
 
 The component implements a Redis cache to allow a player who has left a match to resume it later. For each player, the system maintains one active session per game mode.
 
 ## User Interface Features
-The graphical interface provides a home page where the user can:
+The graphical interface provides a home page where the player can:
 - Start a new match by selecting from the available game modes;
 - Change the current language from the available options;
 - View their current player status, including experience points and earned achievements;
 - Review a history of completed matches, including information such as the class under test, the chosen opponent, the achieved code coverage score, and whether the match was won or lost.
 
 ## Game Flow
-After selecting a game mode, the user chooses:
+After selecting a game mode, the player chooses:
 - The class under test they want to work on;
 - The opponent to face, based on:
   - Type (i.e., the tool or entity that generated the opponent);
   - Difficulty, chosen among `Easy`, `Medium`, or `Hard`.
 
-In the current version, only for the `Single Match` mode, the user can specify a maximum duration (default: 120 minutes) to complete the match. Once the timer expires the user can either submit the code written up to that point (without compiling) or be automatically evaluated based on the last compilation attempt.
+In the current version, only for the `Single Match` mode, the player can specify a maximum duration (default: 120 minutes) to complete the match. Once the timer expires the player can either submit the code written up to that point (without compiling) or be automatically evaluated based on the last compilation attempt.
 
 ### Match progression
 During the game, there are no compilation limits or penalties. Players may compile their code at any time and as many times as needed.

@@ -11,13 +11,13 @@
     <!-- Header con il pulsante -->
     <header class="header">
         <a href="/profile" class="profile-link">
-            <button id="user-email" class="profile-button" th:text="${user.email}">Torna al profilo utente</button>
+            <button id="player-email" class="profile-button" th:text="${player.email}">Torna al profilo utente</button>
         </a>
     </header>
     <!-- Dati utente nascosti -->
-    <div id="user-data"
-        th:data-current-bio="${user.userProfile.bio}"
-        th:data-current-image="${user.userProfile.profilePicturePath}"
+    <div id="player-data"
+        th:data-current-bio="${player.userProfile.bio}"
+        th:data-current-image="${player.userProfile.profilePicturePath}"
         hidden>
     </div>
     <!-- Contenuto principale -->

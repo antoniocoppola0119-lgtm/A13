@@ -22,8 +22,8 @@ import java.util.Map;
 
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import testrobotchallenge.commons.models.dto.score.JacocoCoverageDTO;
 
 @Service
 public class T7Service extends BaseService {
@@ -31,7 +31,7 @@ public class T7Service extends BaseService {
     private static final String BASE_URL = "http://api_gateway-controller:8090";
     //private static final String BASE_URL = "http://127.0.0.1:8090";
 
-    private static final String SERVICE_PREFIX = "compile/randoop";
+    private static final String SERVICE_PREFIX = "compile/jacoco";
 
     public T7Service(RestTemplate restTemplate) {
         super(restTemplate, BASE_URL + "/" + SERVICE_PREFIX);
@@ -52,9 +52,9 @@ public class T7Service extends BaseService {
      * Metodo che compila il codice di test e di classe sotto test e ne esegue
      * l'analisi della copertura del codice.
      */
-    private String CompileCoverage(String testingClassName, String testingClassCode,
+    private JacocoCoverageDTO CompileCoverage(String testingClassName, String testingClassCode,
             String underTestClassName, String underTestClassCode) {
-        final String endpoint = "/compile-and-codecoverage"; // Definisce l'endpoint per l'API di compilazione e analisi
+        final String endpoint = "/coverage/player"; // Definisce l'endpoint per l'API di compilazione e analisi
         // della copertura del codice
 
         // Creazione del json con i parametri della richiesta POST
@@ -66,7 +66,7 @@ public class T7Service extends BaseService {
 
         Map<String, String> customHeaders = new HashMap<>();
         customHeaders.put("Content-Type", "application/json");
-        return callRestPost(endpoint, obj, null, customHeaders,String.class);
+        return callRestPost(endpoint, obj, null, customHeaders, JacocoCoverageDTO.class);
 
         /*
         catch (RestClientException e) {

@@ -22,7 +22,7 @@ public class Notification {
     private Long id;
 
     @Column(nullable = false)
-    private int playerID;
+    private long playerID;
 
     @Column(length = 100, nullable = false)
     private String titolo;
@@ -49,7 +49,7 @@ public class Notification {
         this.isRead = isRead;
     }
 
-    public Notification(int playerID, String titolo, String message, String type, LocalDateTime timestamp, boolean isRead) {
+    public Notification(long playerID, String titolo, String message, String type, LocalDateTime timestamp, boolean isRead) {
         this.playerID = playerID;
         this.titolo = titolo;
         this.message = message;

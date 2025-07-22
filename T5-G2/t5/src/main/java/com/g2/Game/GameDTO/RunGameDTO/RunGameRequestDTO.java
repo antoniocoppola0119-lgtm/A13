@@ -3,6 +3,7 @@ package com.g2.Game.GameDTO.RunGameDTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import testrobotchallenge.commons.models.opponent.GameMode;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "mode", include = JsonTypeInfo.As.EXISTING_PROPERTY, visible = true)
 @JsonSubTypes({
@@ -16,10 +17,10 @@ public class RunGameRequestDTO {
     String testingClassCode;
 
     @JsonProperty("playerId")
-    String playerId;
+    Long playerId;
 
     @JsonProperty("mode")
-    String mode;
+    GameMode mode;
 
     public RunGameRequestDTO() {}
 
@@ -31,19 +32,19 @@ public class RunGameRequestDTO {
         this.testingClassCode = testingClassCode;
     }
 
-    public String getPlayerId() {
+    public Long getPlayerId() {
         return playerId;
     }
 
-    public void setPlayerId(String playerId) {
+    public void setPlayerId(Long playerId) {
         this.playerId = playerId;
     }
 
-    public String getMode() {
+    public GameMode getMode() {
         return mode;
     }
 
-    public void setMode(String mode) {
+    public void setMode(GameMode mode) {
         this.mode = mode;
     }
 }

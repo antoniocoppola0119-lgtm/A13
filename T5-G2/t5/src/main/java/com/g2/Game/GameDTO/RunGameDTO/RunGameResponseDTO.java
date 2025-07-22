@@ -4,7 +4,13 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.g2.Game.GameModes.Compile.CompileResult;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
+@Getter
+@Setter
+@ToString
 public class RunGameResponseDTO {
 
     @JsonProperty("canWin")
@@ -45,30 +51,6 @@ public class RunGameResponseDTO {
         this.UserCoverageDetails = Objects.requireNonNullElse(UserCompileResult, CompileResult.DEFAULT);
         this.RobotCoverageDetails = Objects.requireNonNullElse(RobotCompileResult, CompileResult.DEFAULT);
         // Achievement unici sbloccati nel round
-        this.unlockedAchievements = unlockedAchievements;
-    }
-
-    public CompileResult getUserCoverageDetails() {
-        return UserCoverageDetails;
-    }
-
-    public void setUserCoverageDetails(CompileResult userCoverageDetails) {
-        UserCoverageDetails = userCoverageDetails;
-    }
-
-    public CompileResult getRobotCoverageDetails() {
-        return RobotCoverageDetails;
-    }
-
-    public void setRobotCoverageDetails(CompileResult robotCoverageDetails) {
-        RobotCoverageDetails = robotCoverageDetails;
-    }
-
-    public String[] getUnlockedAchievements() {
-        return unlockedAchievements;
-    }
-
-    public void setUnlockedAchievements(String[] unlockedAchievements) {
         this.unlockedAchievements = unlockedAchievements;
     }
 }

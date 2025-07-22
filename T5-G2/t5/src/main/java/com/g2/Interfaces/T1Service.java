@@ -16,8 +16,7 @@
  */
 package com.g2.Interfaces;
 
-import com.g2.Model.Achievement;
-import com.g2.Model.Statistic;
+import com.g2.Model.OpponentSummary;
 import com.g2.Model.Team;
 import com.g2.Model.DTO.ResponseTeamComplete;
 
@@ -28,7 +27,10 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.g2.Model.ClassUT;
+import testrobotchallenge.commons.models.dto.score.basic.EvosuiteScoreDTO;
+import testrobotchallenge.commons.models.dto.score.basic.JacocoScoreDTO;
+import testrobotchallenge.commons.models.opponent.OpponentDifficulty;
+import testrobotchallenge.commons.models.opponent.OpponentType;
 
 @Service
 public class T1Service extends BaseService {
@@ -43,13 +45,6 @@ public class T1Service extends BaseService {
         super(restTemplate, BASE_URL + "/" + SERVICE_PREFIX);
 
         // Registrazione delle azioni
-        registerAction("getStatistics", new ServiceActionDefinition(
-                params -> getStatistics()
-        ));
-
-        registerAction("getAchievements", new ServiceActionDefinition(
-                params -> getAchievements()
-        ));
 
         registerAction("getClasses", new ServiceActionDefinition(
                 params -> getClasses() // Metodo senza argomenti
@@ -69,26 +64,66 @@ public class T1Service extends BaseService {
         registerAction("OttieniTeamCompleto", new ServiceActionDefinition(
                 params -> OttieniTeamCompleto((String) params[0]),
                 String.class));
+
+
+
+        registerAction("getOpponentsSummary", new ServiceActionDefinition(
+                params -> getOpponentsSummary()
+        ));
+
+        registerAction("getOpponentCoverage", new ServiceActionDefinition(
+                params -> getOpponentCoverage((String) params[0], (OpponentType) params[1], (OpponentDifficulty) params[2]),
+                String.class, OpponentType.class, OpponentDifficulty.class));
+
+        registerAction("getOpponentJacocoScore", new ServiceActionDefinition(
+                params -> getOpponentJacocoScore((String) params[0], (OpponentType) params[1], (OpponentDifficulty) params[2]),
+                String.class, OpponentType.class, OpponentDifficulty.class));
+
+        registerAction("getOpponentEvosuiteScore", new ServiceActionDefinition(
+                params -> getOpponentEvosuiteScore((String) params[0], (OpponentType) params[1], (OpponentDifficulty) params[2]),
+                String.class, OpponentType.class, OpponentDifficulty.class));
+    }
+
+
+    // Restituisce il file di coverage dell'avversario scelto
+    private String getOpponentCoverage(String classUT, OpponentType type, OpponentDifficulty difficulty) {
+        String response = callRestGET("/opponents/%s/%s/%s/coverage".formatted(classUT, type, difficulty), null, String.class);
+        return response;
+    }
+
+    // Restituisce il punteggio di Evosuite ottenuto dall'avversario scelto
+    private EvosuiteScoreDTO getOpponentEvosuiteScore(String classUT, OpponentType type, OpponentDifficulty difficulty) {
+        EvosuiteScoreDTO response = callRestGET("/opponents/%s/%s/%s/score/evosuite".formatted(classUT, type, difficulty), null, EvosuiteScoreDTO.class);
+        return response;
+    }
+
+    // Restituisce il punteggio di Jacoco ottenuto dall'avversario scelto
+    private JacocoScoreDTO getOpponentJacocoScore(String classUT, OpponentType type, OpponentDifficulty difficulty) {
+        JacocoScoreDTO response = callRestGET("/opponents/%s/%s/%s/score/jacoco".formatted(classUT, type, difficulty), null, JacocoScoreDTO.class);
+        return response;
     }
 
     // Metodi effettivi
-    private List<ClassUT> getClasses() {
-        return callRestGET("/home", null, new ParameterizedTypeReference<List<ClassUT>>() {
+    private List<String> getClasses() {
+        return callRestGET("/opponents/classes/summary", null, new ParameterizedTypeReference<List<String>>() {
         });
     }
 
-    private List<Statistic> getStatistics() {
-        return callRestGET("/statistics/list", null, new ParameterizedTypeReference<List<Statistic>>() {
+    // Restituisce gli avversari disponibili come tupla (gameMode, opponentType, opponentDifficulty)
+    private List<OpponentSummary> getOpponentsSummary() {
+        final String endpoint = "/opponents/summary";
+        return callRestGET(endpoint, null, new ParameterizedTypeReference<List<OpponentSummary>>() {
         });
     }
 
-    private List<Achievement> getAchievements() {
-        return callRestGET("/achievements/list", null, new ParameterizedTypeReference<List<Achievement>>() {
-        });
-    }
+
+
+
+
+
 
     private String getClassUnderTest(String nomeCUT) {
-        byte[] result = callRestGET("/downloadFile/" + nomeCUT, null, byte[].class);
+        byte[] result = callRestGET("/opponents/downloadFile/" + nomeCUT, null, byte[].class);
         return removeBOM(convertToString(result));
     }
 

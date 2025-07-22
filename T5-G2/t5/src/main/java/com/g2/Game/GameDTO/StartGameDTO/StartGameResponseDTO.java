@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class StartGameResponseDTO {
     @JsonProperty("gameId")
-    private int gameId;
+    private long gameId;
     @JsonProperty("status")
     private String status;
 
@@ -12,7 +12,7 @@ public class StartGameResponseDTO {
         //costruttore vuoto per jackson
     }
 
-    public StartGameResponseDTO(int gameId, String status){
+    public StartGameResponseDTO(long gameId, String status){
         this.gameId = gameId;
         this.status = status;
     }
@@ -27,11 +27,11 @@ public class StartGameResponseDTO {
         this.status = status;
     }
 
-    public int getGameId() {
+    public long getGameId() {
         return gameId;
     }
 
-    public void setGameId(int gameId) {
+    public void setGameId(long gameId) {
         this.gameId = gameId;
     }
 }

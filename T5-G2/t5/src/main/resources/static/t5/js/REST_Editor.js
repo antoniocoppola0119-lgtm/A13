@@ -186,9 +186,15 @@ function handleGameRun(response, loadingKey, buttonKey, isGameEnd) {
             userScore, robotScore,
         } = response;
 
+    console.log("game run", response);
+
     const userOutputCompile = userCoverageDetails.compileOutput;
     const userCoverage_ForHighlight = userCoverageDetails.xml_coverage;
     const robotCoverage_ForHighlight = robotCoverageDetails.xml_coverage;
+
+    console.log("userOutputCompile", userOutputCompile);
+    console.log("userCoverage_ForHighlight", userCoverageDetails.xml_coverage);
+    console.log("robotCoverage_ForHighlight", robotCoverageDetails.xml_coverage);
 
     console_utente.setValue(userOutputCompile); // Mostra l'output della compilazione nella console utente
     parseMavenOutput(userOutputCompile); // Analizza l'output di Maven

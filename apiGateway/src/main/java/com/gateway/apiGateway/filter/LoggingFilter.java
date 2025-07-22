@@ -38,7 +38,7 @@ public class LoggingFilter implements GlobalFilter, Ordered {
         /*
          * Log della richiesta 
          */
-        log.info("Request Method: {}, Path: {}, URI{}", method, path, transformedUri);
+        log.info("Request Method: {}, Path: {}, URI {}", method, path, transformedUri);
         /*
          * Log della risposta dopo tutti i filtri 
          * Ottengo questo comportamento con doOnTerminate()

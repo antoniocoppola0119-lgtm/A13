@@ -1,5 +1,8 @@
 name: t23
 
+volumes:
+  mysql_data_volume:
+
 services:
   db:
     image: mysql:latest
@@ -11,7 +14,8 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - ./mysql_init/init.sql:/docker-entrypoint-initdb.d/init.sql
-    expose:
+      - mysql_data_volume:/var/lib/mysql
+    ports:
       - "3306:3306"
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "${MYSQL_USER}", "-p${MYSQL_PASSWORD}" ]
@@ -30,8 +34,6 @@ services:
     depends_on:
       - db
     environment:
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       DB_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE}  # Usa il nome del DB definito nel .env
     networks:
       - global-network

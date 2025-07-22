@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.g2.Components.GenericObjectComponent;
+import com.g2.security.JwtRequestContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -44,6 +45,7 @@ import com.g2.Session.Sessione;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import testrobotchallenge.commons.models.opponent.GameMode;
 
 @CrossOrigin
 @Controller
@@ -78,7 +80,7 @@ public class GuiController {
     @GetMapping("/main")
     public String GUIController(Model model, @CookieValue(name = "jwt", required = false) String jwt) {
         PageBuilder main = new PageBuilder(serviceManager, "main", model, jwt);
-        main.SetAuth();
+        //main.SetAuth();
         try{
             sessionService.createSession(main.getUserId());
         } catch(SessionAlredyExist e){
@@ -89,7 +91,6 @@ public class GuiController {
 
     @GetMapping("/gamemode")
     public String gamemodePage(Model model,
-            @CookieValue(name = "jwt", required = false) String jwt,
             @RequestParam(value = "mode", required = false) String mode) {
 
         if ("Sfida".equals(mode) || "Allenamento".equals(mode) || "PartitaSingola".equals(mode)) {
@@ -99,14 +100,12 @@ public class GuiController {
             List<String> list_mode = Arrays.asList("Sfida", "Allenamento");
             valida.setCheckAllowedValues(list_mode);
             ServiceObjectComponent lista_classi = new ServiceObjectComponent(serviceManager, "lista_classi", "T1", "getClasses");
-            ServiceObjectComponent availableRobots = new ServiceObjectComponent(serviceManager, "available_robots", "T4", "getAvailableRobots");
+            ServiceObjectComponent availableRobots = new ServiceObjectComponent(serviceManager, "available_robots", "T1", "getOpponentsSummary");
             gamemode.setObjectComponents(lista_classi, availableRobots);
-            gamemode.SetAuth(jwt);
             return gamemode.handlePageRequest();
         }
         if ("Scalata".equals(mode)) {
             PageBuilder gamemode = new PageBuilder(serviceManager, "gamemode_scalata", model);
-            gamemode.SetAuth(jwt);
             return gamemode.handlePageRequest();
         }
         return "main";
@@ -116,13 +115,12 @@ public class GuiController {
     // altrimenti, l'utente viene reindirizzato a /main.
     @GetMapping("/editor")
     public String editorPage(Model model,
-                            @CookieValue(name = "jwt") String jwt,
                             @RequestParam(value = "ClassUT") String ClassUT,
-                            @RequestParam(value = "mode") String mode)
+                            @RequestParam(value = "mode") GameMode mode)
     {
 
-        PageBuilder editor = new PageBuilder(serviceManager, "editor", model, jwt);
-        editor.SetAuth();
+        PageBuilder editor = new PageBuilder(serviceManager, "editor", model, JwtRequestContext.getJwtToken());
+        //editor.SetAuth();
         /*
         *   Se la sessione contiene almeno una modalità, 
         *    prosegui normalmente con la costruzione 
@@ -154,7 +152,7 @@ public class GuiController {
         PageBuilder leaderboard = new PageBuilder(serviceManager, "leaderboard", model);
         ServiceObjectComponent listaUtenti = new ServiceObjectComponent(serviceManager, "listaPlayers", "T23", "GetUsers");
         leaderboard.setObjectComponents(listaUtenti);
-        leaderboard.SetAuth(jwt);
+        //leaderboard.SetAuth(jwt);
         return leaderboard.handlePageRequest();
     }
     /* 

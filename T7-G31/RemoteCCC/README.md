@@ -3,14 +3,14 @@
 The T7 service handles the compilation of provided Java code and the calculation of code coverage using JaCoCo.
 It can be invoked by:
 - T1, to calculate the missing JaCoCo coverage of a robot uploaded by the administrator;
-- T5, to verify the compilability and the coverage achieved by the JUnit code written by the user during a match.
+- T5, to verify the compilability and the coverage achieved by the JUnit code written by the player during a match.
 
 ## Available REST Endpoints
 
 | HTTP Method | Endpoint                    | Function                                                                                          |
 | ----------- | --------------------------- | ------------------------------------------------------------------------------------------------- |
 | POST        | `/coverage/evosuite`        | Calculates the missing JaCoCo coverage for a robot uploaded by the administrator.                 |
-| POST        | `/compile-and-codecoverage` | Verifies the compilability and the coverage of the JUnit code written by the user during a match. |
+| POST        | `/compile-and-codecoverage` | Verifies the compilability and the coverage of the JUnit code written by the player during a match. |
 
 ## Executor and Task Queue
 
@@ -22,4 +22,4 @@ During the execution of a compilation task, a timeout timer is started: if the c
 
 This configuration allows:
 - Limiting the number of concurrent compilations;
-- Avoiding long wait times for users to receive compilation results when the system is under heavy load.
+- Avoiding long wait times for players to receive compilation results when the system is under heavy load.

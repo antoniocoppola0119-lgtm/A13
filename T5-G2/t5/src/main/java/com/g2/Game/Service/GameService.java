@@ -19,16 +19,17 @@ package com.g2.Game.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import com.g2.Game.GameDTO.EndGameDTO.EndGameResponseDTO;
 import com.g2.Game.GameFactory.params.GameParams;
 import com.g2.Model.*;
+import com.g2.Model.DTO.GameProgressDTO;
+import com.g2.Model.DTO.PlayerProgressDTO;
 import com.g2.Service.FileOperationService;
 import com.g2.Service.AchievementService;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,11 @@ import com.g2.Session.Exceptions.GameModeAlreadyExist;
 import com.g2.Session.Exceptions.GameModeDontExist;
 import com.g2.Session.Exceptions.SessionDontExist;
 import com.g2.Session.SessionService;
+import testrobotchallenge.commons.models.dto.score.EvosuiteCoverageDTO;
+import testrobotchallenge.commons.models.dto.score.JacocoCoverageDTO;
+import testrobotchallenge.commons.models.opponent.GameMode;
+import testrobotchallenge.commons.models.opponent.OpponentDifficulty;
+import testrobotchallenge.commons.models.opponent.OpponentType;
 
 @Service
 public class GameService {
@@ -67,8 +73,8 @@ public class GameService {
     }
 
     public GameLogic CreateGame(GameParams gameParams) throws GameModeAlreadyExist {
-        String playerId = gameParams.getPlayerId();
-        String mode = gameParams.getMode();
+        Long playerId = gameParams.getPlayerId();
+        GameMode mode = gameParams.getMode();
         try {
             /*
              * gameRegistry istanzia dinamicamente uno degli oggetti gameLogic (sfida, allenamento, scalata e ecc)
@@ -80,6 +86,7 @@ public class GameService {
              * Salvo il game in T4
              */
             gameLogic.CreateGame();
+            gameLogic.CreateRound();
             logger.info("createGame: Inizio creazione partita per playerId={}, mode={}.", playerId, mode);
             /*
              * Creo nella sessione i dati di gioco
@@ -90,8 +97,8 @@ public class GameService {
              * Creo, se non esiste, lo UserGameProgress che tiene traccia della vittoria e degli obiettivi sbloccati
              * dell'utente per il GameRecord (mode, class, type_robot, difficulty)
              */
-            UserGameProgress progress = (UserGameProgress) serviceManager.handleRequest("T4", "createUserGameProgress", Integer.parseInt(playerId), mode, gameParams.getUnderTestClassName(), gameParams.getType_robot(), gameParams.getDifficulty());
-            logger.info("createGame: creato/recuperato con successo progress per playerId={}.", playerId);
+            GameProgressDTO progress = (GameProgressDTO) serviceManager.handleRequest("T23", "createPlayerProgressAgainstOpponent", playerId, mode, gameParams.getUnderTestClassName(), gameParams.getType_robot(), gameParams.getDifficulty());
+            logger.info("createGame: creato/recuperato con successo progress {} per playerId={}.", progress, playerId);
             return gameLogic;
         } catch (SessionDontExist e) {
             logger.info("createGame: SessionDontExist per playerId={}, mode={}.", playerId, mode);
@@ -101,7 +108,7 @@ public class GameService {
         return null;
     }
 
-    public GameLogic GetGame(String mode, String playerId) throws GameModeDontExist {
+    public GameLogic GetGame(GameMode mode, Long playerId) throws GameModeDontExist {
         try {
             logger.info("getGame: Recupero partita per playerId={}, mode={}.", playerId, mode);
             GameLogic game = sessionService.getGameMode(playerId, mode);
@@ -113,7 +120,7 @@ public class GameService {
         }
     }
 
-    public boolean destroyGame(String playerId, String mode) {
+    public boolean destroyGame(Long playerId, GameMode mode) {
         try {
             sessionService.removeGameMode(playerId, mode, java.util.Optional.empty());
             return true;
@@ -122,11 +129,12 @@ public class GameService {
         }
     }
 
-    public boolean UpdateGame(String playerId, GameLogic game, GameParams updateParams, CompileResult userCompileResult, CompileResult robotCompileResult){
+    public boolean UpdateGame(Long playerId, GameLogic game, GameParams updateParams, CompileResult userCompileResult, CompileResult robotCompileResult){
         game.updateState(updateParams, userCompileResult, robotCompileResult);
         return sessionService.updateGameMode(playerId, game);
     }
 
+    /*
     public CompileResult handleCompile(GameLogic currentGame, String testingClassCode) {
         logger.info("handleCompile: Inizio compilazione per ClassName={}.", currentGame.getClasseUT());
 
@@ -155,7 +163,7 @@ public class GameService {
         String suffix = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
 
         String userDir = String.format("/VolumeT0/FolderTree/StudentTest/Player%s/%s/%s/%s/Game%s/Round%s/Turn%s",
-                currentGame.getPlayerID(), currentGame.getMode(), currentGame.getClasseUT(), suffix, currentGame.getGameID(), currentGame.getRoundID(), currentGame.getTurnID());
+                currentGame.getPlayerID(), currentGame.getGameMode(), currentGame.getClasseUT(), suffix, currentGame.getGameID(), currentGame.getCurrentRound(), currentGame.getCurrentTurn());
         String userCoverageDir = String.format("%s/coverage", userDir);
         String userSrcDir = String.format("%s/project/src/java/main", userDir);
         String userTestDir = String.format("%s/project/src/test/main", userDir);
@@ -167,6 +175,8 @@ public class GameService {
         return new CompileResult(response_T8, response_T7);
 
     }
+
+     */
 
     public CompileResult handleCompileNew(GameLogic currentGame, String testingClassCode, String compileTypes) {
         logger.info("handleCompile: Inizio compilazione per ClassName={}.", currentGame.getClasseUT());
@@ -182,51 +192,49 @@ public class GameService {
         // Preparo il percorso per salvare le compilazioni nel volume T0
         String suffix = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
         String userDir = String.format("/VolumeT0/FolderTree/StudentTest/Player%s/%s/%s/%s/Game%s/Round%s/Turn%s",
-                currentGame.getPlayerID(), currentGame.getMode(), currentGame.getClasseUT(), suffix, currentGame.getGameID(), currentGame.getRoundID(), currentGame.getTurnID());
+                currentGame.getPlayerID(), currentGame.getGameMode(), currentGame.getClasseUT(), suffix, currentGame.getGameID(), currentGame.getCurrentRound(), currentGame.getCurrentTurn());
         String userCoverageDir = String.format("%s/coverage", userDir);
         String userSrcDir = String.format("%s/project/src/java/main", userDir);
         String userTestDir = String.format("%s/project/src/test/main", userDir);
         fileOperationService.createDirectory(userCoverageDir, userSrcDir, userTestDir);
 
-        JSONObject response_T7 = new JSONObject();
-        JSONObject response_T8 = new JSONObject();
-        String responseT7Raw;
+        JacocoCoverageDTO response_T7;
+        EvosuiteCoverageDTO response_T8 = null;
         switch (compileTypes) {
             case "T7":
                 // Chiamata a T7 per calcolare jacoco coverage
-                responseT7Raw = this.serviceManager.handleRequest("T7", "CompileCoverage", String.class, testingClassFileName, testingClassCode, underTestClassFileName, underTestClassCode);
-                response_T7 = new JSONObject(responseT7Raw);
+                response_T7 = this.serviceManager.handleRequest("T7", "CompileCoverage", JacocoCoverageDTO.class, testingClassFileName, testingClassCode, underTestClassFileName, underTestClassCode);
 
                 fileOperationService.writeTurnNew(underTestClassCode, underTestClassFileName, testingClassCode, testingClassFileName,
-                        response_T7.optString("coverage", ""), "coveragetot.xml", userSrcDir, userTestDir, userCoverageDir);
+                        response_T7.getCoverage() != null ? response_T7.getCoverage() : "",
+                        "coveragetot.xml", userSrcDir, userTestDir, userCoverageDir);
 
-                return new CompileResult(response_T8, response_T7);
+                return new CompileResult(response_T7);
             case "T8":
                 // Chiamata a T8 per calcolare evosuite coverage solo se il codice è compilabile
                 if (currentGame.getUserCompileResult().getXML_coverage() != null) {
-                    String responseT8Raw = this.serviceManager.handleRequest("T8", "evosuiteUserCoverage", String.class,
+                    response_T8 = this.serviceManager.handleRequest("T8", "evosuiteUserCoverage", EvosuiteCoverageDTO.class,
                             testingClassName, testingClassCode, underTestClassName, underTestClassCode, "");
-                    response_T8 = new JSONObject(responseT8Raw);
                 }
 
                 fileOperationService.writeTurnNew(underTestClassCode, underTestClassFileName, testingClassCode, testingClassFileName,
-                        response_T8.optString("statistics", ""), "statistics.csv", userSrcDir, userTestDir, userCoverageDir);
+                        response_T8 != null ? response_T8.getResultFileContent() : "", "statistics.csv", userSrcDir, userTestDir, userCoverageDir);
 
                 return new CompileResult(currentGame.getUserCompileResult(), response_T8);
             default:
-                responseT7Raw = this.serviceManager.handleRequest("T7", "CompileCoverage", String.class, testingClassFileName, testingClassCode, underTestClassFileName, underTestClassCode);
-                response_T7 = new JSONObject(responseT7Raw);
+                response_T7 = this.serviceManager.handleRequest("T7", "CompileCoverage", JacocoCoverageDTO.class, testingClassFileName, testingClassCode, underTestClassFileName, underTestClassCode);
 
-                if (response_T7.optString("coverage", null) != null) {
-                    String responseT8Raw = this.serviceManager.handleRequest("T8", "evosuiteUserCoverage", String.class,
+                if (response_T7.getCoverage() != null) {
+                    response_T8 = this.serviceManager.handleRequest("T8", "evosuiteUserCoverage", EvosuiteCoverageDTO.class,
                             testingClassName, testingClassCode, underTestClassName, underTestClassCode, "");
-                    response_T8 = new JSONObject(responseT8Raw);
                 }
 
                 fileOperationService.writeTurn(underTestClassCode, underTestClassFileName, testingClassCode, testingClassFileName,
-                        response_T8.optString("statistics", ""), response_T7.optString("coverage", ""), userSrcDir, userTestDir, userCoverageDir);
+                        response_T8 != null ? response_T8.getResultFileContent() : "",
+                        response_T7.getCoverage() != null ? response_T7.getCoverage() : "",
+                        userSrcDir, userTestDir, userCoverageDir);
 
-                return new CompileResult(response_T8, response_T7);
+                return new CompileResult(response_T7, response_T8);
         }
     }
 
@@ -251,83 +259,60 @@ public class GameService {
         }
     }
 
-    public void handleGameLogic(int userScore, int robotScore, GameLogic currentGame, GameParams updateParams, CompileResult userCompileResult, CompileResult robotCompileResult) {
+    public void handleGameLogic(CompileResult userCompileResult, CompileResult robotCompileResult, GameLogic currentGame, GameParams updateParams) {
         logger.info("handleGameLogic: Avvio logica di gioco per playerId={}.", currentGame.getPlayerID());
-        currentGame.NextTurn(userScore, robotScore);
+        currentGame.NextTurn(userCompileResult, robotCompileResult);
         UpdateGame(currentGame.getPlayerID(), currentGame, updateParams, userCompileResult, robotCompileResult);
     }
 
     public String[] handleGameModeAchievementsUnlocked(GameLogic currentGame, CompileResult user, CompileResult robot) {
-        int playerId = Integer.parseInt(currentGame.getPlayerID());
-        String gameMode = currentGame.getMode();
+        long playerId = currentGame.getPlayerID();
+        GameMode gameMode = currentGame.getGameMode();
         String classUT = currentGame.getClasseUT();
-        String robotType = currentGame.getTypeRobot();
-        String difficulty = currentGame.getDifficulty();
+        OpponentType robotType = currentGame.getTypeRobot();
+        OpponentDifficulty difficulty = currentGame.getDifficulty();
 
-        UserGameProgress currentGameProgress = (UserGameProgress) serviceManager.handleRequest("T4", "getUserGameProgress", playerId, gameMode, classUT, robotType, difficulty);
+        GameProgressDTO currentGameProgress = (GameProgressDTO) serviceManager.handleRequest("T23", "getPlayerProgressAgainstOpponent", playerId, gameMode, classUT, robotType, difficulty);
         logger.info("[achievementsUnlocked] Progresso sulla partita corrente: {}", currentGameProgress);
 
-        logger.info("[achievementsUnlocked] Avvio verifica degli achievement sbloccati");
-        Set<String> achievementUnlockedInTurn = achievementService.verifyGameModeAchievement(currentGame.gameModeAchievements(), user, robot);
-        logger.info("[achievementsUnlocked] Achievement sbloccati nel turno: {}", achievementUnlockedInTurn);
+        logger.info("[achievementsUnlocked] Avvio verifica degli achievement sbloccati nel turno");
+        Set<String> unlockedAchievements = new HashSet<>(achievementService.verifyGameModeAchievement(currentGame.gameModeAchievements(), user, robot));
+        logger.info("[achievementsUnlocked] Avvio salvataggio degli achievement sbloccati");
+        currentGameProgress = (GameProgressDTO) serviceManager.handleRequest("T23", "updatePlayerProgressAgainstOpponent", playerId, gameMode, classUT, robotType, difficulty, false, unlockedAchievements);
 
-        logger.info("[achievementsUnlocked] Avvio fetch degli achievement già sbloccati");
-        String[] fetchedAchievements = currentGameProgress.getAchievements() == null ? new String[0] : currentGameProgress.getAchievements();
-        logger.info("[achievementsUnlocked] Achievement già sbloccati per il match: {}", Arrays.toString(fetchedAchievements));
-
-        Arrays.asList(fetchedAchievements).forEach(achievementUnlockedInTurn::remove);
-        if (achievementUnlockedInTurn.isEmpty())
-            return new String[0];
-
-        logger.info("[achievementsUnlocked] Nuovi achievement sbloccati: {}", achievementUnlockedInTurn);
-        logger.info("[achievementsUnlocked] Salvataggio dei nuovi achievement sbloccati.");
-        String[] unlocked = achievementUnlockedInTurn.toArray(new String[0]);
-        fetchedAchievements = ((UserGameProgress) serviceManager.handleRequest("T4", "updateUserGameProgressAchievements", playerId, gameMode, classUT, robotType, difficulty, unlocked)).getAchievements();
-        logger.info("[achievementsUnlocked] Achievements aggiornati: {}", Arrays.toString(fetchedAchievements));
-
-        return unlocked;
+        logger.info("[achievementsUnlocked] Achievement sbloccati: {}", currentGameProgress.getAchievements());
+        return currentGameProgress.getAchievements().toArray(new String[0]);
     }
 
-    private String[] handleGlobalAchievementUnlocked(int playerId) {
-        List<UserGameProgress> currentGameProgresses = (List<UserGameProgress>) serviceManager.handleRequest("T4", "getAllUserGameProgresses", playerId);
-        logger.info("[globalAchievementsUnlocked] CurrentGameProgress trovai associati al player {}: {}", playerId, currentGameProgresses.size());
+    private String[] handleGlobalAchievementUnlocked(long playerId) {
+        logger.info("[globalAchievementsUnlocked] Avvio fetch PlayerProgress per playerId={}", playerId);
+        PlayerProgressDTO status = (PlayerProgressDTO) serviceManager.handleRequest("T23", "getPlayerProgressAgainstAllOpponent", playerId);
+        logger.info("[globalAchievementsUnlocked] PlayerProgress: {}", status);
 
-        GeneralAchievement generalAchievements = (GeneralAchievement) serviceManager.handleRequest("T4", "getGlobalAchievements", playerId);
-        logger.info("[globalAchievementsUnlocked] Achievement globali già sbloccati dall'utente: {}", generalAchievements);
+        List<OpponentSummary> opponents = (List<OpponentSummary>) serviceManager.handleRequest("T1", "getOpponentsSummary");
+        logger.info("[globalAchievementsUnlocked] Avversari disponibili estratti: {}", opponents);
 
-        List<AvailableRobot> robots = (List<AvailableRobot>) serviceManager.handleRequest("T4", "getAvailableRobots");
-        logger.info("[globalAchievementsUnlocked] Robot disponibili estratti: {}", robots);
+        Set<String> achievementUnlocked = new HashSet<>();
 
         logger.info("[globalAchievementsUnlocked] Avvio verifica di nuovi achievement globali sbloccati");
-        Set<String> achievementUnlocked = achievementService.verifyNumberRobotBeaten(currentGameProgresses);
-        achievementUnlocked.addAll(achievementService.verifyNumberAllRobotForClassBeaten(currentGameProgresses, robots));
-        logger.info("[globalAchievementsUnlocked] Achievement sbloccati: {}", achievementUnlocked);
+        achievementUnlocked.addAll(achievementService.verifyNumberRobotBeaten(status.getGameProgressesDTO()));
+        achievementUnlocked.addAll(achievementService.verifyNumberAllRobotForClassBeaten(status.getGameProgressesDTO(), opponents));
+        logger.info("[globalAchievementsUnlocked] Salvataggio achievement sbloccati");
 
-        logger.info("[globalAchievementsUnlocked] Avvio fetch degli achievement già sbloccati");
-        String[] fetchedAchievements = generalAchievements.getAchievements() == null ? new String[0] : generalAchievements.getAchievements();
-        logger.info("[globalAchievementsUnlocked] Achievement già sbloccati per il match: {}", Arrays.toString(fetchedAchievements));
+        achievementUnlocked = (Set<String>) serviceManager.handleRequest("T23", "updateGlobalAchievements", playerId, achievementUnlocked);
 
-        Arrays.asList(fetchedAchievements).forEach(achievementUnlocked::remove);
-        if (achievementUnlocked.isEmpty())
-            return new String[0];
-
-        logger.info("[globalAchievementsUnlocked] Nuovi achievement sbloccati: {}", achievementUnlocked);
-        logger.info("[globalAchievementsUnlocked] Salvataggio dei nuovi achievement sbloccati.");
-        String[] unlocked = achievementUnlocked.toArray(new String[0]);
-        fetchedAchievements = ((GeneralAchievement) serviceManager.handleRequest("T4", "updateGlobalAchievements", playerId, unlocked)).getAchievements();
-        logger.info("[globalAchievementsUnlocked] Achievements aggiornati: {}", Arrays.toString(fetchedAchievements));
-
-        return unlocked;
+        logger.info("[globalAchievementsUnlocked] Nuovi achievement globali sbloccati: {}", achievementUnlocked);
+        return achievementUnlocked.toArray(new String[0]);
     }
 
     public int handleExperiencePoints(GameLogic currentGame) {
-        int playerId = Integer.parseInt(currentGame.getPlayerID());
-        String gameMode = currentGame.getMode();
+        long playerId = currentGame.getPlayerID();
+        GameMode gameMode = currentGame.getGameMode();
         String classUT = currentGame.getClasseUT();
-        String robotType = currentGame.getTypeRobot();
-        String difficulty = currentGame.getDifficulty();
+        OpponentType robotType = currentGame.getTypeRobot();
+        OpponentDifficulty difficulty = currentGame.getDifficulty();
 
-        UserGameProgress currentGameProgress = (UserGameProgress) serviceManager.handleRequest("T4", "getUserGameProgress", playerId, gameMode, classUT, robotType, difficulty);
+        GameProgressDTO currentGameProgress = (GameProgressDTO) serviceManager.handleRequest("T23", "getPlayerProgressAgainstOpponent", playerId, gameMode, classUT, robotType, difficulty);
         logger.info("[handleExperiencePoints] Progresso sulla partita corrente: {}", currentGameProgress);
 
         if (currentGameProgress.isWon()) {
@@ -335,15 +320,15 @@ public class GameService {
             return 0;
         }
 
-        logger.info("[handleExperiencePoints] L'utente ha già vinto questa sfida, nessun punto esperienza verrà fornito");
-        currentGameProgress = (UserGameProgress) serviceManager.handleRequest("T4", "updateUserRecordForVictory",
-                playerId, gameMode, classUT, robotType, difficulty);
+        logger.info("[handleExperiencePoints] L'utente non ha ancora battuto questo avversario");
+        currentGameProgress = (GameProgressDTO) serviceManager.handleRequest("T23", "updatePlayerProgressAgainstOpponent",
+                playerId, gameMode, classUT, robotType, difficulty, true, new HashSet<String>());
         logger.info("[handleExperiencePoints] Aggiornamento match corrente come vinto: {}", currentGameProgress);
-        Experience currentExp = (Experience) serviceManager.handleRequest("T4", "getUserExperiencePoints", playerId);
-        Experience newExp = (Experience) serviceManager.handleRequest("T4", "updateUserExperiencePoints", playerId, Integer.parseInt(difficulty));
-        logger.info("[handleExperiencePoints] Assegnamento di {} punti esperienza, l'utente passa da {} a {} punti esperienza.", difficulty, currentExp.getExperiencePoints(), newExp.getExperiencePoints());
+        int expGained = difficulty.toInt();
+        serviceManager.handleRequest("T23", "incrementUserExp", playerId, expGained);
+        logger.info("[handleExperiencePoints] Assegnamento di {} punti esperienza", expGained);
 
-        return Integer.parseInt(difficulty);
+        return expGained;
     }
 
     public EndGameResponseDTO handleGameEnd(GameLogic currentGame, boolean surrendered) {
@@ -383,7 +368,7 @@ public class GameService {
              */
             int expGained = handleExperiencePoints(currentGame);
             EndGame(currentGame, currentGame.GetScore(currentGame.getUserCompileResult()));
-            List<String> achievementsUnlocked = List.of(handleGlobalAchievementUnlocked(Integer.parseInt(currentGame.getPlayerID())));
+            List<String> achievementsUnlocked = List.of(handleGlobalAchievementUnlocked(currentGame.getPlayerID()));
             return new EndGameResponseDTO(
                     currentGame.GetScore(currentGame.getRobotCompileResult()),
                     currentGame.GetScore(currentGame.getUserCompileResult()),
@@ -400,7 +385,7 @@ public class GameService {
         *       Distruggo la partita salvata in sessione  
         */
         currentGame.EndRound();
-        currentGame.EndGame(userscore);
-        destroyGame(currentGame.getPlayerID(), currentGame.getMode());
+        currentGame.EndGame();
+        destroyGame(currentGame.getPlayerID(), currentGame.getGameMode());
     }
 }

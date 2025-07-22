@@ -9,7 +9,7 @@ ROOT_DIR=$(pwd)  # Salva la directory di partenza
 # Build commons
 echo "Building commons"
 export JAVA_HOME=${JAVA_HOME:-"/usr/lib/jvm/java-21-openjdk-amd64"}
-cd "$ROOT_DIR/commons"
+cd "$ROOT_DIR/T-shared"
 mvn install || { echo "Error in commons build during mvn install. Check JAVA_HOME." ; exit 1; }
 cd "$ROOT_DIR"
 
@@ -28,8 +28,9 @@ docker build -t mick0974/a13:t23-g1 .
 cd "$ROOT_DIR"
 
 # Build T4-G18
-echo "Building T4-G18"
-cd "$ROOT_DIR/T4-G18"
+echo "Building T4"
+cd "$ROOT_DIR/T4/gamerepo"
+mvn clean package -DskipTests=true -Dspring.profiles.active=prod || { echo "Error in T4 build during mvn clean package" ; exit 1; }
 docker build -t mick0974/a13:t4-g18 .
 cd "$ROOT_DIR"
 

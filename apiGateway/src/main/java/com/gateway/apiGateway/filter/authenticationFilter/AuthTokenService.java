@@ -27,13 +27,14 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import reactor.core.publisher.Mono;
+import testrobotchallenge.commons.models.dto.auth.JwtValidationResponseDTO;
 
 public class AuthTokenService {
 
@@ -61,8 +62,9 @@ public class AuthTokenService {
     }
 
     public String extractToken(ServerHttpRequest request) {
-        String token = Optional.ofNullable(request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
-                .map(header -> header.replace("Bearer ", ""))
+        logger.info("Request header {}", request.getHeaders());
+        String token = Optional.ofNullable(request.getCookies().getFirst("jwt"))
+                .map(HttpCookie::getValue)
                 .orElse(null);
         logger.debug("Estratto token: {}", token);
         return token;
@@ -95,8 +97,9 @@ public class AuthTokenService {
         return webClient.post()
                 .uri(uriBuilder -> uriBuilder.queryParam("jwt", token).build())
                 .retrieve()
-                .bodyToMono(Boolean.class)
+                .bodyToMono(JwtValidationResponseDTO.class)
                 .doOnError(e -> logger.error("Errore durante la validazione del token", e))
+                .map(JwtValidationResponseDTO::isValid)
                 .defaultIfEmpty(false)       // Assicura che un Mono vuoto venga convertito in `false`
                 .onErrorReturn(false);  // Gestisce eventuali errori restituendo `false`
     }
@@ -146,6 +149,18 @@ public class AuthTokenService {
 
     public String extractUserId(String jwt) {
         return extractClaim(jwt, "userId").orElse(null);
+    }
+
+    public String extractRole(String jwt) {
+        return extractClaim(jwt, "role").orElse(null);
+    }
+
+    public String extractIssuer(String jwt) {
+        return extractClaim(jwt, "iss").orElse(null);
+    }
+
+    public String extractAudience(String jwt) {
+        return extractClaim(jwt, "aud").orElse(null);
     }
 
     private static Optional<String> extractClaim(String jwt, String claimName) {

@@ -29,7 +29,8 @@ import org.springframework.web.client.RestTemplate;
         "com.g2.Game", 
         "com.g2.t5", 
         "com.g2.Service", 
-        "com.g2.Session"
+        "com.g2.Session",
+        "com.g2.security"
     }
 )
 public class T5Application {

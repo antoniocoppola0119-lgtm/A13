@@ -106,8 +106,11 @@ function getConsoleTextRun(userCoverageDetails, robotCoverageDetails, canWin, us
 	}
 
 	function formatEvoRow(label, user, robot) {
-		const userPct = roundToTwoDecimals(user);
-		const robotPct = roundToTwoDecimals(robot);
+		let userPct = 0, robotPct = 0;
+		if (robot.covered + robot.missed > 0) {
+			userPct = roundToTwoDecimals(user.covered / (user.covered + user.missed) * 100);
+			robotPct = roundToTwoDecimals(robot.covered / (robot.covered + robot.missed) * 100);
+		}
 
 		const userStr = `${userPct.toFixed(2)}%`;
 		const robotStr = `${robotPct.toFixed(2)}%`;
@@ -159,9 +162,6 @@ function getConsoleTextRun(userCoverageDetails, robotCoverageDetails, canWin, us
 
 	return result;
 }
-
-
-
 
 function getConsoleTextError(){
 	return  `===================================================================== \n` 
@@ -303,11 +303,11 @@ function highlightCodeCoverage(reportContent, robotContent, editor) {
 		const allBranchesCovered = (totalBranches === 0 || mb === 0);
 
 		if (allInstructionsCovered && allBranchesCovered) {
-			coveredLines.push(line.getAttribute("nr"));
+			coveredLinesRobot.push(line.getAttribute("nr"));
 		} else if ((ci > 0 || cb > 0)) {
-			partiallyCoveredLines.push(line.getAttribute("nr"));
+			uncoveredLinesRobot.push(line.getAttribute("nr"));
 		} else {
-			uncoveredLines.push(line.getAttribute("nr"));
+			partiallyCoveredLinesRobot.push(line.getAttribute("nr"));
 		}
 	});
 

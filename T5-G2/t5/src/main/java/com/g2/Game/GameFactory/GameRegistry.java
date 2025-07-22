@@ -47,7 +47,7 @@ public class GameRegistry {
 
     public GameLogic createGame(ServiceManager sm, GameParams gameParams) {
 
-        GameFactoryFunction factory = gameRegistry.get(gameParams.getMode());
+        GameFactoryFunction factory = gameRegistry.get(gameParams.getMode().name());
         if (factory == null) {
             throw new IllegalArgumentException("Gioco non registrato: " + gameParams.getMode());
         }

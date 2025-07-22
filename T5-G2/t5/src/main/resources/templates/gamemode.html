@@ -37,8 +37,8 @@
 												<option value="" th:text="#{opzioni}"></option>
 												<th:block th:each="option : ${lista_classi}">
 													<option
-														th:value="${option.name}"
-														th:text="${option.name}"
+														th:value="${option}"
+														th:text="${option}"
 													></option>
 												</th:block>
 											</select>
@@ -153,22 +153,22 @@
 
 		<!-- Opzioni di difficoltà precaricate lato server -->
 		<div id="difficulty_options" style="display: none;">
-			<option value="1" th:text="#{d_facile}"></option>
-			<option value="2" th:text="#{d_medio}"></option>
-			<option value="3" th:text="#{d_difficile}"></option>
+			<option value="EASY" th:text="#{d_facile}"></option>
+			<option value="MEDIUM" th:text="#{d_medio}"></option>
+			<option value="HARD" th:text="#{d_difficile}"></option>
 		</div>
 
 		<script th:inline="javascript">
-			// Contiene i robot disponibili in T4 data la classe scelta
+			// Contiene i robot disponibili in T1 data la classe scelta
 			let availableRobots = /*[[${available_robots}]]*/ [];
 			let easy = /*[[#{d_facile}]]*/ "Facile";
 			let medium = /*[[#{d_medio}]]*/ "Medio";
 			let hard = /*[[#{d_difficile}]]*/ "Difficile";
 
 			let difficulty = {
-				"1": /*[[#{d_facile}]]*/ "Facile",
-				"2": /*[[#{d_medio}]]*/ "Medio",
-				"3": /*[[#{d_difficile}]]*/ "Difficile",
+				"EASY": /*[[#{d_facile}]]*/ "Facile",
+				"MEDIUM": /*[[#{d_medio}]]*/ "Medio",
+				"HARD": /*[[#{d_difficile}]]*/ "Difficile",
 			};
 
 			const gameMode = {

@@ -20,20 +20,18 @@ import java.io.IOException;
 import java.util.concurrent.*;
 
 import RemoteCCC.App.config.CustomExecutorConfiguration;
+import RemoteCCC.App.util.BuildResponse;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import testrobotchallenge.commons.models.dto.score.basic.JacocoScoreDTO;
+import testrobotchallenge.commons.models.dto.score.JacocoCoverageDTO;
 
 @CrossOrigin
 @RestController
@@ -60,9 +58,9 @@ public class AppController {
      * @throws IOException
      * @throws InterruptedException
      */
-    @PostMapping(value = "/compile-and-codecoverage", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> compileAndTest(@RequestBody RequestDTO request) throws IOException, InterruptedException {
-        Callable<JSONObject> compilationTimedTask = () -> {
+    @PostMapping(value = "/coverage/player", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> compileAndTest(@RequestBody RequestDTO request) throws IOException, InterruptedException {
+        Callable<JacocoCoverageDTO> compilationTimedTask = () -> {
             CompilationService compilationService = new CompilationService(
                     request.getTestingClassName(),
                     request.getTestingClassCode(),
@@ -73,14 +71,11 @@ public class AppController {
 
             compilationService.compileAndTest();
 
-            JSONObject result = new JSONObject();
-            result.put("outCompile", compilationService.outputMaven);
-            result.put("coverage", compilationService.Coverage);
-            result.put("error", compilationService.Errors);
-            return result;
+            JacocoCoverageDTO responseBody = BuildResponse.buildExtendedDTO(compilationService.Coverage, compilationService.outputMaven, compilationService.Errors);
+            return responseBody;
         };
 
-        Future<JSONObject> future;
+        Future<JacocoCoverageDTO> future;
         try {
             future = compileExecutor.submitTask(compilationTimedTask);
         } catch (RejectedExecutionException e) {
@@ -90,10 +85,10 @@ public class AppController {
         }
 
         try {
-            JSONObject result = future.get();
+            JacocoCoverageDTO result = future.get();
             return ResponseEntity.status(HttpStatus.OK)
                     .header("Content-Type", "application/json")
-                    .body(result.toString());
+                    .body(result);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             logger.error("[CoverageController] Il processo è stato interrotto: {}", e.getStackTrace()[0]);
@@ -123,19 +118,16 @@ public class AppController {
      * @throws IOException
      * @throws InterruptedException
      */
-    @PostMapping(value = "/coverage/evosuite", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> evoSuitRobotCoverage(@RequestParam(name = "project") MultipartFile projectCode) throws IOException, InterruptedException {
+    @PostMapping(value = "/coverage/opponent", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> evoSuitRobotCoverage(@RequestParam(name = "project") MultipartFile projectCode) throws IOException, InterruptedException {
         try {
             System.out.println(projectCode.getOriginalFilename());
 
             CompilationService compilationService = new CompilationService(mvn_path);
             compilationService.compileAndTestEvoSuiteTests(projectCode);
-            JSONObject result = new JSONObject();
-            result.put("outCompile", compilationService.outputMaven);
-            result.put("coverage", compilationService.Coverage);
-            result.put("error", compilationService.Errors);
 
-            return ResponseEntity.status(HttpStatus.OK).header("Content-Type", "application/json").body(result.toString()); // Imposta l'intestazione Content-Type
+            JacocoCoverageDTO responseBody = BuildResponse.buildExtendedDTO(compilationService.Coverage, compilationService.outputMaven, compilationService.Errors);
+            return ResponseEntity.status(HttpStatus.OK).header("Content-Type", "application/json").body(responseBody); // Imposta l'intestazione Content-Type
         } catch (JSONException e) {
             logger.error("[Compile-and-codecoverage]", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.toString());

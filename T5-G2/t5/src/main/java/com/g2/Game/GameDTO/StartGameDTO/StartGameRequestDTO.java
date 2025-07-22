@@ -7,6 +7,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import testrobotchallenge.commons.models.opponent.GameMode;
+import testrobotchallenge.commons.models.opponent.OpponentDifficulty;
+import testrobotchallenge.commons.models.opponent.OpponentType;
 
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "mode", include = JsonTypeInfo.As.EXISTING_PROPERTY, visible = true)
@@ -19,56 +22,52 @@ import jakarta.validation.constraints.NotNull;
 public class StartGameRequestDTO {
 
     @JsonProperty("playerId")
-    @NotNull(message = "playerId is required")
-    private String playerId;
+    private Long playerId;
 
     @JsonProperty("typeRobot")
-    @NotBlank(message = "typeRobot is required")
     @JsonAlias({"type_robot", "typeRobot"})
-    private String typeRobot;
+    private OpponentType typeRobot;
 
     @JsonProperty("difficulty")
-    @NotBlank(message = "difficulty is required")
-    private String difficulty;
+    private OpponentDifficulty difficulty;
 
     @JsonProperty("mode")
-    @NotBlank(message = "mode is required")
-    private String mode;
+    private GameMode mode;
 
     @JsonProperty("underTestClassName")
     @NotBlank(message = "underTestClassName is required")
     private String underTestClassName;
 
     // Getters e Setters
-    public String getPlayerId() {
+    public Long getPlayerId() {
         return playerId;
     }
 
-    public void setPlayerId(String playerId) {
+    public void setPlayerId(Long playerId) {
         this.playerId = playerId;
     }
 
-    public String getTypeRobot() {
+    public OpponentType getTypeRobot() {
         return typeRobot;
     }
 
-    public void setTypeRobot(String typeRobot) {
+    public void setTypeRobot(OpponentType typeRobot) {
         this.typeRobot = typeRobot;
     }
 
-    public String getDifficulty() {
+    public OpponentDifficulty getDifficulty() {
         return difficulty;
     }
 
-    public void setDifficulty(String difficulty) {
+    public void setDifficulty(OpponentDifficulty difficulty) {
         this.difficulty = difficulty;
     }
 
-    public String getMode() {
+    public GameMode getMode() {
         return mode;
     }
 
-    public void setMode(String mode) {
+    public void setMode(GameMode mode) {
         this.mode = mode;
     }
 

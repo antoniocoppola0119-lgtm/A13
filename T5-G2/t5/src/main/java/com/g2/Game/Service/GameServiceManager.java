@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import com.g2.Game.GameDTO.RunGameDTO.RunGameResponseDTO;
 import com.g2.Game.GameModes.Compile.CompileResult;
 import com.g2.Game.GameModes.GameLogic;
+import testrobotchallenge.commons.models.opponent.GameMode;
 
 @Service
 public class GameServiceManager {
@@ -54,7 +55,7 @@ public class GameServiceManager {
         return gameService.CreateGame(params);
     }
 
-    protected GameLogic GetGameLogic(String playerId, String mode){
+    protected GameLogic GetGameLogic(Long playerId, GameMode mode){
         return gameService.GetGame(mode, playerId);
     }
 
@@ -63,7 +64,7 @@ public class GameServiceManager {
         return gameService.handleCompileNew(game, testingClassCode, type);
     }
 
-    public RunGameResponseDTO PlayGame(String playerId, String mode, GameParams updateParams, String compilingType) {
+    public RunGameResponseDTO PlayGame(Long playerId, GameMode mode, GameParams updateParams, String compilingType) {
         String testingClassCode;
 
         logger.info("[PlayGame] Inizio esecuzione per playerId={} e mode={}", playerId, mode);
@@ -98,15 +99,15 @@ public class GameServiceManager {
             /*
              *  Lo score è definito dalle performance del file XML del test
              */
-            int userScore = currentGame.GetScore(Usercompile);
             int robotScore = currentGame.GetScore(RobotCompile);
+            int userScore = currentGame.GetScore(Usercompile);
             /*
              *  Vado avanti col gioco
              *  Verifico gli achievement sbloccati nella partita corrente
              *  Aggiorno la sessione corrente con i due CompileResult
              *  Restituisco l'oggetto json che rispecchia lo stato del game
              */
-            gameService.handleGameLogic(userScore, robotScore, currentGame, updateParams, Usercompile, RobotCompile);
+            gameService.handleGameLogic(Usercompile, RobotCompile, currentGame, updateParams);
             String[] unlockedAchievements = gameService.handleGameModeAchievementsUnlocked(currentGame, Usercompile, RobotCompile);
 
             logger.info("[PlayGame]: Creazione risposta per la partita (canWin={}, userScore={}, robotScore={}).", currentGame.isWinner(), userScore, robotScore);
@@ -125,7 +126,7 @@ public class GameServiceManager {
         }
     }
 
-    public void LeaveGame(String playerId, String mode, GameParams updateParams) {
+    public void LeaveGame(Long playerId, GameMode mode, GameParams updateParams) {
         GameLogic currentGame = GetGameLogic(playerId, mode);
         logger.info("[LeaveGame] GameLogic recuperato: gameID={}", currentGame.getGameID());
 
@@ -133,7 +134,7 @@ public class GameServiceManager {
         logger.info("[LeaveGame] GameLogic aggiornato: gameID={}", currentGame.getGameID());
     }
 
-    public EndGameResponseDTO EndGame(String playerId, String mode, boolean surrendered) {
+    public EndGameResponseDTO EndGame(Long playerId, GameMode mode, boolean surrendered) {
         logger.info("[EndGame] Inizio terminazione partita per playerId={} e mode={}", playerId, mode);
         /*
          * Recupero la sessione di gioco

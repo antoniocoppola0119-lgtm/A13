@@ -15,9 +15,7 @@
 	<name>manvsclass</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<java.version>1.8</java.version>
+		<java.version>17</java.version>
 		<springsecurity.version>5.1.1.RELEASE</springsecurity.version>
 
 		<!--MODIFICA
@@ -121,12 +119,6 @@
 			<groupId>jakarta.persistence</groupId>
 			<artifactId>jakarta.persistence-api</artifactId>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui -->
-		<dependency>
-			<groupId>com.commons</groupId>
-			<artifactId>commons</artifactId>
-			<version>1.0-SNAPSHOT</version>
-		</dependency>
 
 		<!-- Actuator per esporre endpoint come /health, /info, /prometheus -->
 		<dependency>
@@ -139,14 +131,33 @@
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.tomcat.embed</groupId>
+			<artifactId>tomcat-embed-core</artifactId>
+		</dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webflux</artifactId>
+        </dependency>
 
+		<dependency>
+			<groupId>com.testrobotchallenge</groupId>
+			<artifactId>T-shared</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+        </dependency>
 
-	</dependencies>
+    </dependencies>
 
 	<build>
 		<plugins>
-
-
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

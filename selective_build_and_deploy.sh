@@ -8,10 +8,10 @@ ROOT_DIR=$(pwd)  # Salva la directory di partenza
 
 # Chiedi all'utente quali servizi costruire
 echo "Enter the numbers of the services to build, separated by spaces (0-10) or type 'all' to build them all:"
-echo "0 - commons"
+echo "0 - T-shared"
 echo "1 - T1-G11"
 echo "2 - T23-G1"
-echo "3 - T4-G18"
+echo "3 - T4"
 echo "4 - T5-G2"
 echo "5 - T7-G31"
 echo "6 - T8-G21"
@@ -31,7 +31,7 @@ for i in "${SELECTION[@]}"; do
     case $i in
         0)
             echo "Building commons"
-            cd "$ROOT_DIR/commons"
+            cd "$ROOT_DIR/T-shared"
             mvn install || { echo "Error in commons build"; exit 1; }
             cd "$ROOT_DIR"
             ;;
@@ -52,8 +52,9 @@ for i in "${SELECTION[@]}"; do
             cd "$ROOT_DIR"
             ;;
         3)
-            echo "Building T4-G18"
-            cd "$ROOT_DIR/T4-G18"
+            echo "Building T4"
+            cd "$ROOT_DIR/T4/gamerepo"
+            mvn clean package -DskipTests=true -Dspring.profiles.active=prod || { echo "Error in T4 build"; exit 1; }
             docker build -t mick0974/a13:t4-g18 .
             docker compose up -d
             cd "$ROOT_DIR"

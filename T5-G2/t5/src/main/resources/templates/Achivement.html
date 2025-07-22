@@ -142,6 +142,8 @@
     let gamemode_achievements = /*[[${gamemode_achievements}]]*/ [];
     let general_achievements = /*[[${general_achievements}]]*/ [];
 
+    console.log("gamemode_achievements", gamemode_achievements);
+    console.log("general_achievements", general_achievements);
 
     let difficultyTranslation = {
         easy: /*[[#{d_facile}]]*/ "Facile",
@@ -244,22 +246,22 @@
 
             let hasAchievements = false; // Flag per verificare se ci sono achievement sbloccati
             if (gamemode_achievements && gamemode_achievements.length > 0) {
-                let filteredAchievements = gamemode_achievements.filter(a => a.game_mode === selectedMode);
-                let groupedByClassUT = groupBy(filteredAchievements, "class_ut");
+                let filteredAchievements = gamemode_achievements.filter(a => a.gameMode === selectedMode);
+                let groupedByClassUT = groupBy(filteredAchievements, "classUT");
 
                 for (let classUT in groupedByClassUT) {
                     let classUTDiv = document.createElement("div");
                     classUTDiv.innerHTML = `<div class='class-ut'>${classUT}</div>`;
 
-                    let groupedByRobot = groupBy(groupedByClassUT[classUT], "robot_type");
+                    let groupedByRobot = groupBy(groupedByClassUT[classUT], "type");
                     hasAchievements = false;
                     for (let robotType in groupedByRobot) {
                         let robotDiv = document.createElement("div");
                         let groupedByDifficulty = groupBy(groupedByRobot[robotType], "difficulty");
 
                         for (let difficulty in groupedByDifficulty) {
-                            let difficultyText = difficulty === "1" ? difficultyTranslation.easy :
-                                difficulty === "2" ? difficultyTranslation.medium :
+                            let difficultyText = difficulty === "EASY" ? difficultyTranslation.easy :
+                                difficulty === "MEDIUM" ? difficultyTranslation.medium :
                                     difficultyTranslation.hard;
 
                             let difficultyTitle = document.createElement("div");

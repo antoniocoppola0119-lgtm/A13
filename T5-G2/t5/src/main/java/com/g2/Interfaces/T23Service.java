@@ -15,6 +15,16 @@ package com.g2.Interfaces;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.g2.Model.DTO.GameProgressDTO;
+import com.g2.Model.DTO.PlayerProgressDTO;
+import com.g2.Model.DTO.UpdateGameProgressDTO;
+import com.g2.Model.GeneralAchievement;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -26,9 +36,19 @@ import org.springframework.web.client.RestTemplate;
 
 import com.g2.Model.NotificationResponse;
 import com.g2.Model.User;
+import testrobotchallenge.commons.models.dto.auth.JwtValidationResponseDTO;
+import testrobotchallenge.commons.models.opponent.GameMode;
+import testrobotchallenge.commons.models.opponent.OpponentDifficulty;
+import testrobotchallenge.commons.models.opponent.OpponentType;
+import testrobotchallenge.commons.models.user.Role;
+
+import static testrobotchallenge.commons.models.user.Role.PLAYER;
 
 @Service
 public class T23Service extends BaseService {
+
+    private static final Logger logger = LoggerFactory.getLogger(T23Service.class);
+    private final ObjectMapper mapper = new ObjectMapper();
 
     private static final String BASE_URL = "http://api_gateway-controller:8090";
     //private static final String BASE_URL = "http://127.0.0.1:8090";
@@ -108,11 +128,105 @@ public class T23Service extends BaseService {
                 params -> getFollowing((String) params[0]),
                 String.class
         ));
+
+
+
+        registerAction("createPlayerProgressAgainstOpponent", new ServiceActionDefinition(
+                params -> createPlayerProgressAgainstOpponent((long) params[0], (GameMode) params[1], (String) params[2], (OpponentType) params[3], (OpponentDifficulty) params[4]),
+                Long.class, GameMode.class, String.class, OpponentType.class, OpponentDifficulty.class
+        ));
+
+        registerAction("getPlayerProgressAgainstOpponent", new ServiceActionDefinition(
+                params -> getPlayerProgressAgainstOpponent((long) params[0], (GameMode) params[1], (String) params[2], (OpponentType) params[3], (OpponentDifficulty) params[4]),
+                Long.class, GameMode.class, String.class, OpponentType.class, OpponentDifficulty.class
+        ));
+
+        registerAction("updatePlayerProgressAgainstOpponent", new ServiceActionDefinition(
+                params -> updatePlayerProgressAgainstOpponent((long) params[0], (GameMode) params[1], (String) params[2],
+                        (OpponentType) params[3], (OpponentDifficulty) params[4], (boolean) params[5], (Set<String>) params[6]),
+                Long.class, GameMode.class, String.class, OpponentType.class, OpponentDifficulty.class, Boolean.class, Set.class
+        ));
+
+        registerAction("getPlayerProgressAgainstAllOpponent", new ServiceActionDefinition(
+                params -> getPlayerProgressAgainstAllOpponent((long) params[0]),
+                Long.class
+        ));
+
+        registerAction("incrementUserExp", new ServiceActionDefinition(
+                params -> incrementUserExp((long) params[0], (int) params[1]),
+                Long.class, Integer.class
+        ));
+
+        registerAction("updateGlobalAchievements", new ServiceActionDefinition(
+                params -> updateGlobalAchievements((long) params[0], (Set<String>) params[1]), Long.class, Set.class
+        ));
+
+
     }
 
+    private GameProgressDTO createPlayerProgressAgainstOpponent(long playerId, GameMode gameMode, String classUT, OpponentType type, OpponentDifficulty difficulty) {
+        final String endpoint = "/players/%s/progression/against".formatted(playerId);
+
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("classUT", classUT);
+        requestBody.put("gameMode", gameMode);
+        requestBody.put("type", type);
+        requestBody.put("difficulty", difficulty);
+        return callRestPost(endpoint, requestBody, null, null, GameProgressDTO.class);
+    }
+
+    private GameProgressDTO getPlayerProgressAgainstOpponent(long playerId, GameMode gameMode, String classUT, OpponentType type, OpponentDifficulty difficulty) {
+        final String endpoint = "/players/%s/progression/against/%s/%s/%s/%s".formatted(playerId, gameMode.name(), classUT, type.name(), difficulty.name());
+        return callRestGET(endpoint, null, GameProgressDTO.class);
+    }
+
+    private GameProgressDTO updatePlayerProgressAgainstOpponent(long playerId, GameMode gameMode, String classUT, OpponentType type, OpponentDifficulty difficulty, boolean isWinner, Set<String> unlockedAchievements) {
+        final String endpoint = "/players/%s/progression/against/%s/%s/%s/%s".formatted(playerId, gameMode.name(), classUT, type.name(), difficulty.name());
+
+        UpdateGameProgressDTO dto = new UpdateGameProgressDTO(isWinner, unlockedAchievements);
+        JSONObject requestBody;
+        try {
+            requestBody = new JSONObject(mapper.writeValueAsString(dto));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        logger.info("REQUEST BODY MAPPER: {}", requestBody);
+        return callRestPut(endpoint, requestBody, null, null, GameProgressDTO.class);
+    }
+
+    private PlayerProgressDTO getPlayerProgressAgainstAllOpponent(long playerId) {
+        final String endpoint = "/players/%s/progression".formatted(playerId);
+        return callRestGET(endpoint, null, PlayerProgressDTO.class);
+    }
+
+    private int incrementUserExp(long playerId, int expGained) {
+        final String endpoint = "/players/%s/progression/experience".formatted(playerId);
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("experiencePoints", expGained);
+        return callRestPut(endpoint, requestBody, null, null, Integer.class);
+    }
+
+    private Set<String> updateGlobalAchievements(long playerId, Set<String> achievements) {
+        final String endpoint =  "/players/%s/progression/achievements/global".formatted(playerId);
+
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("unlockedAchievements", achievements);
+        return (Set<String>) callRestPut(endpoint, requestBody, null, null, Set.class);
+    }
+
+
+
+
+
+
+
+
+
+
     // Metodo per l'autenticazione
-    private Boolean GetAuthenticated(String jwt) {
-        final String endpoint = "/validateToken";
+    private JwtValidationResponseDTO GetAuthenticated(String jwt) {
+        final String endpoint = "/auth/validateToken";
         // Verifica se il JWT è valido prima di fare la richiesta
         if (jwt.isEmpty()) {
             throw new IllegalArgumentException("[GETAUTHENTICATED] Errore, token nullo o vuoto");
@@ -120,26 +234,27 @@ public class T23Service extends BaseService {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("jwt", jwt);
         // Chiamata POST utilizzando il metodo della classe base
-        Boolean isAuthenticated = callRestPost(endpoint, formData, null, Boolean.class);
-        return isAuthenticated != null && isAuthenticated;
+        return callRestPost(endpoint, formData, null, JwtValidationResponseDTO.class);
     }
+
+
 
     // Metodo per ottenere la lista degli utenti
     private List<User> GetUsers() {
-        final String endpoint = "/students_list";
+        final String endpoint = "/student/students_list";
         return callRestGET(endpoint, null, new ParameterizedTypeReference<List<User>>() {
         });
     }
 
     private User GetUser(String user_id) {
-        final String endpoint = "/students_list/" + user_id;
+        final String endpoint = "/student/students_list/" + user_id;
         return callRestGET(endpoint, null, User.class);
     }
 
     //Do una lista di ID e mi ritorna una lista di User
     // Implementata a mano perchè un po' strana è una POST che ottiene dati come una GET
     private List<User> GetUserByList(List<String> idsStudenti) {
-        final String endpoint = "/getStudentiTeam";
+        final String endpoint = "/student/getStudentiTeam";
         // Crea un oggetto HttpEntity con i dati che vogliamo inviare (la lista degli ID)
         HttpEntity<List<String>> requestEntity = new HttpEntity<>(idsStudenti);
         // Esegui la chiamata POST all'endpoint
@@ -163,7 +278,7 @@ public class T23Service extends BaseService {
 
     // Metodo per modificare il profilo di un utente
     private Boolean UpdateProfile(String userEmail, String bio, String imagePath) {
-        final String endpoint = "/update_profile";
+        final String endpoint = "/profile/update_profile";
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("email", userEmail);
         map.add("bio", bio);
@@ -172,14 +287,14 @@ public class T23Service extends BaseService {
     }
 
     private User GetUserByEmail(String userEmail) {
-        final String endpoint = "/user_by_email";
+        final String endpoint = "/profile/user_by_email";
         Map<String, String> queryParams = Map.of("email", userEmail);
         return callRestGET(endpoint, queryParams, User.class);
     }
 
     // Metodo per la creazione di una notifica
     private String NewNotification(String userEmail, String title, String message) {
-        final String endpoint = "/new_notification";
+        final String endpoint = "/notification/new_notification";
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("email", userEmail);
         map.add("title", title);
@@ -188,7 +303,7 @@ public class T23Service extends BaseService {
     }
 
     public NotificationResponse getNotifications(String userEmail, int page, int size) {
-        final String endpoint = "/notifications";
+        final String endpoint = "/notification/notifications";
         // Creazione dei parametri di query, inclusi email, pagina e dimensione
         Map<String, String> queryParams = Map.of(
                 "email", userEmail,
@@ -211,7 +326,7 @@ public class T23Service extends BaseService {
     }
 
     public String updateNotification(String userEmail, String notificationID) {
-        final String endpoint = "/update_notification";
+        final String endpoint = "/notification/update_notification";
         // Imposta i dati del form
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("email", userEmail);
@@ -222,7 +337,7 @@ public class T23Service extends BaseService {
 
     // Metodo per eliminare una singola notifica
     public String deleteNotification(String userEmail, String notificationID) {
-        final String endpoint = "/delete_notification";
+        final String endpoint = "/notification/delete_notification";
         Map<String, String> queryParams = Map.of(
                 "email", userEmail,
                 "idnotifica", notificationID
@@ -232,7 +347,7 @@ public class T23Service extends BaseService {
 
     // Metodo per eliminare tutte le notifiche
     public String clearNotifications(String userEmail) {
-        final String endpoint = "/clear_notifications";
+        final String endpoint = "/notification/clear_notifications";
         Map<String, String> queryParams = Map.of("email", userEmail);
         return callRestDelete(endpoint, queryParams);
     }
@@ -243,7 +358,7 @@ public class T23Service extends BaseService {
     *   il authUserId è chi segue 
      */
     public String followUser(Integer targetUserId, Integer authUserId) {
-        final String endpoint = "/toggle_follow";
+        final String endpoint = "/profile/toggle_follow";
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("targetUserId", String.valueOf(targetUserId));
         map.add("authUserId", String.valueOf(authUserId));
@@ -251,14 +366,14 @@ public class T23Service extends BaseService {
     }
 
     public List<User> getFollowers(String userId) {
-        final String endpoint = "/followers";
+        final String endpoint = "/profile/followers";
         Map<String, String> queryParams = Map.of("userId", userId);
         return callRestGET(endpoint, queryParams, new ParameterizedTypeReference<List<User>>() {
         });
     }
 
     public List<User> getFollowing(String userId) {
-        final String endpoint = "/following";
+        final String endpoint = "/profile/following";
         Map<String, String> queryParams = Map.of("userId", userId);
         return callRestGET(endpoint, queryParams, new ParameterizedTypeReference<List<User>>() {
         });

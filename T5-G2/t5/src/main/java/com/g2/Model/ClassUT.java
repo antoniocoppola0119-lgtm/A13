@@ -28,18 +28,18 @@ public class ClassUT {
 	private String	date;
 	@JsonProperty("difficulty")
 	private	String	difficulty;
-	@JsonProperty("code_Uri")
-	private String code_Uri;
+	@JsonProperty("uri")
+	private String uri;
 	@JsonProperty("description")
 	private	String	description;
 	@JsonProperty("category")
 	private List<String> category;
 	
-	public ClassUT(String name, String date,String description, String difficulty, String code_Uri,List<String> category) {
+	public ClassUT(String name, String date, String description, String difficulty, String uri, List<String> category) {
         this.name = name;
         this.date = date;
         this.difficulty = difficulty;
-        this.code_Uri = code_Uri;
+        this.uri = uri;
         this.description=description;
         this.category = category;
     }
@@ -62,14 +62,14 @@ public class ClassUT {
 	}
 	
 	public void setcode_Uri(String code_Uri) {
-		this.code_Uri = code_Uri;
+		this.uri = code_Uri;
 	}
 	
 	public String getcode_Uri() {
-		return this.code_Uri;
+		return this.uri;
 	}
 	public void setUri(String code_Uri) {
-		this.code_Uri = code_Uri;
+		this.uri = code_Uri;
 	}
 	public String getDate() {
 		return date;
@@ -90,7 +90,7 @@ public class ClassUT {
 	            "name='" + name + '\'' +
 	            ", date='" + date + '\'' +
 	            ", difficulty='" + difficulty + '\'' +
-	            ", code_url='" + code_Uri + '\'' +
+	            ", code_url='" + uri + '\'' +
 	            ", category=" + category +
 	            '}';
 	}

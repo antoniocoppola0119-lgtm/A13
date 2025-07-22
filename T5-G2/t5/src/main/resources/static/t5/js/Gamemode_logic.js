@@ -401,10 +401,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
 		if (selectedClass) {
 			const filteredRobots = availableRobots
-				.filter((robot) => robot.testClassId === selectedClass)
+				.filter((robot) => robot.classUT === selectedClass)
 				.reduce((unique, robot) => {
-					if (!unique.includes(robot.robotType)) {
-						unique.push(robot.robotType);
+					if (!unique.includes(robot.opponentType)) {
+						unique.push(robot.opponentType);
 					}
 					return unique;
 				}, []);
@@ -446,16 +446,16 @@ document.addEventListener("DOMContentLoaded", function () {
 			const filteredDifficulties = availableRobots
 				.filter(
 					(robot) =>
-						robot.testClassId === selectedClass &&
-						robot.robotType === selectedRobot
+						robot.classUT === selectedClass &&
+						robot.opponentType === selectedRobot
 				)
-				.map((robot) => robot.difficulty);
+				.map((robot) => robot.opponentDifficulty);
 
 			const difficultyOptions =
 				document.getElementById("difficulty_options").children;
 
 			for (let option of difficultyOptions) {
-				if (filteredDifficulties.includes(parseInt(option.value))) {
+				if (filteredDifficulties.includes(option.value)) {
 					selectDifficulty.appendChild(option.cloneNode(true));
 				}
 			}

@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
 
-@Table(name = "Profiles", schema = "studentsrepo")
+@Table(name = "profiles", schema = "studentsrepo")
 @Data
 @Entity
 public class UserProfile {
@@ -31,9 +31,9 @@ public class UserProfile {
     private Integer ID;
 
     @OneToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "player_id")
     @JsonIgnore
-    private User user;
+    private Player player;
 
     @Column(length = 500)
     private String bio = "Test addicted...";
@@ -68,8 +68,8 @@ public class UserProfile {
     }
 
     // Setter per user (eventualmente utile se vuoi aggiungere logica personalizzata)
-    public void setUser(User user) {
-        this.user = user;
+    public void setPlayer(Player player) {
+        this.player = player;
     }
 
     // Metodo helper per aggiungere una relazione di follow
@@ -95,7 +95,7 @@ public class UserProfile {
     }
 
     @JsonProperty("userId")
-    public Integer getUserId() {
-        return user != null ? user.getID() : null;
+    public Long getUserId() {
+        return player != null ? player.getID() : null;
     }
 }

@@ -126,9 +126,9 @@
 
 		<script th:inline="javascript">
 			const difficulty = {
-				"1": /*[[#{d_facile}]]*/ "Facile",
-				"2": /*[[#{d_medio}]]*/ "Medio",
-				"3": /*[[#{d_difficile}]]*/ "Difficile",
+				"EASY": /*[[#{d_facile}]]*/ "Facile",
+				"MEDIUM": /*[[#{d_medio}]]*/ "Medio",
+				"HARD": /*[[#{d_difficile}]]*/ "Difficile",
 			};
 
 			const gameMode = {
@@ -194,12 +194,16 @@ function renderGameHistory(games) {
     const $container = $("#match_history");
     $container.empty(); // Pulisce il contenitore
 
+		if (games.length === 0)
+			return;
+
     // Ordina le partite dalla più recente (closedAt più alta) alla più vecchia
     games.sort((a, b) => new Date(b.closedAt) - new Date(a.closedAt));
 
     games.forEach((game) => {
         const formattedDate = formatDate(game.closedAt);
-        const badge = game.isWinner
+				const result = game.playerResults[userId];
+        const badge = result.winner
             ? `<span class="badge text-bg-success"> ${victory.win_label} </span>`
             : `<span class="badge text-bg-danger"> ${victory.loss_label} </span>`;
 
@@ -208,13 +212,13 @@ function renderGameHistory(games) {
             <a href="#" class="list-group-item list-group-item-action" aria-current="true">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="mb-1">${game.username}</h4>
-                        <p class="mb-0">${gameMode[game.description]} - ${game.name} - ${difficulty[game.difficulty]}</p>
+                        <h4 class="mb-1">${game.rounds[0].classUT}</h4>
+                        <p class="mb-0">${gameMode[game.gameMode]} - ${game.rounds[0].opponentType} - ${difficulty[game.rounds[0].opponentDifficulty]}</p>
                         <small>${formattedDate}</small>
                     </div>
                     <div class="text-center p-3">
                         <h4 class="mb-0 fw-semibold lh-1">${badge}</h4>
-                        <small>${coverage_capitalized} ${game.score}%</small>
+                        <small>${coverage_capitalized} ${result.score}%</small>
                     </div>
                 </div>
             </a>

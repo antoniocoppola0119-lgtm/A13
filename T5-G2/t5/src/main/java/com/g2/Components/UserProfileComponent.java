@@ -30,8 +30,8 @@ public class UserProfileComponent extends GenericObjectComponent {
 
     private final ServiceManager serviceManager;
     private final boolean IsFriendProfile;
-    private final String userID;
-    private final String FriendID;
+    private final Long userID;
+    private final Long FriendID;
 
     /**
      * Costruttore per il componente.
@@ -44,8 +44,8 @@ public class UserProfileComponent extends GenericObjectComponent {
      * @param action l'azione da eseguire per ottenere il profilo.
      */
     public UserProfileComponent(ServiceManager serviceManager,
-            Boolean IsFriendProfile,
-            String userID
+                                Boolean IsFriendProfile,
+                                Long userID
     ) {
         super(null, null);  // Il costruttore della superclasse è invocato senza parametri
         this.serviceManager = serviceManager;
@@ -55,9 +55,9 @@ public class UserProfileComponent extends GenericObjectComponent {
     }
 
     public UserProfileComponent(ServiceManager serviceManager,
-            Boolean IsFriendProfile,
-            String userID,
-            String FriendID
+                                Boolean IsFriendProfile,
+                                Long userID,
+                                Long FriendID
     ) {
         super(null, null);  // Il costruttore della superclasse è invocato senza parametri
         this.serviceManager = serviceManager;

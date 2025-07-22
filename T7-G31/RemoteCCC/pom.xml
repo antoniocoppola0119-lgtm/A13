@@ -75,6 +75,18 @@
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-prometheus</artifactId>
     </dependency>
+      <dependency>
+          <groupId>org.jsoup</groupId>
+          <artifactId>jsoup</artifactId>
+          <version>1.17.2</version>
+          <scope>compile</scope>
+      </dependency>
+    <dependency>
+      <groupId>com.testrobotchallenge</groupId>
+      <artifactId>T-shared</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
 
   </dependencies>
 

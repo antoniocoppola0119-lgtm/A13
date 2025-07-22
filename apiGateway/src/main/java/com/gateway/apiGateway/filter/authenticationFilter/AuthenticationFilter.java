@@ -60,6 +60,7 @@ public class AuthenticationFilter implements GatewayFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
+        logger.error("[Gateway auth filter] Received request from: {}", request.getPath());
         String token;
         try {
             token = authTokenService.extractToken(request);

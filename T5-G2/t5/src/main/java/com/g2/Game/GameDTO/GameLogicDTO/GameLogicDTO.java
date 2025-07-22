@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.g2.Game.GameDTO.RunGameDTO.RunGameRequestDTO;
+import testrobotchallenge.commons.models.opponent.GameMode;
+import testrobotchallenge.commons.models.opponent.OpponentDifficulty;
+import testrobotchallenge.commons.models.opponent.OpponentType;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "mode", include = JsonTypeInfo.As.EXISTING_PROPERTY, visible = true)
 @JsonSubTypes({
@@ -15,19 +18,19 @@ import com.g2.Game.GameDTO.RunGameDTO.RunGameRequestDTO;
 public class GameLogicDTO {
 
     @JsonProperty("mode")
-    private String mode;
+    private GameMode mode;
 
     @JsonProperty("playerId")
-    private String playerId;
+    private Long playerId;
 
     @JsonProperty("underTestClassName")
     private String underTestClassName;
 
     @JsonProperty("type_robot")
-    private String typeRobot;
+    private OpponentType typeRobot;
 
     @JsonProperty("difficulty")
-    private String difficulty;
+    private OpponentDifficulty difficulty;
 
     @JsonProperty("testingClassCode")
     private String testingClassCode;;
@@ -37,8 +40,8 @@ public class GameLogicDTO {
     }
 
     // Costruttore con tutti i campi
-    public GameLogicDTO(String mode, String playerId, String underTestClassName, 
-                        String typeRobot, String difficulty, String testingClassCode) {
+    public GameLogicDTO(GameMode mode, Long playerId, String underTestClassName,
+                        OpponentType typeRobot, OpponentDifficulty difficulty, String testingClassCode) {
         this.mode = mode;
         this.playerId = playerId;
         this.underTestClassName = underTestClassName;
@@ -49,19 +52,19 @@ public class GameLogicDTO {
 
     // Getters e Setters
 
-    public String getMode() {
+    public GameMode getMode() {
         return mode;
     }
 
-    public void setMode(String mode) {
+    public void setMode(GameMode mode) {
         this.mode = mode;
     }
 
-    public String getPlayerId() {
+    public Long getPlayerId() {
         return playerId;
     }
 
-    public void setPlayerId(String playerId) {
+    public void setPlayerId(Long playerId) {
         this.playerId = playerId;
     }
 
@@ -73,19 +76,19 @@ public class GameLogicDTO {
         this.underTestClassName = underTestClassName;
     }
 
-    public String getTypeRobot() {
+    public OpponentType getTypeRobot() {
         return typeRobot;
     }
 
-    public void setTypeRobot(String typeRobot) {
+    public void setTypeRobot(OpponentType typeRobot) {
         this.typeRobot = typeRobot;
     }
 
-    public String getDifficulty() {
+    public OpponentDifficulty getDifficulty() {
         return difficulty;
     }
 
-    public void setDifficulty(String difficulty) {
+    public void setDifficulty(OpponentDifficulty difficulty) {
         this.difficulty = difficulty;
     }
 

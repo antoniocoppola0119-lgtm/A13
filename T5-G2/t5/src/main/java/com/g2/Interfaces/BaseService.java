@@ -25,7 +25,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.g2.security.JwtRequestContext;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -51,6 +54,9 @@ public abstract class BaseService implements ServiceInterface {
     protected RestTemplate restTemplate;
     private final String baseUrl;
     protected final Map<String, ServiceActionDefinition> actions = new HashMap<>();
+
+    private static final Logger logger = LoggerFactory.getLogger(BaseService.class);
+
 
     // Costruttore della classe base
     protected BaseService(RestTemplate restTemplate, String baseUrl) {
@@ -82,6 +88,10 @@ public abstract class BaseService implements ServiceInterface {
 
     protected HttpHeaders buildHeaders(Map<String, String> customHeaders, MediaType defaultContentType) {
         return HttpHeadersFactory.createHeaders(customHeaders, defaultContentType);
+    }
+
+    protected HashMap<String, String> buildAuth() {
+        return new HashMap<>(){{put(HttpHeaders.COOKIE, JwtRequestContext.getJwtToken());}};
     }
 
     // Interfaccia funzionale per le chiamate REST serve per executeRestCall(String caller, RestCall<R> call)
@@ -117,7 +127,9 @@ public abstract class BaseService implements ServiceInterface {
     protected <R> R callRestGET(String endpoint, Map<String, String> queryParams, Class<R> responseType) {
         return executeRestCall("callRestGET " + endpoint, () -> {
             String url = buildUri(endpoint, queryParams);
-            ResponseEntity<R> response = restTemplate.getForEntity(url, responseType);
+            HttpHeaders headers = HttpHeadersFactory.createHeaders(buildAuth(), null);
+            HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
+            ResponseEntity<R> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, responseType);
             return response.getBody();
         });
     }
@@ -126,7 +138,9 @@ public abstract class BaseService implements ServiceInterface {
     protected <R> List<R> callRestGET(String endpoint, Map<String, String> queryParams, ParameterizedTypeReference<List<R>> responseType) {
         return executeRestCall("callRestGET " + endpoint, () -> {
             String url = buildUri(endpoint, queryParams);
-            ResponseEntity<List<R>> response = restTemplate.exchange(url, HttpMethod.GET, null, responseType);
+            HttpHeaders headers = HttpHeadersFactory.createHeaders(buildAuth(), null);
+            HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
+            ResponseEntity<List<R>> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, responseType);
             return response.getBody();
         });
     }
@@ -134,7 +148,7 @@ public abstract class BaseService implements ServiceInterface {
     // Metodo per chiamate POST senza specificare content type -> default
     // application/x-www-form-urlencoded
     protected <R> R callRestPost(String endpoint, MultiValueMap<String, String> formData, Map<String, String> queryParams, Class<R> responseType) {
-        return callRestPost(endpoint, formData, queryParams, null, responseType);
+        return callRestPost(endpoint, formData, queryParams, new HashMap<>(), responseType);
     }
 
     // Metodo per chiamate POST con content type a application/x-www-form-urlencoded
@@ -144,9 +158,14 @@ public abstract class BaseService implements ServiceInterface {
         if (formData == null) {
             throw new IllegalArgumentException("formData non può essere nullo");
         }
+        if (customHeaders == null) {
+            customHeaders = new HashMap<>();
+        }
+        customHeaders.putAll(buildAuth());
+        Map<String, String> finalCustomHeaders = customHeaders;
         return executeRestCall("callRestPost " + endpoint, () -> {
             String url = UriBuilderHelper.buildUri(baseUrl, endpoint, queryParams);
-            HttpHeaders headers = HttpHeadersFactory.createHeaders(customHeaders, MediaType.APPLICATION_FORM_URLENCODED);
+            HttpHeaders headers = HttpHeadersFactory.createHeaders(finalCustomHeaders, MediaType.APPLICATION_FORM_URLENCODED);
             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, headers);
             ResponseEntity<R> response = restTemplate.postForEntity(url, requestEntity, responseType);
             return response.getBody();
@@ -160,10 +179,15 @@ public abstract class BaseService implements ServiceInterface {
         if (jsonObject == null) {
             throw new IllegalArgumentException("Il body JSON non può essere nullo");
         }
+        if (customHeaders == null) {
+            customHeaders = new HashMap<>();
+        }
+        customHeaders.putAll(buildAuth());
+        Map<String, String> finalCustomHeaders = customHeaders;
         return executeRestCall("callRestPost " + endpoint, () -> {
             String jsonBody = jsonObject.toString();
             String url = buildUri(endpoint, queryParams);
-            HttpHeaders headers = buildHeaders(customHeaders, MediaType.APPLICATION_JSON);
+            HttpHeaders headers = buildHeaders(finalCustomHeaders, MediaType.APPLICATION_JSON);
             HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
             ResponseEntity<R> response = restTemplate.postForEntity(url, requestEntity, responseType);
             return response.getBody();
@@ -186,10 +210,15 @@ public abstract class BaseService implements ServiceInterface {
         if (formData == null) {
             throw new IllegalArgumentException("formData non può essere nullo");
         }
+        if (customHeaders == null) {
+            customHeaders = new HashMap<>();
+        }
+        customHeaders.putAll(buildAuth());
 
+        Map<String, String> finalCustomHeaders = customHeaders;
         return executeRestCall("callRestPut " + endpoint, () -> {
             String url = buildUri(endpoint, queryParams);
-            HttpHeaders headers = buildHeaders(customHeaders, MediaType.APPLICATION_FORM_URLENCODED);
+            HttpHeaders headers = buildHeaders(finalCustomHeaders, MediaType.APPLICATION_FORM_URLENCODED);
             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, headers);
             ResponseEntity<R> response = restTemplate.exchange(url, HttpMethod.PUT, requestEntity, responseType);
             return response.getBody();
@@ -206,12 +235,15 @@ public abstract class BaseService implements ServiceInterface {
         if (jsonObject == null) {
             throw new IllegalArgumentException("Il body JSON non può essere nullo");
         }
-
+        if (customHeaders == null) {
+            customHeaders = new HashMap<>();
+        }
+        customHeaders.putAll(buildAuth());
+        Map<String, String> finalCustomHeaders = customHeaders;
         return executeRestCall("callRestPut " + endpoint, () -> {
             String url = buildUri(endpoint, queryParams);
             String jsonBody = jsonObject.toString();
-
-            HttpHeaders headers = buildHeaders(customHeaders, MediaType.APPLICATION_JSON);
+            HttpHeaders headers = buildHeaders(finalCustomHeaders, MediaType.APPLICATION_JSON);
             HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
             ResponseEntity<R> response = restTemplate.exchange(url, HttpMethod.PUT, requestEntity, responseType);
 
@@ -227,7 +259,9 @@ public abstract class BaseService implements ServiceInterface {
     protected String callRestDelete(String endpoint, Map<String, String> queryParams) {
         return executeRestCall("callRestDelete " + endpoint, () -> {
             String url = buildUri(endpoint, queryParams);
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, null, String.class);
+            HttpHeaders headers = HttpHeadersFactory.createHeaders(buildAuth(), null);
+            HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, requestEntity, String.class);
             return response.getBody();
         });
     }

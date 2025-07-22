@@ -1,0 +1,110 @@
+/*
+ *   Copyright (c) 2025 Stefano Marano https://github.com/StefanoMarano80017
+ *   All rights reserved.
+
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+
+ *   http://www.apache.org/licenses/LICENSE-2.0
+
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ */
+
+package com.example.db_setup.model;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
+@Table (name = "players", schema = "studentsrepo")
+@Data
+@Entity
+@Getter
+@Setter
+public class Player {
+
+    @Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
+    public long ID;
+
+    public String password;
+
+    @Enumerated (EnumType.STRING)
+    public Studies studies;
+
+    /* Informazioni Personali utente da aggiungere per il profilo
+    public String bio;
+    public List<User> friendsList;
+    public String profilePicturePath; -> questa potrebbe essere un percorso in un volume che contiene tutte le propic (T23)
+    */
+
+    @OneToOne(mappedBy = "player", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private UserProfile userProfile;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "player", cascade = CascadeType.ALL)
+    private PlayerProgress playerProgress;
+
+    public Player(String name, String surname, String email, String password, Studies studies) {
+        this();
+        this.password = password;
+        this.studies = studies;
+        this.userProfile.setName(name);
+        this.userProfile.setSurname(surname);
+        this.userProfile.setEmail(email);
+    }
+
+    public Player() {
+        this.userProfile=new UserProfile();
+        this.userProfile.setPlayer(this);
+    }
+
+    public String getName(){
+        return this.userProfile.getName();
+    }
+
+    public void setName(String name){
+        this.userProfile.setName(name);
+    }
+
+    public String getSurname(){
+        return this.userProfile.getSurname();
+    }
+
+    public void setSurname(String surname){
+        this.userProfile.setSurname(surname);
+    }
+
+    public String getNickname(){
+        return this.userProfile.getNickname();
+    }
+
+    public void setNickname(String nickname){
+        this.userProfile.setNickname(nickname);
+    }
+
+    public String getEmail(){
+        return this.userProfile.getEmail();
+    }
+
+    public void setEmail(String email){
+        this.userProfile.setEmail(email);
+    }
+}

@@ -43,6 +43,7 @@ import com.g2.Session.Exceptions.GameModeAlreadyExist;
 import com.g2.Session.Exceptions.GameModeDontExist;
 import com.g2.Session.Exceptions.SessionAlredyExist;
 import com.g2.Session.Exceptions.SessionDontExist;
+import testrobotchallenge.commons.models.opponent.GameMode;
 
 @CrossOrigin
 @RestController
@@ -77,7 +78,7 @@ public class SessionController {
      * GET /session/{playerId} Ottiene la sessione associata al playerId.
      */
     @GetMapping("/{playerId}")
-    public ResponseEntity<?> getSession(@PathVariable String playerId) {
+    public ResponseEntity<?> getSession(@PathVariable Long playerId) {
         try {
             Sessione sessione = sessionService.getSession(playerId);
             return ResponseEntity.ok(sessione);
@@ -94,7 +95,7 @@ public class SessionController {
      * sessione.
      */
     @PostMapping("/{playerId}")
-    public ResponseEntity<?> createSession(@PathVariable String playerId, @RequestBody Sessione sessione) {
+    public ResponseEntity<?> createSession(@PathVariable Long playerId, @RequestBody Sessione sessione) {
         if (sessione == null) {
             return ResponseEntity.badRequest().body(
                 Map.of("error", "Request is null")
@@ -116,7 +117,7 @@ public class SessionController {
      * specificato.
      */
     @PutMapping("/{playerId}")
-    public ResponseEntity<?> updateSession(@PathVariable String playerId, @RequestBody Sessione updatedSession) {
+    public ResponseEntity<?> updateSession(@PathVariable Long playerId, @RequestBody Sessione updatedSession) {
         if (updatedSession == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 Map.of("error", "Request is null")
@@ -143,7 +144,7 @@ public class SessionController {
      * specificato.
      */
     @DeleteMapping("/{playerId}")
-    public ResponseEntity<?> deleteSession(@PathVariable String playerId) {
+    public ResponseEntity<?> deleteSession(@PathVariable Long playerId) {
         try {
             sessionService.deleteSession(playerId);
             return ResponseEntity.ok("Eliminazione avvenuta");
@@ -166,7 +167,7 @@ public class SessionController {
      * (gamemode) associata alla sessione del player.
      */
     @GetMapping("/gamemode/{playerId}")
-    public ResponseEntity<?> getGameMode(@PathVariable String playerId, @RequestParam String mode) {
+    public ResponseEntity<?> getGameMode(@PathVariable Long playerId, @RequestParam GameMode mode) {
         try {
             GameLogic game = sessionService.getGameMode(playerId, mode);
             return ResponseEntity.ok(game);
@@ -261,7 +262,7 @@ public class SessionController {
      * specificata dalla sessione del player.
      */
     @DeleteMapping("/gamemode/{playerId}")
-    public ResponseEntity<?> deleteGameMode(@PathVariable String playerId, @RequestParam String mode) {
+    public ResponseEntity<?> deleteGameMode(@PathVariable Long playerId, @RequestParam GameMode mode) {
         try {
             sessionService.removeGameMode(playerId, mode);
             return ResponseEntity.ok("Modalità Eliminata");

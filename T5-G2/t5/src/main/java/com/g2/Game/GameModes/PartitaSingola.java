@@ -7,8 +7,14 @@ import com.g2.Game.GameFactory.params.GameParams;
 import com.g2.Game.GameFactory.params.PartitaSingolaParams;
 import com.g2.Game.GameModes.Compile.CompileResult;
 import com.g2.Interfaces.ServiceManager;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import testrobotchallenge.commons.models.opponent.GameMode;
+import testrobotchallenge.commons.models.opponent.OpponentDifficulty;
+import testrobotchallenge.commons.models.opponent.OpponentType;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -18,13 +24,14 @@ import java.util.Map;
 import java.util.function.BiFunction;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
+@Getter
+@Setter
+@ToString
 public class PartitaSingola extends GameLogic {
 
     @JsonIgnore
     private static final Logger logger = LoggerFactory.getLogger(PartitaSingola.class);
 
-    @JsonProperty("currentTurn")
-    private int currentTurn;
     @JsonProperty("userScore")
     private int userScore;
     @JsonProperty("robotScore")
@@ -37,16 +44,14 @@ public class PartitaSingola extends GameLogic {
     }
 
     //Questa classe si specializza in una partita singola basata sui turni, prende il nome di Partita Singola nella UI
-    public PartitaSingola(ServiceManager serviceManager, String PlayerID, String ClasseUT,
-                 String type_robot, String difficulty, String gamemode, String testingClassCode) {
-        super(serviceManager, PlayerID, ClasseUT, type_robot, difficulty, gamemode, testingClassCode);
-        currentTurn = 0;
+    public PartitaSingola(ServiceManager serviceManager, Long PlayerID, String ClasseUT,
+                          OpponentType type_robot, OpponentDifficulty difficulty, GameMode gameMode, String testingClassCode) {
+        super(serviceManager, PlayerID, ClasseUT, type_robot, difficulty, gameMode, testingClassCode);
     }
 
-    public PartitaSingola(ServiceManager serviceManager, String PlayerID, String ClasseUT,
-                          String type_robot, String difficulty, String gamemode, String testingClassCode, int remainingTime) {
+    public PartitaSingola(ServiceManager serviceManager, Long PlayerID, String ClasseUT,
+                          OpponentType type_robot, OpponentDifficulty difficulty, GameMode gamemode, String testingClassCode, int remainingTime) {
         super(serviceManager, PlayerID, ClasseUT, type_robot, difficulty, gamemode, testingClassCode);
-        currentTurn = 0;
         this.remainingTime = remainingTime;
     }
 
@@ -59,13 +64,13 @@ public class PartitaSingola extends GameLogic {
     }
 
     @Override
-    public void NextTurn(int userScore, int robotScore) {
-        String Time = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
-        currentTurn++;
-        this.robotScore = robotScore;
-        this.userScore = userScore;
-        CreateTurn(Time, userScore);
-        System.out.println("[GAME] Turn " + currentTurn + " played. User Score: " + userScore + ", Robot Score: " + robotScore);
+    public void NextTurn(CompileResult userCompileResult, CompileResult robotScore) {
+        this.robotScore = GetScore(userCompileResult);
+        this.userScore = GetScore(userCompileResult);
+        CreateTurn();
+        logger.info("Created turn {} for game {}", this.getCurrentTurn(), this.getGameID());
+        EndTurn(userCompileResult);
+        System.out.println("[GAME] Turn " + getCurrentTurn() + " played. User Score: " + userScore + ", Robot Score: " + robotScore);
     }
 
     @Override
@@ -107,25 +112,6 @@ public class PartitaSingola extends GameLogic {
     }
 
     private Boolean beatOnEvosuiteWeakMutationCoverage(CompileResult user, CompileResult robot) {
-        return user.getEvosuiteWeakMutation() > robot.getEvosuiteWeakMutation();
-    }
-
-    public int getRemainingTime() {
-        return remainingTime;
-    }
-
-    public void setRemainingTime(int remainingTime) {
-        this.remainingTime = remainingTime;
-    }
-
-    @Override
-    public String toString() {
-        return "PartitaSingola{" +
-                super.toString() +
-                "currentTurn=" + currentTurn +
-                ", userScore=" + userScore +
-                ", robotScore=" + robotScore +
-                ", remainingTime=" + remainingTime +
-                '}';
+        return user.getEvosuiteWeakMutation().getCovered() > robot.getEvosuiteWeakMutation().getCovered();
     }
 }
