@@ -14,12 +14,14 @@
     *   See the License for the specific language governing permissions and
     *   limitations under the License.
  */
-package RemoteCCC.App;
+package com.robotchallenge.codecompile.jacoco;
 
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ThreadLocalRandom;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Config {
 
@@ -28,6 +30,7 @@ public class Config {
      */
     private final String usrPath;
     private String timestamp;
+    private final Logger logger = LoggerFactory.getLogger(Config.class);
 
     /*
         * Questo enum definisce i vari percorsi utilizzati nel progetto, 
@@ -65,17 +68,17 @@ public class Config {
     public Config() {
         this.usrPath = System.getProperty("user.dir");
         this.timestamp = generateTimestamp();
-        System.out.println("[CONFIG] Constructor chiamato timestamp: " + this.timestamp);
+        logger.info("[CONFIG] Constructor chiamato timestamp: {}", this.timestamp);
     }
 
     // genero timestamp unico 
     private String generateTimestamp() {
         //questa funzione è thread safe 
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+        String currentTimestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
         // Genera 4 cifre randomiche thread-safe
         int randomFourDigits = ThreadLocalRandom.current().nextInt(1000, 10000); // 1000 (incluso) e 10000 (escluso)
-        // Concatena il timestamp e le cifre casuali
-        return timestamp + randomFourDigits;
+        // Concatena il currentTimestamp e le cifre casuali
+        return currentTimestamp + randomFourDigits;
     }
 
     /*

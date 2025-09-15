@@ -1,4 +1,4 @@
-package RemoteCCC.App;
+package com.robotchallenge.codecompile.jacoco;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -14,15 +14,15 @@ import java.nio.file.StandardOpenOption;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
-import RemoteCCC.App.util.FileUtil;
+import com.robotchallenge.codecompile.jacoco.util.FileUtil;
+import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
+
 
 public class CompilationService {
     
@@ -34,30 +34,35 @@ public class CompilationService {
     private final String underTestClassCode;
     
     // Inizializzo outputMaven come stringa vuota per evitare "null"
-    public String outputMaven = "";
-    public Boolean Errors;
-    public String Coverage;
+    @Getter
+    private String outputMaven = "";
+    @Getter
+    private Boolean errors;
+    @Getter
+    private String coverage;
     
     // Se mvn_path è impostato in application.properties o in ambiente, 
     // assicurati che contenga il comando corretto (ad es. "mvn" o il percorso assoluto)
     @Value("${variabile.mvn}")
-    private String mvn_path;
+    private String mvnPath;
+
+    private static final String POM = "pom.xml";
     
     protected static final Logger logger = LoggerFactory.getLogger(CompilationService.class);
     
     public CompilationService(String testingClassName, String testingClassCode,
                               String underTestClassName, String underTestClassCode, 
-                              String mvn_path) {
+                              String mvnPath) {
         this.config = new Config();
         this.testingClassName = testingClassName;
         this.testingClassCode = testingClassCode;
         this.underTestClassName = underTestClassName;
         this.underTestClassCode = underTestClassCode;
-        this.mvn_path = mvn_path;
+        this.mvnPath = mvnPath;
         logger.info("[CompilationService] Servizio creato con successo");
     }
 
-    public CompilationService(String mvn_path) {
+    public CompilationService(String mvnPath) {
 
         this.config = new Config();
         this.underTestClassName = null;
@@ -65,11 +70,11 @@ public class CompilationService {
         this.outputMaven = null;
         this.testingClassName = null;
         this.testingClassCode = null;
-        this.mvn_path = mvn_path;
+        this.mvnPath = mvnPath;
         logger.info("[CompilationService] Servizi creato con successo");
     }
 
-    public void compileAndTestEvoSuiteTests(MultipartFile evoSuiteCode) throws IOException, InterruptedException {
+    public void compileAndTestEvoSuiteTests(MultipartFile evoSuiteCode) {
         try {
             createDirectoryIfNotExists(config.getPathCompiler());
             logger.info("[Compilation Service] directory creata con successo: {}", config.getPathCompiler());
@@ -80,14 +85,14 @@ public class CompilationService {
             copyPomFileForEvoSuiteTest();
             logger.info("[CompilationService] Avvio Maven");
             if (compileExecuteCoverageWithMaven(true, "clean", "test", "jacoco:restore-instrumented-classes", "jacoco:report")) {
-                this.Coverage = readFileToString(config.getCoverageFolderPath());
-                this.Errors = false;
+                this.coverage = readFileToString(config.getCoverageFolderPath());
+                this.errors = false;
                 logger.info("Coverage: ");
-                logger.info(this.Coverage);
+                logger.info(this.coverage);
                 logger.info("[Compilation Service] Compilazione Terminata senza errori.");
             } else {
-                this.Coverage = null;
-                this.Errors = true;
+                this.coverage = null;
+                this.errors = true;
                 logger.info("[Compilation Service] Compilazione Terminata con errori");
                 logger.info("[Compilation Service] Errori: {}", outputMaven);
             }
@@ -106,19 +111,19 @@ public class CompilationService {
         }
     }
 
-    public void compileAndTest() throws IOException, InterruptedException {
+    public void compileAndTest() throws IOException {
         try {
             createDirectoriesAndCopyPom();
             saveCodeToFile(this.testingClassName, this.testingClassCode, config.getTestingClassPath());
             saveCodeToFile(this.underTestClassName, this.underTestClassCode, config.getUnderTestClassPath());
             logger.info("[CompilationService] Avvio Maven");
             if (compileExecuteCoverageWithMaven(false, "clean", "compile", "test")) {
-                this.Coverage = readFileToString(config.getCoverageFolderPath());
-                this.Errors = false;
+                this.coverage = readFileToString(config.getCoverageFolderPath());
+                this.errors = false;
                 logger.info("[CompilationService] Compilazione terminata senza errori.");
             } else {
-                this.Coverage = null;
-                this.Errors = true;
+                this.coverage = null;
+                this.errors = true;
                 logger.info("[CompilationService] Compilazione terminata con errori");
             }
             deleteFile(config.getUnderTestClassPath() + underTestClassName);
@@ -168,8 +173,8 @@ public class CompilationService {
     }
     
     private void copyPomFile() throws IOException {
-        File pomFile = new File(config.getUsrPath() + config.getsep() + "ClientProject" + config.getsep() + "pom.xml");
-        File destPomFile = new File(config.getPathCompiler() + "pom.xml");
+        File pomFile = new File(config.getUsrPath() + config.getsep() + "ClientProject" + config.getsep() + POM);
+        File destPomFile = new File(config.getPathCompiler() + POM);
 
         // Controlla se il file pom.xml esiste prima di tentare di copiarlo
         if (!pomFile.exists()) {
@@ -185,10 +190,10 @@ public class CompilationService {
         /*
         *    Col filechannel rende l'operazione atomica
         */
-        FileChannel sourceChannel = FileChannel.open(pomFile.toPath(), StandardOpenOption.READ); 
-        FileChannel destChannel   = FileChannel.open(destPomFile.toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
         readLock.lock();
-        try {
+        try (FileChannel sourceChannel = FileChannel.open(pomFile.toPath(), StandardOpenOption.READ);
+             FileChannel destChannel = FileChannel.open(destPomFile.toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)
+        ) {
             long size = sourceChannel.size();
             long position = 0;
             while (position < size) {
@@ -202,14 +207,15 @@ public class CompilationService {
             throw new FileConcurrencyException("[copyPomFile] Canale di scrittura non valido per acquisire il lock: " + e.getMessage(), e);
         } catch (ClosedChannelException e) {
             throw new FileConcurrencyException("[copyPomFile] Il canale è stato chiuso prima di acquisire il lock: " + e.getMessage(), e);
-        }finally {
+        } finally {
             readLock.unlock();
+
         }
     }
 
     private void copyPomFileForEvoSuiteTest() throws IOException {
-        File pomFile = new File(config.getUsrPath() + config.getsep() + "EvoSuite" + config.getsep() + "pom.xml");
-        File destPomFile = new File(config.getPathCompiler() + config.getsep() + "pom.xml");
+        File pomFile = new File(config.getUsrPath() + config.getsep() + "EvoSuite" + config.getsep() + POM);
+        File destPomFile = new File(config.getPathCompiler() + config.getsep() + POM);
 
         // Controlla se il file pom.xml esiste prima di tentare di copiarlo
         if (!pomFile.exists()) {
@@ -271,10 +277,10 @@ public class CompilationService {
     }
 
     private boolean compileExecuteCoverageWithMaven(boolean compileForEvoSuite, String ...arguments) throws RuntimeException{
-        logger.error(mvn_path);
+        logger.error(mvnPath);
 
         String[] command = new String[arguments.length + 1];
-        command[0] = mvn_path;
+        command[0] = mvnPath;
         System.arraycopy(arguments, 0, command, 1, arguments.length);
 
         // Configurazione del processo
@@ -296,14 +302,14 @@ public class CompilationService {
             }
             // Concatena l'output raccolto (già inizializzato a "")
             outputMaven += output.toString();
-            logger.info("[compileExecuteCoverageWithMaven] Output Maven: {}", output.toString());
+            logger.info("[compileExecuteCoverageWithMaven] Output Maven: {}", output);
             // Se exit value è 0, compilazione considerata andata a buon fine
             return process.exitValue() == 0;
         } catch (IOException e) {
-            logger.error("[CompilationService] [MAVEN] {}", errorOutput.toString());
+            logger.error("[CompilationService] [MAVEN] {}", errorOutput);
             throw new RuntimeException("[compileExecuteCoverageWithMaven] Errore I/O: " + e.getMessage(), e);
         } catch (InterruptedException e) {
-            logger.error("[CompilationService] [MAVEN] {}", errorOutput.toString());
+            logger.error("[CompilationService] [MAVEN] {}", errorOutput);
             Thread.currentThread().interrupt();
             throw new RuntimeException("[compileExecuteCoverageWithMaven] Processo interrotto: " + e.getMessage(), e);
         } finally {
@@ -314,7 +320,7 @@ public class CompilationService {
     }
     
     private void readProcessOutput(Process process, StringBuilder output, StringBuilder errorOutput)
-            throws IOException, InterruptedException {
+            throws IOException {
         try (BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
              BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
             String line;
@@ -330,7 +336,7 @@ public class CompilationService {
     private void deleteFile(String path) throws IOException {
         File file = new File(path);
         if (file.exists()) {
-            if (!file.delete()) {
+            if (Files.deleteIfExists(Paths.get(path))) { // !file.delete() restituiva una issue con SonarQube
                 throw new IOException("[deleteFile] Impossibile eliminare il file: " + file.getAbsolutePath());
             }
         } else {
@@ -360,38 +366,7 @@ public class CompilationService {
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
-    private void unzip(String fileZip, File destDir) throws IOException {
-        byte[] buffer = new byte[1024];
-        ZipInputStream zis = new ZipInputStream(new FileInputStream(fileZip));
-        ZipEntry zipEntry = zis.getNextEntry();
-        while (zipEntry != null) {
-            File newFile = new File(destDir, zipEntry.getName());
-            if (zipEntry.isDirectory()) {
-                if (!newFile.isDirectory() && !newFile.mkdirs()) {
-                    throw new IOException("Failed to create directory " + newFile);
-                }
-            } else {
-                // Aggiustamento per archivi creati con Windows
-                File parent = newFile.getParentFile();
-                if (!parent.isDirectory() && !parent.mkdirs()) {
-                    throw new IOException("Failed to create directory " + parent);
-                }
-
-                // Scrittura del contenuto del file
-                FileOutputStream fos = new FileOutputStream(newFile);
-                int len;
-                while ((len = zis.read(buffer)) > 0) {
-                    fos.write(buffer, 0, len);
-                }
-                fos.close();
-            }
-            zipEntry = zis.getNextEntry();
-        }
-        zis.closeEntry();
-        zis.close();
-    }
-
-    //mi serve per distingure le eccezioni sulla concorrenza 
+    //mi serve per distinguere le eccezioni sulla concorrenza
     public class FileConcurrencyException extends IOException {
         public FileConcurrencyException(String message) {
             super(message);

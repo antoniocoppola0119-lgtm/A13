@@ -14,13 +14,14 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package RemoteCCC.App;
+package com.robotchallenge.codecompile.jacoco;
 
 import java.io.IOException;
 import java.util.concurrent.*;
 
-import RemoteCCC.App.config.CustomExecutorConfiguration;
-import RemoteCCC.App.util.BuildResponse;
+import com.robotchallenge.codecompile.jacoco.config.CustomExecutorConfiguration;
+import com.robotchallenge.codecompile.jacoco.util.BuildResponse;
+import lombok.Getter;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import testrobotchallenge.commons.models.dto.score.basic.JacocoScoreDTO;
 import testrobotchallenge.commons.models.dto.score.JacocoCoverageDTO;
 
 @CrossOrigin
@@ -40,7 +40,7 @@ public class AppController {
     protected static final Logger logger = LoggerFactory.getLogger(AppController.class);
 
     @Value("${variabile.mvn}")
-    private String mvn_path;
+    private String mvnPath;
 
     private final CustomExecutorConfiguration.CustomExecutorService compileExecutor;
 
@@ -55,24 +55,22 @@ public class AppController {
      * @param request JSON request con i due file.
      * @return A JSON response con il risultato della console e il file di
      * coverage
-     * @throws IOException
-     * @throws InterruptedException
      */
     @PostMapping(value = "/coverage/player", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> compileAndTest(@RequestBody RequestDTO request) throws IOException, InterruptedException {
+    public ResponseEntity<Object> compileAndTest(@RequestBody RequestDTO request) {
         Callable<JacocoCoverageDTO> compilationTimedTask = () -> {
             CompilationService compilationService = new CompilationService(
                     request.getTestingClassName(),
                     request.getTestingClassCode(),
                     request.getUnderTestClassName(),
                     request.getUnderTestClassCode(),
-                    mvn_path
+                    mvnPath
             );
 
             compilationService.compileAndTest();
 
-            JacocoCoverageDTO responseBody = BuildResponse.buildExtendedDTO(compilationService.Coverage, compilationService.outputMaven, compilationService.Errors);
-            return responseBody;
+            return BuildResponse.buildExtendedDTO(
+                    compilationService.getCoverage(), compilationService.getOutputMaven(), compilationService.getErrors());
         };
 
         Future<JacocoCoverageDTO> future;
@@ -119,14 +117,15 @@ public class AppController {
      * @throws InterruptedException
      */
     @PostMapping(value = "/coverage/opponent", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> evoSuitRobotCoverage(@RequestParam(name = "project") MultipartFile projectCode) throws IOException, InterruptedException {
+    public ResponseEntity<Object> evoSuitRobotCoverage(@RequestParam(name = "project") MultipartFile projectCode) throws IOException, InterruptedException {
         try {
-            System.out.println(projectCode.getOriginalFilename());
+            logger.info("[POST /coverage/opponent] Ricevuta richiesta con project {}", projectCode.getOriginalFilename());
 
-            CompilationService compilationService = new CompilationService(mvn_path);
+            CompilationService compilationService = new CompilationService(mvnPath);
             compilationService.compileAndTestEvoSuiteTests(projectCode);
 
-            JacocoCoverageDTO responseBody = BuildResponse.buildExtendedDTO(compilationService.Coverage, compilationService.outputMaven, compilationService.Errors);
+            JacocoCoverageDTO responseBody = BuildResponse.buildExtendedDTO(
+                    compilationService.getCoverage(), compilationService.getOutputMaven(), compilationService.getErrors());
             return ResponseEntity.status(HttpStatus.OK).header("Content-Type", "application/json").body(responseBody); // Imposta l'intestazione Content-Type
         } catch (JSONException e) {
             logger.error("[Compile-and-codecoverage]", e);
@@ -138,45 +137,12 @@ public class AppController {
     /*
      *  gestisco il request body come una classe per semplicità 
      */
+    @Getter
     protected static class RequestDTO {
-
         private String testingClassName;
         private String testingClassCode;
         private String underTestClassName;
         private String underTestClassCode;
-
-        // Getters e setters...
-        public String getTestingClassName() {
-            return testingClassName;
-        }
-
-        public void setTestingClassName(String testingClassName) {
-            this.testingClassName = testingClassName;
-        }
-
-        public String getTestingClassCode() {
-            return testingClassCode;
-        }
-
-        public void setTestingClassCode(String testingClassCode) {
-            this.testingClassCode = testingClassCode;
-        }
-
-        public String getUnderTestClassName() {
-            return underTestClassName;
-        }
-
-        public void setUnderTestClassName(String underTestClassName) {
-            this.underTestClassName = underTestClassName;
-        }
-
-        public String getUnderTestClassCode() {
-            return underTestClassCode;
-        }
-
-        public void setUnderTestClassCode(String underTestClassCode) {
-            this.underTestClassCode = underTestClassCode;
-        }
     }
 
 }

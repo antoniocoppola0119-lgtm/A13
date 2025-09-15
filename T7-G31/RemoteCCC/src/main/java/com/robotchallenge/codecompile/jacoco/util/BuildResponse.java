@@ -1,4 +1,4 @@
-package RemoteCCC.App.util;
+package com.robotchallenge.codecompile.jacoco.util;
 
 import testrobotchallenge.commons.models.dto.score.basic.CoverageDTO;
 import testrobotchallenge.commons.models.dto.score.basic.JacocoScoreDTO;
@@ -6,6 +6,12 @@ import testrobotchallenge.commons.models.dto.score.JacocoCoverageDTO;
 import testrobotchallenge.commons.util.ExtractScore;
 
 public class BuildResponse {
+
+    // In assenza di un costruttore esplicito, SonarQube vuole un costruttore privato per evitare la generazione automatica
+    // di quello vuoto
+    private BuildResponse() {
+        throw new IllegalStateException("Classe di utility per la costruzione della risposta");
+    }
 
     public static JacocoScoreDTO buildDTO(String xmlContent) {
         int[][] scores = ExtractScore.fromJacoco(xmlContent);

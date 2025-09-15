@@ -1,4 +1,4 @@
-package RemoteCCC.App;
+package com.robotchallenge.codecompile.jacoco;
 
 import java.io.IOException;
 

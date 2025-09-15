@@ -15,7 +15,7 @@
  *   limitations under the License.
  */
 
-package RemoteCCC.App;
+package com.robotchallenge.codecompile.jacoco;
 
 import java.io.IOException;
 import java.nio.file.Files;
