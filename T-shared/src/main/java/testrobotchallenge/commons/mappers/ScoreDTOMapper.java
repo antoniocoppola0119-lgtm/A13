@@ -7,7 +7,22 @@ import testrobotchallenge.commons.models.score.Coverage;
 import testrobotchallenge.commons.models.score.EvosuiteScore;
 import testrobotchallenge.commons.models.score.JacocoScore;
 
+/**
+ * Classe di mapping usata per mappare oggetti {@link EvosuiteScore}, {@link JacocoScore} e/o {@link Coverage} nei
+ * corrispettivi DTO.
+ */
 public class ScoreDTOMapper {
+
+    private ScoreDTOMapper() {
+        throw new IllegalStateException("Classe di mapping usata per mappare oggetti del dominio nei rispettivi DTO");
+    }
+
+    /**
+     * Converte un oggetto interno {@link EvosuiteScore} in un {@link EvosuiteScoreDTO}.
+     *
+     * @param score     l'oggetto interno EvosuiteScore da convertire
+     * @return un {@link EvosuiteScoreDTO} popolato oppure {@code null} se l'input è null
+     */
     public static EvosuiteScoreDTO toEvosuiteScoreDTO(EvosuiteScore score) {
         if (score == null)
             return null;
@@ -25,6 +40,12 @@ public class ScoreDTOMapper {
         return dto;
     }
 
+    /**
+     * Converte un oggetto interno {@link JacocoScore} in un {@link JacocoScoreDTO}.
+     *
+     * @param score     l'oggetto interno JacocoScore da convertire
+     * @return un {@link JacocoScoreDTO} popolato oppure {@code null} se l'input è null
+     */
     public static JacocoScoreDTO toJacocoScoreDTO(JacocoScore score) {
         if (score == null)
             return null;
@@ -37,6 +58,12 @@ public class ScoreDTOMapper {
         return dto;
     }
 
+    /**
+     * Converte un oggetto interno {@link Coverage} in un {@link CoverageDTO}.
+     *
+     * @param coverage  l'oggetto interno Coverage da convertire
+     * @return un {@link CoverageDTO} popolato oppure {@code null} se l'input è null
+     */
     private static CoverageDTO toCoverageDTO(Coverage coverage) {
         if (coverage == null) return null;
         CoverageDTO dto = new CoverageDTO();
