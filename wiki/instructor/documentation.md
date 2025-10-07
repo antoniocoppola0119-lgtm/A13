@@ -39,7 +39,7 @@ To register and log in as an instructor (who acts as the system administrator), 
    ![login.png](images/login.png)
 2. On the next page, you can log in as an administrator by entering the email and password you set during registration.
    ![login\_admin.png](images/login_admin.png)
-3. To register, modify the URL by replacing `/admin/login` with `/register/admin`, which will take you to the registration page. This manual URL edit was introduced as a temporary security measure to prevent unrestricted administrator registration. 
+3. To register, modify the URL by replacing `/admin/login` with `/admin/register`, which will take you to the registration page. This manual URL edit was introduced as a temporary security measure to prevent unrestricted administrator registration. 
 A more robust and user-friendly registration flow with proper access control is currently under development.
    ![register\_admin.png](images/register_admin.png)
 4. After filling in the required fields (first name, last name, email, password, and password confirmation), the system will redirect you to the administrator login page.
