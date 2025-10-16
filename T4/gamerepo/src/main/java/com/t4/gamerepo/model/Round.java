@@ -5,12 +5,14 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import testrobotchallenge.commons.models.opponent.OpponentDifficulty;
 import testrobotchallenge.commons.models.opponent.OpponentType;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Entità che rappresenta un singolo round all'interno di una partita.
@@ -30,49 +32,66 @@ import java.util.*;
 @Getter
 @Setter
 @NoArgsConstructor
+@ToString
 public class Round {
 
-    /** Identificativo univoco del round */
+    /**
+     * Identificativo univoco del round
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    /** Nome della classe sotto test in questo round */
+    /**
+     * Nome della classe sotto test in questo round
+     */
     private String classUT;
 
-    /** Tipo dell’avversario */
+    /**
+     * Tipo dell’avversario
+     */
     @Enumerated(EnumType.STRING)
     private OpponentType type;
 
-    /** Difficoltà dell’avversario */
+    /**
+     * Difficoltà dell’avversario
+     */
     @Enumerated(EnumType.STRING)
     private OpponentDifficulty difficulty;
 
-    /** Numero progressivo del round all’interno della partita */
+    /**
+     * Numero progressivo del round all’interno della partita
+     */
     private int roundNumber;
 
-    /** Lista dei turni giocati nel round */
+    /**
+     * Lista dei turni giocati nel round
+     */
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "round_id")
     @OrderBy("turnNumber asc")
     private List<Turn> turns = new ArrayList<>();
 
-    /** Timestamp di apertura del round, valorizzato automaticamente */
+    /**
+     * Timestamp di apertura del round, valorizzato automaticamente
+     */
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
     private Timestamp startedAt;
 
-    /** Timestamp di chiusura/completamento del round, null se il round è ancora aperto */
+    /**
+     * Timestamp di chiusura/completamento del round, null se il round è ancora aperto
+     */
     @Temporal(TemporalType.TIMESTAMP)
     private Timestamp closedAt;
 
     /**
      * Costruttore completo.
      *
-     * @param roundNumber   il numero del round
-     * @param classUT       la classe sotto test
-     * @param type          il tipo dell’avversario
-     * @param difficulty    la difficoltà dell’avversario
+     * @param roundNumber il numero del round
+     * @param classUT     la classe sotto test
+     * @param type        il tipo dell’avversario
+     * @param difficulty  la difficoltà dell’avversario
      */
     public Round(int roundNumber, String classUT, OpponentType type, OpponentDifficulty difficulty) {
         this.roundNumber = roundNumber;
@@ -84,7 +103,7 @@ public class Round {
     /**
      * Aggiunge un turno alla lista dei turni del round.
      *
-     * @param turn      il turno da aggiungere
+     * @param turn il turno da aggiungere
      */
     public void addTurn(Turn turn) {
         this.turns.add(turn);
@@ -93,7 +112,7 @@ public class Round {
     /**
      * Restituisce l’ultimo turno giocato in questo round.
      *
-     * @return      l'ultimo turno oppure {@code null} se non ci sono turni
+     * @return l'ultimo turno oppure {@code null} se non ci sono turni
      */
     @JsonIgnore
     public Turn getLastTurn() {

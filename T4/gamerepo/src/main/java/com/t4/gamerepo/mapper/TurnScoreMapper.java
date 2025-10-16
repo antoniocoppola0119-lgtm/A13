@@ -1,39 +1,21 @@
 package com.t4.gamerepo.mapper;
 
 import com.t4.gamerepo.model.TurnScore;
-import com.t4.gamerepo.model.dto.request.CloseTurnDTO;
-import testrobotchallenge.commons.mappers.ScoreMapper;
+import com.t4.gamerepo.model.dto.common.TurnScoreDTO;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import testrobotchallenge.commons.mappers.CoverageMapper;
+import testrobotchallenge.commons.mappers.EvosuiteScoreMapper;
+import testrobotchallenge.commons.mappers.JacocoScoreMapper;
 
-/**
- * Mapper che converte un oggetto {@link CloseTurnDTO} in un'entità {@link TurnScore}.
- */
-public class TurnScoreMapper {
+@Mapper(componentModel = "spring", uses = {JacocoScoreMapper.class, EvosuiteScoreMapper.class, CoverageMapper.class})
+public interface TurnScoreMapper {
 
-    private TurnScoreMapper() {
-        throw new IllegalStateException("Classe mapper che converte un CloseTurnDTO in un TurnScore.");
-    }
+    @Mapping(source = "evosuiteScore", target = "evosuiteScoreDTO", qualifiedByName = "evosuiteScoreToEvosuiteScoreDTO")
+    @Mapping(source = "jacocoScore", target = "jacocoScoreDTO", qualifiedByName = "jacocoScoreToJacocoScoreDTO")
+    TurnScoreDTO turnScoreToTurnScoreDTO(TurnScore turnScore);
 
-    /**
-     * Converte un {@link CloseTurnDTO} in un {@link TurnScore}.
-     *
-     * @param dto   il DTO da convertire
-     * @return      entità TurnScore corrispondente, o {@code null} se il DTO è {@code null}
-     */
-    public static TurnScore toTurnScore(CloseTurnDTO dto) {
-        if (dto == null) return null;
-
-        TurnScore entity = new TurnScore();
-
-        // Jacoco
-        if (dto.getJacocoScoreDTO() != null) {
-            entity.setJacocoScore(ScoreMapper.toJacocoScore(dto.getJacocoScoreDTO()));
-        }
-
-        // Evosuite
-        if (dto.getEvosuiteScoreDTO() != null) {
-            entity.setEvosuiteScore(ScoreMapper.toEvosuiteScore(dto.getEvosuiteScoreDTO()));
-        }
-
-        return entity;
-    }
+    @Mapping(source = "evosuiteScoreDTO", target = "evosuiteScore", qualifiedByName = "evosuiteScoreDTOToEvosuiteScore")
+    @Mapping(source = "jacocoScoreDTO", target = "jacocoScore", qualifiedByName = "jacocoScoreDTOToJacocoScore")
+    TurnScore turnScoreDTOToTurnScore(TurnScoreDTO turnScoreDTO);
 }

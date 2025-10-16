@@ -23,11 +23,15 @@ import testrobotchallenge.commons.models.score.JacocoScore;
 @Embeddable
 public class TurnScore {
 
-    /** Punteggio restituito da Jacoco */
+    /**
+     * Punteggio restituito da Jacoco
+     */
     @Embedded
     private JacocoScore jacocoScore;
 
-    /** Punteggio restituito da EvoSuite */
+    /**
+     * Punteggio restituito da EvoSuite
+     */
     @Embedded
     private EvosuiteScore evosuiteScore;
 }

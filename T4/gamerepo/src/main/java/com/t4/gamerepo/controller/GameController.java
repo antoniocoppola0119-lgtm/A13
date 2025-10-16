@@ -1,34 +1,26 @@
 package com.t4.gamerepo.controller;
 
-import com.t4.gamerepo.mapper.PlayerResultMapper;
-import com.t4.gamerepo.mapper.TurnScoreMapper;
-import com.t4.gamerepo.model.Game;
-import com.t4.gamerepo.model.Round;
-import com.t4.gamerepo.model.Turn;
-import com.t4.gamerepo.model.PlayerResult;
+
 import com.t4.gamerepo.model.dto.request.*;
 import com.t4.gamerepo.model.dto.response.GameDTO;
 import com.t4.gamerepo.model.dto.response.RoundDTO;
 import com.t4.gamerepo.model.dto.response.TurnDTO;
 import com.t4.gamerepo.service.GameService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import testrobotchallenge.commons.models.dto.api.ApiErrorBackend;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
 
 @CrossOrigin
 @RestController
@@ -50,9 +42,9 @@ public class GameController {
             @ApiResponse(responseCode = "200",
                     description = "Game found and returned",
                     content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = GameDTO.class)
-            )),
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = GameDTO.class)
+                    )),
             @ApiResponse(
                     responseCode = "404",
                     description = "Game not found",
@@ -142,7 +134,7 @@ public class GameController {
     })
     @PostMapping("")
     public ResponseEntity<GameDTO> createGame(@Validated @RequestBody CreateGameDTO createGameDTO) {
-        GameDTO createdGame = gameService.createGame(createGameDTO.getGameMode(), createGameDTO.getPlayers());
+        GameDTO createdGame = gameService.createGame(createGameDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdGame);
     }
 
@@ -190,7 +182,7 @@ public class GameController {
             @Parameter(name = "gameId", description = "Id of the game", required = true)
             @PathVariable("gameId") Long gameId,
             @Validated @RequestBody CreateRoundDTO createRoundDTO) {
-        RoundDTO newRound = gameService.startRound(gameId, createRoundDTO.getClassUT(), createRoundDTO.getType(), createRoundDTO.getDifficulty());
+        RoundDTO newRound = gameService.startRound(gameId, createRoundDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(newRound);
     }
 
@@ -238,7 +230,7 @@ public class GameController {
             @Parameter(name = "gameId", description = "Id of the game", required = true)
             @PathVariable("gameId") Long gameId,
             @Validated @RequestBody CreateTurnDTO turnDTO) {
-        TurnDTO newTurn = gameService.startTurn(gameId, turnDTO.getPlayerId());
+        TurnDTO newTurn = gameService.startTurn(gameId, turnDTO);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newTurn);
     }

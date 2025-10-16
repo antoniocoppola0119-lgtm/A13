@@ -15,12 +15,23 @@ import testrobotchallenge.commons.models.opponent.OpponentType;
 @NoArgsConstructor
 @ToString
 public class CreateRoundDTO {
-    /** Classe sotto test da testare nel round. */
+    /**
+     * Classe sotto test da testare nel round.
+     */
     private String classUT;
 
-    /** Tipo di avversario da affrontare nel round. */
+    /**
+     * Tipo di avversario da affrontare nel round.
+     */
     private OpponentType type;
 
-    /** Difficoltà dell'avversario. */
+    /**
+     * Difficoltà dell'avversario.
+     */
     private OpponentDifficulty difficulty;
+
+    /**
+     * Numero del round da creare all'interno della partita.
+     */
+    private int roundNumber;
 }

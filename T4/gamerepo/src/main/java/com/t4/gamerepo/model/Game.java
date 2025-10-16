@@ -6,13 +6,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import testrobotchallenge.commons.models.opponent.GameMode;
-import testrobotchallenge.commons.models.opponent.OpponentDifficulty;
-import testrobotchallenge.commons.models.opponent.OpponentType;
 import org.hibernate.annotations.CreationTimestamp;
+import testrobotchallenge.commons.models.opponent.GameMode;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Entità che rappresenta una partita.
@@ -29,22 +30,30 @@ import java.util.*;
 @ToString
 public class Game {
 
-    /** Identificativo univoco della partita */
+    /**
+     * Identificativo univoco della partita
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    /** Lista degli ID dei giocatori partecipanti */
+    /**
+     * Lista degli ID dei giocatori partecipanti
+     */
     @ElementCollection
     @CollectionTable(name = "players", joinColumns = @JoinColumn(name = "game_id"))
     @Column(name = "player_id")
     private List<Long> players;
 
-    /** Stato corrente della partita */
+    /**
+     * Stato corrente della partita
+     */
     @Enumerated(EnumType.STRING)
     private GameStatus status;
 
-    /** Modalità di gioco scelta */
+    /**
+     * Modalità di gioco scelta
+     */
     @Enumerated(EnumType.STRING)
     private GameMode gameMode;
 
@@ -68,12 +77,16 @@ public class Game {
     @OrderBy("roundNumber ASC")
     private List<Round> rounds = new ArrayList<>();
 
-    /** Timestamp di apertura della partita */
+    /**
+     * Timestamp di apertura della partita
+     */
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
     private Timestamp startedAt;
 
-    /** Timestamp di chiusura della partita */
+    /**
+     * Timestamp di chiusura della partita
+     */
     @Temporal(TemporalType.TIMESTAMP)
     private Timestamp closedAt;
 
@@ -85,7 +98,7 @@ public class Game {
     /**
      * Aggiunge un nuovo round alla partita.
      *
-     * @param newRound      il nuovo round da aggiungere
+     * @param newRound il nuovo round da aggiungere
      */
     public void addRound(Round newRound) {
         rounds.add(newRound);
@@ -98,7 +111,7 @@ public class Game {
      * quando i round non sono ancora registrati.
      * </p>
      *
-     * @return  l'ultimo round o {@code null} se non esistono round
+     * @return l'ultimo round o {@code null} se non esistono round
      */
     @JsonIgnore
     public Round getLastRound() {

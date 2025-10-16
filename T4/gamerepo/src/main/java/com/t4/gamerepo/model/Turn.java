@@ -27,28 +27,40 @@ import java.sql.Timestamp;
 @ToString
 public class Turn {
 
-    /** Identificatore univoco del turno */
+    /**
+     * Identificatore univoco del turno
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    /** ID del giocatore che ha giocato il turno */
+    /**
+     * ID del giocatore che ha giocato il turno
+     */
     @Column(name = "player_id", nullable = false)
     private Long playerId;
 
-    /** Numero progressivo del turno all’interno del round */
+    /**
+     * Numero progressivo del turno all’interno del round
+     */
     private int turnNumber;
 
-    /** Punteggio ottenuto dal giocatore nel turno */
+    /**
+     * Punteggio ottenuto dal giocatore nel turno
+     */
     @Embedded
     private TurnScore score = null;
 
-    /** Timestamp di avvio del turno, settato automaticamente */
+    /**
+     * Timestamp di avvio del turno, settato automaticamente
+     */
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
     private Timestamp startedAt;
 
-    /** Timestamp di chiusura del turno, null se il turno è ancora aperto */
+    /**
+     * Timestamp di chiusura del turno, null se il turno è ancora aperto
+     */
     @Temporal(TemporalType.TIMESTAMP)
     private Timestamp closedAt = null;
 }

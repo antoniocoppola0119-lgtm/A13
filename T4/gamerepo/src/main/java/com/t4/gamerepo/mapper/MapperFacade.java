@@ -1,39 +1,41 @@
 package com.t4.gamerepo.mapper;
 
 import com.t4.gamerepo.model.*;
-import com.t4.gamerepo.model.dto.request.CloseGameDTO;
-import com.t4.gamerepo.model.dto.request.CloseTurnDTO;
+import com.t4.gamerepo.model.dto.common.PlayerResultDTO;
+import com.t4.gamerepo.model.dto.common.TurnScoreDTO;
 import com.t4.gamerepo.model.dto.response.GameDTO;
 import com.t4.gamerepo.model.dto.response.RoundDTO;
 import com.t4.gamerepo.model.dto.response.TurnDTO;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 
+@AllArgsConstructor
+@Service
 public class MapperFacade {
-    private static final GameMapper gameMapper = GameMapper.INSTANCE;
-    private static final RoundMapper roundMapper = RoundMapper.INSTANCE;
-    private static final TurnMapper turnMapper = TurnMapper.INSTANCE;
+    private final GameMapper gameMapper;
+    private final RoundMapper roundMapper;
+    private final TurnMapper turnMapper;
+    private final TurnScoreMapper turnScoreMapper;
+    private final PlayerResultMapper playerResultMapper;
 
-    private MapperFacade() {
-        throw new IllegalStateException("Classe che raccoglie i mapper definiti nel modulo");
-    }
-
-    public static GameDTO toDTO(Game game) {
+    public GameDTO toDTO(Game game) {
         return gameMapper.gameToGameDTO(game);
     }
 
-    public static RoundDTO toDTO(Round round) {
-        return roundMapper.toRoundDTO(round);
+    public RoundDTO toDTO(Round round) {
+        return roundMapper.roundToRoundDTO(round);
     }
 
-    public static TurnDTO toDTO(Turn turn) {
-        return turnMapper.toTurnDTO(turn);
+    public TurnDTO toDTO(Turn turn) {
+        return turnMapper.turnToTurnDTO(turn);
     }
 
-    public static TurnScore toEntity(CloseTurnDTO dto) {
-        return TurnScoreMapper.toTurnScore(dto);
+    public TurnScore toEntity(TurnScoreDTO dto) {
+        return turnScoreMapper.turnScoreDTOToTurnScore(dto);
     }
 
-    public static PlayerResult toEntity(CloseGameDTO.PlayerResultDTO dto) {
-        return PlayerResultMapper.toPlayerResult(dto);
+    public PlayerResult toEntity(PlayerResultDTO dto) {
+        return playerResultMapper.playerResultDTOToPlayerResult(dto);
     }
 
 

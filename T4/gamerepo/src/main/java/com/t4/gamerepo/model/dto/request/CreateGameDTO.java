@@ -17,9 +17,13 @@ import java.util.List;
 @NoArgsConstructor
 @ToString
 public class CreateGameDTO {
-    /** Modalità di gioco giocata nella partita. */
+    /**
+     * Modalità di gioco giocata nella partita.
+     */
     private GameMode gameMode;
 
-    /** Giocatori partecipanti alla partita. */
+    /**
+     * Giocatori partecipanti alla partita.
+     */
     private List<Long> players;
 }

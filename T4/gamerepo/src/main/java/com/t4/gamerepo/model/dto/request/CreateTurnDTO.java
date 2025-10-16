@@ -13,6 +13,13 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class CreateTurnDTO {
-    /** ID del giocatore che gioca il turno. */
-    private Long playerId;
+    /**
+     * ID del giocatore che gioca il turno.
+     */
+    private long playerId;
+
+    /**
+     * Numero del nuovo turno da creare all'interno del round.
+     */
+    private int turnNumber;
 }
