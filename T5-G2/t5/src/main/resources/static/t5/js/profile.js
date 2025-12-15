@@ -1,278 +1,303 @@
-document.addEventListener("DOMContentLoaded", function () {
-    // Log di verifica
-    console.log("DOM completamente caricato e analizzato");
-    // Inizializza la funzionalità di ricerca amici
-    initFriendSearch();
-    // Inizializza la ricerca per i tab
-    setupTabSearch();
-    // Inizializza la gestione notifiche
-    initNotifications();
-    // Gestione dei tab dei trofei
-    initTrophyTabs();
-    // Aggiungi stile per il testo evidenziato
-    addHighlightStyle();
+/*
+ * profile.js
+ * Gestione livello, esperienza, progress bar e rank utente
+ */
+
+// ---------------------------
+//    CONFIGURAZIONE RANGHI
+// ---------------------------
+
+const availableAvatars = [
+    "default.png",
+    "men-1.png",
+    "men-2.png",
+    "men-3.png",
+    "men-4.png",
+    "women-1.png",
+    "women-2.png",
+    "women-3.png",
+    "women-4.png"
+    // aggiungi tutte quelle presenti in /t5/images/profileImages/
+];
+
+
+const rankData = [
+    {
+        name: "Recluta",
+        threshold: 0,
+        description: "Il punto di partenza di ogni Spartan. Hai iniziato il cammino, pronto a dimostrare il tuo valore."
+    },
+    {
+        name: "Soldato",
+        threshold: 7500,
+        description: "Hai superato l’addestramento di base e ora sei considerato un operatore affidabile sul campo."
+    },
+    {
+        name: "Caporale",
+        threshold: 10000,
+        description: "Un soldato con esperienza, capace di coordinare piccole squadre e gestire situazioni critiche."
+    },
+    {
+        name: "Sergente",
+        threshold: 15000,
+        description: "Figura di riferimento per la squadra. Il Sergente ispira disciplina, ordine e rapidità d’azione."
+    },
+    {
+        name: "Capitano",
+        threshold: 25000,
+        description: "Un leader affermato. Gestisci operazioni complesse e prendi decisioni decisive sul campo."
+    },
+    {
+        name: "Capitano Grado 2",
+        threshold: 35000,
+        description: "Hai dimostrato capacità strategiche avanzate. Le tue operazioni influenzano l’intero battaglione."
+    },
+    {
+        name: "Capitano Grado 3",
+        threshold: 50000,
+        description: "La massima autorità tra i Capitani. Le tue scelte determinano l’esito delle missioni più rischiose."
+    },
+    {
+        name: "Comandante",
+        threshold: 75000,
+        description: "Guida naturale e tattico impeccabile. Sovrintendi operazioni militari su vasta scala."
+    },
+    {
+        name: "Generale",
+        threshold: 100000,
+        description: "Una leggenda tra i ranghi militari. Le tue strategie vengono studiate, replicate e temute."
+    },
+    {
+        name: "Eroe",
+        threshold: 500000,
+        description: "Il tuo nome riecheggia nei corridoi della UNSC: simbolo di speranza e forza inarrestabile."
+    },
+    {
+        name: "Leggenda",
+        threshold: 1000000,
+        description: "Pochi hanno raggiunto questo livello. Le tue imprese trascendono la storia e diventano mito."
+    },
+    {
+        name: "Erede",
+        threshold: 2000000,
+        description: "L’apice assoluto. Non sei solo un guerriero: sei il successore della volontà Spartan, colui che plasma il futuro."
+    }
+];
+
+function openAvatarModal() {
+    console.log("openAvatarModal called");
+    const modal = document.getElementById("avatarPickerModal");
+    const list = document.getElementById("avatarList");
+
+    list.innerHTML = ""; // reset
+
+    availableAvatars.forEach(img => {
+        const element = document.createElement("img");
+        element.src = `/t5/images/profileImages/${img}`;
+        element.classList.add("avatar-choice");
+
+        element.addEventListener("click", () => selectAvatar(img));
+
+        list.appendChild(element);
+    });
+
+    modal.classList.add("active");
+
+}
+
+function selectAvatar(filename) {
+    console.log("selectAvatar called");
+    const avatarImg = document.getElementById("profileAvatar");
+
+    if (avatarImg) {
+        avatarImg.src = `/t5/images/profileImages/${filename}`;
+    }
+
+    const hiddenInput = document.getElementById("selectedAvatarInput");
+    if (hiddenInput) {
+        hiddenInput.value = filename;
+    }
+
+}
+
+function closeAvatarModal() {
+    console.log("closeAvatarModal called");
+    const modal = document.getElementById("avatarPickerModal");
+    modal.classList.remove("active");
+}
+
+
+// ---------------------------
+//    FUNZIONI UTILI
+// ---------------------------
+
+function getLocalImage(rankName) {
+    return `/t5/images/ranks/${rankName.toLowerCase().replace(/ /g, "_")}.png`;
+}
+
+function formatNumber(num) {
+    return num.toLocaleString();
+}
+
+// ---------------------------
+//    CALCOLO DEL RANGO
+// ---------------------------
+
+function getRank(userExp) {
+    let current = rankData[0];
+    let next = rankData[1];
+
+    for (let i = 0; i < rankData.length; i++) {
+        if (userExp >= rankData[i].threshold) {
+            current = rankData[i];
+            next = (i + 1 < rankData.length) ? rankData[i + 1] : null;
+        } else {
+            break;
+        }
+    }
+
+    return { current, next };
+}
+
+// ---------------------------
+//    AGGIORNA DATI UI
+// ---------------------------
+
+function updateRankUI() {
+    const userExp = parseInt(document.getElementById("user-exp").textContent, 10) || 0;
+
+    const { current, next } = getRank(userExp);
+
+    const expPerLevel = next ? (next.threshold - current.threshold) : 0;
+
+    document.getElementById("currentRankName").textContent = `${current.name}`;
+    document.getElementById("nextRankCredits").textContent = expPerLevel;
+    document.getElementById("currentCredits").textContent = userExp;
+
+    document.getElementById("rankImage").src = getLocalImage(current.name);
+
+    let progress = 100;
+    if (next) {
+        progress = ((userExp - current.threshold) / (next.threshold - current.threshold)) * 100;
+    }
+    document.getElementById("rankProgressBar").style.width = progress + "%";
+    document.getElementById("rankMessage").textContent = current.description || "";
+
+    console.log("UserExp:", userExp, "CurrentRank:", current.name, "NextRank:", next?.name, "Progress:", progress);
+}
+
+// ---------------------------
+//    MODAL RANGHI
+// ---------------------------
+
+
+function openRankModal() {
+    console.log("openRankModal called");
+    const rankModal = document.getElementById("rankModal");
+    rankModal.classList.add("active");
+    generateRankList();
+
+}
+
+function closeRankModal() {
+    const rankModal = document.getElementById("rankModal");
+    rankModal.classList.remove("active");
+}
+
+function generateRankList() {
+    const userExp = parseInt(document.getElementById("user-exp").textContent, 10) || 0;
+    const list = document.getElementById("fullRankList");
+    list.innerHTML = "";
+
+    let currentIdx = 0;
+    for (let i = 0; i < rankData.length; i++) {
+        if (userExp >= rankData[i].threshold) currentIdx = i;
+        else break;
+    }
+
+    const next = rankData[currentIdx + 1];
+    if (next) {
+        const diff = next.threshold - userExp;
+        const pct = ((userExp - rankData[currentIdx].threshold) /
+            (next.threshold - rankData[currentIdx].threshold)) * 100;
+
+        document.getElementById("modalNextGoalText").innerHTML =
+            `Mancano <strong style="color:var(--accent-cyan)">${diff.toLocaleString()} cR</strong> per <strong>${next.name}</strong>`;
+
+        document.getElementById("modalProgressBar").style.width = pct + "%";
+    }
+
+    rankData.forEach((r, i) => {
+        const li = document.createElement("li");
+        li.className = `rank-list-item clickable-hover-sound tier-${r.tier}`;
+
+        let icon = "";
+        if (i < currentIdx) {
+            li.classList.add("past");
+            icon = `<i class="bi bi-check"></i>`;
+        } else if (i === currentIdx) {
+            li.classList.add("current");
+            icon = `<i class="bi bi-map-marker-alt"></i>`;
+            setTimeout(() => li.scrollIntoView({ block: "center" }), 100);
+        } else {
+            li.classList.add("locked");
+            icon = `<i class="bi bi-lock"></i>`;
+        }
+
+        li.innerHTML = `
+            <div class="rank-list-left">
+                <img src="${getLocalImage(r.name)}" alt="" class="list-rank-img" onerror="this.style.display='none'">
+                <div class="rank-list-info">
+                    <span class="rank-list-combined">${r.name} / <span class="credits-text">${r.threshold.toLocaleString()} cR</span></span>
+                </div>
+            </div>
+            <div class="rank-list-status">${icon}</div>
+        `;
+
+        list.appendChild(li);
+    });
+}
+
+// ---------------------------
+//    AVVIO
+// ---------------------------
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const rankImage = document.getElementById("rankIconContainer");
+
+    const editAvatarBtn = document.getElementById("editAvatarBtn");
+
+    const rankModal = document.getElementById("rankModal");
+
+    updateRankUI();
+
+    if (rankImage) {
+        rankImage.addEventListener("click", openRankModal);
+    }
+
+    if (rankModal) {
+        rankModal.addEventListener("click", closeRankModal);
+    }
+
+    if (editAvatarBtn) {
+        editAvatarBtn.addEventListener("click", openAvatarModal);
+    }
+
+    const avatarPickerModal = document.getElementById("avatarPickerModal");
+    const avatarModalContent = avatarPickerModal.querySelector(".avatar-modal-content");
+
+    if (avatarPickerModal) {
+        // click sull'overlay → chiude
+        avatarPickerModal.addEventListener("click", closeAvatarModal);
+    }
+
+// click sul contenuto → NON chiude
+    if (avatarModalContent) {
+        avatarModalContent.addEventListener("click", (e) => {
+            e.stopPropagation();
+        });
+    }
+
 });
 
-function initFriendSearch() {
-    const searchInput = document.querySelector('#friend-search-input');
-    const suggestionsContainer = document.querySelector('#friend-suggestions');
-    
-    let debounceTimeout;
-
-    if (searchInput && suggestionsContainer) {
-        searchInput.addEventListener("input", function () {
-            const query = searchInput.value.trim();
-            suggestionsContainer.style.display = "none"; // Nascondi subito i suggerimenti
-
-            if (!isValidEmail(query)) {
-                console.log("Email non valida per regex");
-                return;
-            }
-
-            // Cancella il timeout precedente se l'utente sta ancora digitando
-            clearTimeout(debounceTimeout);
-
-            // Aggiungi un nuovo timeout per la ricerca
-            debounceTimeout = setTimeout(async function () {
-                try {
-                    if (email) {
-                        const user = await fetchUserByEmail(query);
-                        if (user) {
-                            displayUserSuggestions(user, suggestionsContainer);
-                        } 
-                    } else {
-                        suggestionsContainer.style.display = "none";
-                    }
-                } catch (error) {
-                    console.error("Errore di rete:", error);
-                }
-            }, 500); // Timeout di 500ms dopo l'ultimo carattere digitato
-        });
-    }
-}
-
-// Funzione per validare l'email
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-// Funzione per recuperare l'utente tramite email
-async function fetchUserByEmail(email) {
-    const url = new URL("/user_by_email", window.location.origin);
-    url.searchParams.append("email", email);
-
-    const response = await fetch(url, { method: "GET", headers: { "Content-Type": "application/x-www-form-urlencoded" } });
-
-    if (response.ok) {
-        const user = await response.json();
-        return user;
-    } else {
-        console.error("Errore durante la ricerca del profilo:", response.statusText);
-        return null;
-    }
-}
-
-// Funzione per visualizzare i suggerimenti degli utenti
-function displayUserSuggestions(user, suggestionsContainer) {
-    const profile = user.userProfile;
-    
-    suggestionsContainer.innerHTML = "";
-    if (profile && user.email) {
-        const profileInfo = createProfileInfo(user);
-        suggestionsContainer.appendChild(profileInfo);
-        suggestionsContainer.style.display = "block";
-    }
-}
-
-// Crea e restituisce il contenitore per i dettagli del profilo
-function createProfileInfo(user) {
-    const profileInfo = document.createElement('div');
-    profileInfo.className = 'profile-info';
-
-    const userDetails = document.createElement('div');
-    userDetails.className = 'user-details';
-
-    const userName = document.createElement('span');
-    userName.className = 'name';
-    userName.textContent = `${user.name} ${user.surname}`;
-
-    const userEmail = document.createElement('span');
-    userEmail.className = 'email';
-    userEmail.textContent = user.email;
-
-    userDetails.appendChild(userName);
-    userDetails.appendChild(userEmail);
-
-    const profileBtn = createProfileButton(user);
-    profileInfo.appendChild(userDetails);
-    profileInfo.appendChild(profileBtn);
-
-    return profileInfo;
-}
-
-// Crea il bottone per visualizzare il profilo
-function createProfileButton(user) {
-    const profileBtn = document.createElement('button');
-    profileBtn.className = 'btn btn-custom btn-sm';
-    profileBtn.textContent = "Visualizza Profilo";
-    profileBtn.onclick = function () {
-        location.href = `/friend/${user.id}`;
-    };
-    return profileBtn;
-}
-
-// Funzione per la ricerca amici nei tab
-function setupTabSearch() {
-    const searchInputs = document.querySelectorAll('.tab-search');
-    searchInputs.forEach(searchInput => {
-        searchInput.addEventListener('input', function () {
-            handleTabSearch(this);
-        });
-    });
-}
-
-// Gestisce la ricerca all'interno di un tab
-function handleTabSearch(searchInput) {
-    const searchTerm = searchInput.value.toLowerCase();
-    const targetTab = searchInput.getAttribute('data-search-target');
-    const container = document.querySelector(`#${targetTab}-content .friends-list`);
-    const friendItems = container.querySelectorAll('.friend-item');
-
-    friendItems.forEach(item => {
-        const name = item.querySelector('h5').textContent.toLowerCase();
-        const email = item.querySelector('p').textContent.toLowerCase();
-
-        if (name.includes(searchTerm) || email.includes(searchTerm)) {
-            item.classList.remove('hidden');
-            highlightText(item, searchTerm);
-        } else {
-            item.classList.add('hidden');
-        }
-    });
-}
-
-// Funzione per evidenziare il testo
-function highlightText(item, searchTerm) {
-    if (searchTerm === '') {
-        item.querySelector('h5').innerHTML = item.querySelector('h5').textContent;
-        item.querySelector('p').innerHTML = item.querySelector('p').textContent;
-        return;
-    }
-
-    const nameElement = item.querySelector('h5');
-    const emailElement = item.querySelector('p');
-
-    const highlightMatch = (text, term) => {
-        const regex = new RegExp(`(${term})`, 'gi');
-        return text.replace(regex, '<span class="highlight">$1</span>');
-    };
-
-    nameElement.innerHTML = highlightMatch(nameElement.textContent, searchTerm);
-    emailElement.innerHTML = highlightMatch(emailElement.textContent, searchTerm);
-}
-
-// Aggiungi stile per il testo evidenziato
-function addHighlightStyle() {
-    const style = document.createElement('style');
-    style.textContent = `
-        .highlight {
-            background-color: rgba(0, 123, 255, 0.2);
-            padding: 0 2px;
-            border-radius: 3px;
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-// Funzione per gestire i tab dei trofei
-function initTrophyTabs() {
-    const trophyTabs = document.querySelectorAll('#trophyTabs button[data-bs-toggle="tab"]');
-    trophyTabs.forEach(tab => {
-        tab.addEventListener('shown.bs.tab', function (event) {
-            console.log(`Tab attivo: ${event.target.id}`);
-        });
-    });
-}
-
-// Funzione per inizializzare la gestione delle notifiche
-function initNotifications() {
-    const notificationsList = document.querySelector('.notifications-list');
-    if (notificationsList) {
-        const userEmail = document.querySelector('#user-email')?.textContent.trim();
-        notificationsList.addEventListener('click', async function (e) {
-            const notificationItem = e.target.closest('.notification-item');
-            if (!notificationItem) return;
-
-            const notificationId = notificationItem.getAttribute('data-notification-id');
-            if (!notificationId) return;
-
-            // Gestione pulsante "Leggi"
-            if (e.target.classList.contains('read-btn')) {
-                await handleMarkAsRead(notificationItem, userEmail, notificationId);
-            }
-
-            // Gestione pulsante "Elimina"
-            if (e.target.classList.contains('delete-btn')) {
-                await handleDeleteNotification(notificationItem, userEmail, notificationId);
-            }
-        });
-    }
-}
-
-// Funzione per segnare la notifica come letta
-async function handleMarkAsRead(notificationItem, userEmail, notificationId) {
-    try {
-        const formData = new URLSearchParams();
-        formData.append("email", userEmail);
-        formData.append("notificationID", notificationId);
-        const response = await fetch("/update_notification", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: formData.toString(),
-        });
-
-        if (response.ok) {
-            const statusBadge = notificationItem.querySelector('.notification-status-badge');
-            statusBadge.textContent = 'Letta';
-            statusBadge.classList.remove('status-unread');
-            statusBadge.classList.add('status-read');
-        } else {
-            const errorMessage = await response.text();
-            alert("Errore nella lettura della notifica: " + errorMessage);
-        }
-    } catch (error) {
-        console.error("Errore di rete:", error);
-        alert("Errore di rete. Riprova più tardi.");
-    }
-}
-
-// Funzione per eliminare la notifica
-async function handleDeleteNotification(notificationItem, userEmail, notificationId) {
-    try {
-        const formData = new URLSearchParams();
-        formData.append("email", userEmail);
-        formData.append("notificationID", notificationId);
-        const response = await fetch("/remove_notification", {
-            method: "DELETE",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: formData.toString(),
-        });
-
-        if (response.ok) {
-            notificationItem.remove();
-            if (!document.querySelector('.notification-item')) {
-                const noNotificationsMsg = document.createElement('p');
-                noNotificationsMsg.className = 'no-notifications';
-                noNotificationsMsg.textContent = 'Nessuna notifica disponibile.';
-                notificationsList.parentElement.appendChild(noNotificationsMsg);
-            }
-        } else {
-            const errorMessage = await response.text();
-            alert("Errore nell'eliminazione della notifica: " + errorMessage);
-        }
-    } catch (error) {
-        console.error("Errore di rete:", error);
-        alert("Errore di rete. Riprova più tardi.");
-    }
-}
