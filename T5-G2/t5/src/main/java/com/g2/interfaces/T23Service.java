@@ -242,13 +242,13 @@ public class T23Service extends BaseService {
 
     // Metodo per ottenere la lista degli utenti
     private List<User> getUsers() {
-        final String endpoint = "/student/students_list";
+        final String endpoint = "/players/searchStudents";
         return callRestGET(endpoint, null, new ParameterizedTypeReference<List<User>>() {
         });
     }
 
     private User getUser(String userId) {
-        final String endpoint = "/student/students_list/" + userId;
+        final String endpoint = "/players/students_list/" + userId;
         return callRestGET(endpoint, null, User.class);
     }
 
