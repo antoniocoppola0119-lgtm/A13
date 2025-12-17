@@ -107,7 +107,7 @@ function openAvatarModal() {
 
 function selectAvatar(filename) {
     console.log("selectAvatar called");
-    const avatarImg = document.getElementById("profileAvatar");
+    const avatarImg = document.getElementById("profileImage");
 
     if (avatarImg) {
         avatarImg.src = `/t5/images/profileImages/${filename}`;
