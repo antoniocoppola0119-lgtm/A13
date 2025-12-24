@@ -21,6 +21,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,6 +67,22 @@ public class UserProfileController {
         PageBuilder searchPage = new PageBuilder(serviceManager, "search", model, JwtRequestContext.getJwtToken());
         // search_page.SetAuth();  // Gestisce l'autenticazione
         return searchPage.handlePageRequest();
+    }
+
+    @GetMapping("/profile/social/following/{playerID}")
+    public ResponseEntity<List<User>> getFollowing(@PathVariable Long playerID) {
+        List<User> users = (List<User>) serviceManager.handleRequest(
+                "T23", "getFollowing", playerID
+        );
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/profile/social/followers/{playerID}")
+    public ResponseEntity<List<User>> getFollowers(@PathVariable Long playerID) {
+        List<User> users = (List<User>) serviceManager.handleRequest(
+                "T23", "getFollowers", playerID
+        );
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/profile")
@@ -169,6 +188,41 @@ public class UserProfileController {
         return images;
     }
 
+    @PostMapping("/profile/save")
+    public ResponseEntity<Void> saveProfile(@RequestParam String email,
+                                            @RequestParam String bio,
+                                            @RequestParam String nickname,
+                                            @RequestParam String avatar) {
+
+        String jwt = JwtRequestContext.getJwtToken();
+        serviceManager.handleRequest(
+                "T23",
+                "UpdateProfile",
+                email,
+                avatar,
+                nickname,
+                bio
+        );
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/profile/toggle_follow")
+    public ResponseEntity<Void> toggleFollow(
+            @RequestParam Long profileId,
+            @RequestParam Long targetUserId) {
+
+        serviceManager.handleRequest(
+                "T23",
+                "ToggleFollow",
+                profileId,
+                targetUserId
+        );
+
+        return ResponseEntity.ok().build();
+    }
+
+
     @GetMapping("/edit_profile")
     public String showEditProfile(Model model) {
         PageBuilder editProfilePage = new PageBuilder(serviceManager, "Edit_Profile", model, JwtRequestContext.getJwtToken());
@@ -185,5 +239,22 @@ public class UserProfileController {
         );
         return editProfilePage.handlePageRequest();
     }
+
+    @GetMapping("/profile/game-history/{playerId}")
+    public ResponseEntity<List<GameProgressDTO>> getGameHistory(
+            @PathVariable Long playerId
+    ) {
+
+        @SuppressWarnings("unchecked")
+        List<GameProgressDTO> history =
+                (List<GameProgressDTO>) serviceManager.handleRequest(
+                        "T23",
+                        "GetPlayerGameHistory",
+                        playerId
+                );
+
+        return ResponseEntity.ok(history);
+    }
+
 
 }

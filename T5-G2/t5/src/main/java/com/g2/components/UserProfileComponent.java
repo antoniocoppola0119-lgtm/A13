@@ -95,7 +95,8 @@ public class UserProfileComponent extends GenericObjectComponent {
                         "T23", "getPlayerProgressAgainstAllOpponent", user.getId()
                 );
 
-                int userExp = (playerProgress != null) ? playerProgress.getExperiencePoints() : 0;
+                int userExp = (playerProgress != null) ? playerProgress.getExperiencePoints() : 15000;
+                logger.warn("[UserProfileComponent] Punti esperienza: {}", userExp);
                 this.model.put("userCurrentExperience", userExp);
             } catch (Exception e) {
                 logger.warn("[UserProfileComponent] Non è stato possibile recuperare l'esperienza: {}", e.getMessage());
@@ -111,4 +112,3 @@ public class UserProfileComponent extends GenericObjectComponent {
         }
     }
 }
-

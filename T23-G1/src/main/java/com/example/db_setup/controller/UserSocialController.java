@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.example.db_setup.security.jwt.JwtProvider;
 
 import java.util.List;
 
@@ -21,6 +22,8 @@ public class UserSocialController {
     private UserSocialService userSocialService;
     @Autowired
     private PlayerService playerService;
+    @Autowired
+    private JwtProvider jwtProvider;
 
     /*
      *  Sezione ricerca utente
@@ -54,8 +57,8 @@ public class UserSocialController {
     /*
      * Sezione following
      */
-    @GetMapping("/followers")
-    public ResponseEntity<?> getFollowers(@RequestParam String userId) {
+    @GetMapping("/followers/{userId}")
+    public ResponseEntity<?> getFollowers(@PathVariable("userId") Long userId) {
         try {
             return ResponseEntity.ok(userSocialService.getFollowers(userId));
         } catch (UserNotFoundException e) {
@@ -66,8 +69,8 @@ public class UserSocialController {
         }
     }
 
-    @GetMapping("/following")
-    public ResponseEntity<?> getFollowing(@RequestParam String userId) {
+    @GetMapping("/following/{userId}")
+    public ResponseEntity<?> getFollowing(@PathVariable("userId") Long userId) {
         try {
             return ResponseEntity.ok(userSocialService.getFollowing(userId));
         } catch (UserNotFoundException e) {
@@ -94,15 +97,15 @@ public class UserSocialController {
 
     @PostMapping("/toggle_follow")
     public ResponseEntity<?> toggleFollow(
-            @RequestParam String followerId,
-            @RequestParam String followingId
+            @RequestParam String profileId,
+            @RequestParam String targetUserId
     ) {
         try {
             /*
              *   False - Smesso di seguire
              *   True  - Iniziato a seguire
              */
-            boolean FollowState = userSocialService.toggleFollow(followerId, followingId);
+            boolean FollowState = userSocialService.toggleFollow(profileId, targetUserId);
             return ResponseEntity.ok(FollowState);
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -115,21 +118,29 @@ public class UserSocialController {
      * Gestione Profilo
      */
     @PostMapping("/update_profile")
-    public ResponseEntity<Boolean> editProfile(@RequestParam("email") String email,
-                                               @RequestParam("bio") String bio,
-                                               @RequestParam("profilePicturePath") String profilePicturePath,
-                                               @RequestParam("nickname") String nickname) {
+    public ResponseEntity<Boolean> editProfile(
+            @RequestParam("email") String email,
+            @RequestParam("nickname") String nick,
+            @RequestParam("bio") String bio,
+            @RequestParam("profilePicturePath") String profilePicturePath) {
+
+        System.out.println("[DEBUG] /update_profile ricevuto");
 
         UserProfile profile = playerService.findProfileByEmail(email);
         if (profile == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false); // Ritorna false in caso di errore
+            System.out.println("Profilo non trovato per email: " + email);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
         }
+
         profile.setBio(bio);
+        profile.setNickname(nick);
         profile.setProfilePicturePath(profilePicturePath);
-        profile.setNickname(nickname);
         playerService.saveProfile(profile);
-        return ResponseEntity.ok(true); // Ritorna true se l'operazione ha avuto successo
+
+        System.out.println("Profilo aggiornato con successo per: " + email);
+        return ResponseEntity.ok(true);
     }
+
 
 
 }

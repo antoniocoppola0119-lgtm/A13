@@ -11,6 +11,8 @@
 
 <div class="main-container">
     <span id="user-exp" hidden th:text="${userCurrentExperience}"></span>
+    <input type="hidden" id="userEmail" th:value="${user.email}">
+    <input type="hidden" id="userProfileId" th:value="${user.userProfile.id}">
 
     <div class="header-row">
         <h1 class="page-title">Profilo</h1>
@@ -56,19 +58,72 @@
         <div class="col-left">
             <div class="card profile-card">
                 <div class="avatar-container">
-                    <img src="" alt="Avatar" id="profileImage">
-                    <input type="file" id="avatarUploadInput" accept="image/*" style="display: none;">
-                    <button class="edit-avatar-btn" id="editAvatarBtn" title="Cambia foto"><i class="bi bi-camera"></i></button>
-                    <div class="status-dot online" id="profileStatusDot"></div>
+                    <img th:src="${user.userProfile.profilePicturePath}"
+                         alt="Avatar"
+                         id="profileImage">
+
+                    <input type="file"
+                           id="avatarUploadInput"
+                           accept="image/*"
+                           style="display: none;">
+
+                    <button class="edit-avatar-btn"
+                            id="editAvatarBtn"
+                            title="Cambia foto">
+                        <i class="bi bi-camera"></i>
+                    </button>
+
+                    <div class="status-dot online"
+                         id="profileStatusDot"></div>
                 </div>
-                <h2 class="username" id="profileName">...</h2>
-                <span class="role-badge" id="profileTag">...</span>
-                <div class="profile-actions" id="profileActions"></div>
+
+                <div class="username-container">
+                    <h2 class="username" id="profileName" th:text="${user.userProfile.nickname}">Nickname</h2>
+                    <button id="editNicknameBtn" class="edit-bio-btn" title="Modifica nickname">
+                        <i class="bi bi-pen"></i>
+                    </button>
+                    <input type="text" id="nicknameInput" class="bio-textarea" style="display: none;" th:value="${user.userProfile.nickname}">
+                </div>
+
+                <span class="role-badge"
+                      id="profileTag"
+                      th:text="${user.userProfile.name + ' ' + user.userProfile.surname}">
+                      Giocatore
+                </span>
+
+                <div class="profile-actions"
+                     id="profileActions"></div>
+
                 <div class="bio-section">
-                    <div class="bio-header"><span class="bio-label">SERVICE RECORD</span><button id="editBioBtn" class="edit-bio-btn"><i class="bi bi-pen"></i></button></div>
-                    <p class="bio-text" id="bioText">...</p>
-                    <textarea id="bioInput" class="bio-textarea" style="display: none;"></textarea>
+                    <div class="bio-header">
+                        <span class="bio-label">SERVICE RECORD</span>
+                        <button id="editBioBtn"
+                                class="edit-bio-btn">
+                            <i class="bi bi-pen"></i>
+                        </button>
+                    </div>
+
+                    <!-- BIO VISUALIZZATA -->
+                    <p class="bio-text"
+                       id="bioText"
+                       th:text="${user.userProfile.bio}">
+                        Bio utente
+                    </p>
+
+                    <!-- BIO MODIFICABILE -->
+                    <textarea id="bioInput"
+                              class="bio-textarea"
+                              style="display: none;"
+                              th:text="${user.userProfile.bio}">
+        </textarea>
                 </div>
+
+                <!-- Pulsante per salvare le modifiche -->
+                <button id="saveProfileBtn"
+                        class="btn btn-primary"
+                        title="Salva modifiche">
+                    <i class="bi bi-save"></i> Salva Modifiche
+                </button>
             </div>
 
             <div class="card rank-card">
@@ -115,26 +170,58 @@
                     </div>
                 </div>
                 <div class="card activity-card">
-                    <h3 class="section-title"><i class="bi bi-history"></i> Ultime Partite</h3>
+                    <h3 class="section-title">
+                        <i class="bi bi-history"></i> Ultime Partite
+                    </h3>
+
                     <ul class="match-list" id="matchListArea"></ul>
+
+                    <!-- CONTROLLI PAGINAZIONE -->
+                    <div class="d-flex justify-content-between mt-3">
+                        <button id="prevMatchesBtn" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-chevron-left"></i> Indietro
+                        </button>
+
+                        <button id="nextMatchesBtn" class="btn btn-outline-secondary btn-sm">
+                            Avanti <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <div id="view-social" class="view-section" style="display: none;">
                 <div class="card social-hub-card">
-                    <h3><i class="bi bi-satellite-dish"></i>Social</h3>
-                    <div class="search-bar-container">
-                        <i class="bi bi-search search-icon"></i>
-                        <input type="text" id="socialSearchInput" placeholder="Cerca..." onkeyup="filterSocialList()">
+                    <h3><i class="bi bi-satellite-dish"></i> Social</h3>
+
+                    <!-- SELECTOR -->
+                    <div class="btn-group w-100 mb-3" role="group">
+                        <button id="btnFollowing"
+                                class="btn btn-outline-primary active"
+                                onclick="showFollowing()">
+                            Following
+                            <span class="badge bg-primary ms-1" id="followingCount">0</span>
+                        </button>
+
+                        <button id="btnFollowers"
+                                class="btn btn-outline-success"
+                                onclick="showFollowers()">
+                            Followers
+                            <span class="badge bg-success ms-1" id="followersCount">0</span>
+                        </button>
                     </div>
-                    <div class="social-tabs">
-                        <button class="tab-btn active" onclick="switchSocialTab('friends')"><i class="bi bi-user-friends"></i> Amici</button>
-                        <button class="tab-btn" onclick="switchSocialTab('suggestions')"><i class="bi bi-user-plus"></i> Suggeriti</button>
-                    </div>
-                    <div id="friendsList" class="social-list-container active"><ul class="social-list" id="ulFriends"></ul></div>
-                    <div id="suggestionsList" class="social-list-container" style="display: none;"><ul class="social-list" id="ulSuggestions"></ul></div>
+
+                    <!-- FOLLOWING LIST -->
+                    <ul class="social-list" id="followingList">
+                        <li class="text-muted">Caricamento...</li>
+                    </ul>
+
+                    <!-- FOLLOWERS LIST -->
+                    <ul class="social-list d-none" id="followersList">
+                        <li class="text-muted">Caricamento...</li>
+                    </ul>
                 </div>
             </div>
+        </div>
         </div>
     </div>
 </div>
