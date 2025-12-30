@@ -29,64 +29,64 @@ const availableAvatars = [
 
 const rankData = [
     {
-        name: "Recluta",
+        name: "Code Novice",
         threshold: 0,
-        description: "Il punto di partenza di ogni Spartan. Hai iniziato il cammino, pronto a dimostrare il tuo valore."
+        description: "Hai appena scoperto come si scrive un test. Speri che il verde nei log non sia un miraggio."
     },
     {
-        name: "Soldato",
+        name: "Junior Reviewer",
         threshold: 7500,
-        description: "Hai superato l’addestramento di base e ora sei considerato un operatore affidabile sul campo."
+        description: "Inizi a capire che 'funziona sulla mia macchina' non è un test valido. Coraggioso."
     },
     {
-        name: "Caporale",
+        name: "Assert Specialist",
         threshold: 10000,
-        description: "Un soldato con esperienza, capace di coordinare piccole squadre e gestire situazioni critiche."
+        description: "Le tue asserzioni iniziano ad avere un senso logico. I tuoi test iniziano a scovare veri colpevoli."
     },
     {
-        name: "Sergente",
+        name: "Logic Auditor",
         threshold: 15000,
-        description: "Figura di riferimento per la squadra. Il Sergente ispira disciplina, ordine e rapidità d’azione."
+        description: "Analizzi il flusso del codice con occhio critico. Non ti sfugge più il banale errore di sintassi."
     },
     {
-        name: "Capitano",
+        name: "Integration Expert",
         threshold: 25000,
-        description: "Un leader affermato. Gestisci operazioni complesse e prendi decisioni decisive sul campo."
+        description: "Hai capito che il vero pericolo è dove i moduli si incontrano. Gestisci le dipendenze con fermezza."
     },
     {
-        name: "Capitano Grado 2",
+        name: "Edge-Case Hunter",
         threshold: 35000,
-        description: "Hai dimostrato capacità strategiche avanzate. Le tue operazioni influenzano l’intero battaglione."
+        description: "Maniaco del dettaglio. Vai a scovare quegli errori che capitano una volta su un milione."
     },
     {
-        name: "Capitano Grado 3",
+        name: "Coverage Authority",
         threshold: 50000,
-        description: "La massima autorità tra i Capitani. Le tue scelte determinano l’esito delle missioni più rischiose."
+        description: "La tua percentuale di copertura del codice è il tuo vanto. Ogni riga è sotto il tuo controllo."
     },
     {
-        name: "Comandante",
+        name: "Automation Senior",
         threshold: 75000,
-        description: "Guida naturale e tattico impeccabile. Sovrintendi operazioni militari su vasta scala."
+        description: "Hai automatizzato la noia. I tuoi script lavorano mentre tu pianifichi la prossima sfida."
     },
     {
-        name: "Generale",
+        name: "Reliability Lead",
         threshold: 100000,
-        description: "Una leggenda tra i ranghi militari. Le tue strategie vengono studiate, replicate e temute."
+        description: "Sei il garante della stabilità. Se un commit passa sotto i tuoi test, è pronto per il mondo."
     },
     {
-        name: "Eroe",
+        name: "Principal Tester",
         threshold: 500000,
-        description: "Il tuo nome riecheggia nei corridoi della UNSC: simbolo di speranza e forza inarrestabile."
+        description: "Il tuo approccio alla qualità è un punto di riferimento per l'intero dipartimento."
     },
     {
-        name: "Leggenda",
+        name: "System Visionary",
         threshold: 1000000,
-        description: "Pochi hanno raggiunto questo livello. Le tue imprese trascendono la storia e diventano mito."
+        description: "Vedi i bug prima ancora che il codice venga scritto. La tua intuizione è diventata leggendaria."
     },
     {
-        name: "Erede",
+        name: "Architect of Quality",
         threshold: 2000000,
-        description: "L’apice assoluto. Non sei solo un guerriero: sei il successore della volontà Spartan, colui che plasma il futuro."
+        description: "L'apice della piramide. Non scrivi solo test, definisci gli standard di perfezione del software."
     }
 ];
 
