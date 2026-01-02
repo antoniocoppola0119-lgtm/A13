@@ -91,6 +91,18 @@ public class UserProfileController {
 
         Long userId = profilePage.getUserId();
         profilePage.setObjectComponents(new UserProfileComponent(serviceManager, false, userId));
+
+        PlayerProgressDTO playerProgress = (PlayerProgressDTO) serviceManager.handleRequest("T23", "getPlayerProgressAgainstAllOpponent", userId);
+        List<GameProgressDTO> achievements = playerProgress.getGameProgressesDTO();
+        Set<String> globalAchievements = playerProgress.getGlobalAchievements();
+        model.addAttribute("gamemode_achievements", achievements);
+        model.addAttribute("general_achievements", globalAchievements);
+        model.addAttribute("userCurrentExperience", playerProgress.getExperiencePoints());
+
+        model.addAttribute("startingLevel", gameConfigData.getStartingLevel());
+        model.addAttribute("expPerLevel", gameConfigData.getExpPerLevel());
+        model.addAttribute("maxLevel", gameConfigData.getMaxLevel());
+
         return profilePage.handlePageRequest();
     }
 
@@ -121,26 +133,6 @@ public class UserProfileController {
             model.addAttribute("membri", membri);
         }
         return teamPage.handlePageRequest();
-    }
-
-    @GetMapping("/Achievement")
-    public String showAchievements(Model model) {
-        PageBuilder achievement = new PageBuilder(serviceManager, "Achivement", model, JwtRequestContext.getJwtToken());
-        /*
-         * Richiedo a T4 lo stato del giocatore
-         */
-        PlayerProgressDTO playerProgress = (PlayerProgressDTO) serviceManager.handleRequest("T23", "getPlayerProgressAgainstAllOpponent", achievement.getUserId());
-        List<GameProgressDTO> achievements = playerProgress.getGameProgressesDTO();
-        Set<String> globalAchievements = playerProgress.getGlobalAchievements();
-        model.addAttribute("gamemode_achievements", achievements);
-        model.addAttribute("general_achievements", globalAchievements);
-        model.addAttribute("userCurrentExperience", playerProgress.getExperiencePoints());
-
-        model.addAttribute("startingLevel", gameConfigData.getStartingLevel());
-        model.addAttribute("expPerLevel", gameConfigData.getExpPerLevel());
-        model.addAttribute("maxLevel", gameConfigData.getMaxLevel());
-
-        return achievement.handlePageRequest();
     }
 
     @GetMapping("/Notification")

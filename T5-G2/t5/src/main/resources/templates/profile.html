@@ -11,6 +11,7 @@
 
 <div class="main-container">
     <span id="user-exp" hidden th:text="${userCurrentExperience}"></span>
+    <span id="expPerLevel" hidden th:text="${expPerLevel}"></span>
     <input type="hidden" id="userEmail" th:value="${user.email}">
     <input type="hidden" id="userProfileId" th:value="${user.userProfile.id}">
 
@@ -125,67 +126,89 @@
                     <i class="bi bi-save"></i> Salva Modifiche
                 </button>
             </div>
-
-            <div class="card rank-card">
-                <div class="rank-header">
-                    <div class="rank-icon-container clickable" id="rankIconContainer">
-                        <img id="rankImage" src="" alt="Rank Icon" onerror="this.style.display='block'; document.getElementById('rankFallback').style.display='flex';">
-                        <div id="rankFallback" class="rank-patch" style="display:none;"><i id="rankFallbackIcon" class="bi bi-user"></i></div>
-                        <div class="icon-hover-overlay"><i class="bi bi-list"></i></div>
-                    </div>
-                    <div class="rank-titles">
-                        <span class="rank-label">Grado Attuale</span>
-                        <h3 id="currentRankName">...</h3>
-                    </div>
-                </div>
-                <div class="rank-progress-section">
-                    <div class="rank-info-row"><span id="currentCredits">0 cR</span><span id="nextRankCredits" class="text-muted">...</span></div>
-                    <div class="progress-bar-container large"><div class="progress-bar-fill rank-fill" id="rankProgressBar" style="width: 0%;"></div></div>
-                    <p class="rank-message" id="rankMessage">...</p>
-                </div>
-            </div>
         </div>
 
         <div class="col-main">
 
             <div class="main-tabs-container">
-                <button class="main-tab-btn active" onclick="switchMainView('game')"><i class="bi bi-crosshairs"></i> PARTITE</button>
-                <button class="main-tab-btn" onclick="switchMainView('social')"><i class="bi bi-globe"></i> SOCIAL</button>
+                <button class="main-tab-btn active" onclick="switchMainView('stats')">
+                    <i class="bi bi-bar-chart"></i> STATISTICHE
+                </button>
+                <button class="main-tab-btn" onclick="switchMainView('matches')">
+                    <i class="bi bi-crosshairs"></i> PARTITE
+                </button>
+                <button class="main-tab-btn" onclick="switchMainView('social')">
+                    <i class="bi bi-globe"></i> SOCIAL
+                </button>
             </div>
 
-            <div id="view-game" class="view-section active">
-                <div class="game-top-row">
-                    <div class="card chart-card">
-                        <h3><i class="bi bi-chart-radar"></i> Competenze</h3>
-                        <div class="chart-container"><canvas id="skillsChart"></canvas></div>
+            <div id="view-stats" class="view-section active">
+                <div class="card rank-card">
+                    <div class="rank-header">
+                        <div class="rank-icon-container clickable" id="rankIconContainer">
+                            <img id="rankImage" src="" alt="Rank Icon" onerror="this.style.display='block'; document.getElementById('rankFallback').style.display='flex';">
+                            <div id="rankFallback" class="rank-patch" style="display:none;"><i id="rankFallbackIcon" class="bi bi-user"></i></div>
+                            <div class="icon-hover-overlay"><i class="bi bi-list"></i></div>
+                        </div>
+                        <div class="rank-titles">
+                            <span class="rank-label">Grado Attuale</span>
+                            <h3 id="currentRankName">...</h3>
+                        </div>
                     </div>
-                    <div class="card stats-card">
-                        <h3><i class="bi bi-chart-bar"></i> Statistiche</h3>
-                        <div class="stats-grid">
-                            <div class="stat-box"><span class="stat-label">Tests</span><span class="stat-value big-accent" id="statTests">1.2k</span></div>
-                            <div class="stat-box"><span class="stat-label">Fixes</span><span class="stat-value text-win" id="statFixes">300</span></div>
-                            <div class="stat-box"><span class="stat-label">Numero Partite</span><span class="stat-value" id="statKD">10</span></div>
-                            <div class="stat-box"><span class="stat-label">Ore</span><span class="stat-value" id="statHours">480</span></div>
+                    <div class="d-sm-flex align-items-center justify-content-around mt-3 mb-5">
+                        <div class="text-center">
+                            <h4 class="mb-0 fw-semibold lh-1" th:text="${userCurrentExperience}"></h4>
+                            <p class="mb-0 fs-5" th:text="#{total_exp_label}"></p>
+                        </div>
+                        <div id="prc" class="progress_container" th:attr="data-progress=(${userCurrentExperience} % ${expPerLevel}) / ${expPerLevel}">
+                            <svg class="progress-svg" width="150" height="150" viewBox="0 0 120 120">
+                                <circle class="progress_background" cx="60" cy="60" r="50" />
+                                <circle id="progressFill" class="progress_fill" cx="60" cy="60" r="50" />
+                            </svg>
+                            <div class="progress_value"
+                                 th:text="${(userCurrentExperience / expPerLevel) + startingLevel == maxLevel} ? 'Lv. MAX' : 'Lv. ' + ${(userCurrentExperience / expPerLevel) + startingLevel}">
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <h4 id="expRemaining" class="mb-0 fw-semibold lh-1" th:text="${expPerLevel - (userCurrentExperience % expPerLevel)}"></h4>
+                            <p class="mb-0 fs-5" th:text="#{exp_next_level_label}"></p>
                         </div>
                     </div>
                 </div>
-                <div class="card activity-card">
-                    <h3 class="section-title">
-                        <i class="bi bi-history"></i> Ultime Partite
-                    </h3>
-
-                    <ul class="match-list" id="matchListArea"></ul>
-
-                    <!-- CONTROLLI PAGINAZIONE -->
-                    <div class="d-flex justify-content-between mt-3">
-                        <button id="prevMatchesBtn" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-chevron-left"></i> Indietro
-                        </button>
-
-                        <button id="nextMatchesBtn" class="btn btn-outline-secondary btn-sm">
-                            Avanti <i class="bi bi-chevron-right"></i>
-                        </button>
+                <div class="game-top-row">
+                    <div class="container mt-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span th:text="#{achievements_list}"></span>
+                                <select id="game-mode-select" class="form-select w-auto">
+                                    <option value="PartitaSingola"></option>
+                                    <option value="General"></option>
+                                </select>
+                            </div>
+                            <div class="card-body d-flex flex-wrap" id="achievements-container"></div>
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            <div id="view-matches" class="view-section" style="display:none;">
+                <div class="card activity-card">
+                        <h3 class="section-title">
+                            <i class="bi bi-history"></i> Ultime Partite
+                        </h3>
+
+                        <ul class="match-list" id="matchListArea"></ul>
+
+                        <!-- CONTROLLI PAGINAZIONE -->
+                        <div class="d-flex justify-content-between mt-3">
+                            <button id="prevMatchesBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-chevron-left"></i> Indietro
+                            </button>
+
+                            <button id="nextMatchesBtn" class="btn btn-outline-secondary btn-sm">
+                                Avanti <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
                 </div>
             </div>
 
@@ -234,10 +257,6 @@
             <button class="close-modal" onclick="closeRankModal()"><i class="bi bi-times"></i></button>
         </div>
         <div class="modal-body">
-            <div class="rank-summary-box">
-                <p id="modalNextGoalText">...</p>
-                <div class="progress-bar-container large"><div class="progress-bar-fill rank-fill" id="modalProgressBar" style="width: 0%;"></div></div>
-            </div>
             <div class="rank-list-container"><ul class="full-rank-list" id="fullRankList"></ul></div>
         </div>
     </div>

@@ -90,18 +90,6 @@ public class UserProfileComponent extends GenericObjectComponent {
                 this.model.put("user", user);
                 this.model.put("viewID", null);
             }
-            try {
-                PlayerProgressDTO playerProgress = (PlayerProgressDTO) serviceManager.handleRequest(
-                        "T23", "getPlayerProgressAgainstAllOpponent", user.getId()
-                );
-
-                int userExp = (playerProgress != null) ? playerProgress.getExperiencePoints() : 15000;
-                logger.warn("[UserProfileComponent] Punti esperienza: {}", userExp);
-                this.model.put("userCurrentExperience", userExp);
-            } catch (Exception e) {
-                logger.warn("[UserProfileComponent] Non è stato possibile recuperare l'esperienza: {}", e.getMessage());
-                this.model.put("userCurrentExperience", 0);
-            }
 
             this.model.put("isFriendProfile", isFriendProfile);
             return this.model;

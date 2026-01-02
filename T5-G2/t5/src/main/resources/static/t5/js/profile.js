@@ -10,7 +10,7 @@
 let isEditingBio = false;
 let allGames = [];
 let currentPage = 0;
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 3;
 
 
 const availableAvatars = [
@@ -26,69 +26,59 @@ const availableAvatars = [
     // aggiungi tutte quelle presenti in /t5/images/profileImages/
 ];
 
-
 const rankData = [
     {
-        name: "Code Novice",
-        threshold: 0,
-        description: "Hai appena scoperto come si scrive un test. Speri che il verde nei log non sia un miraggio."
+        name: "Test Initiate",
+        image: "/t5/images/ranks/rank1.png",
+        description: "Hai scritto i tuoi primi test. Coprono poco, ma sono tuoi. L’AI ti osserva con curiosità."
     },
     {
-        name: "Junior Reviewer",
-        threshold: 7500,
-        description: "Inizi a capire che 'funziona sulla mia macchina' non è un test valido. Coraggioso."
+        name: "Assertion Trainee",
+        image: "/t5/images/ranks/rank2.png",
+        description: "Inizi a capire cosa verificare davvero. Le asserzioni smettono di essere decorative."
     },
     {
-        name: "Assert Specialist",
-        threshold: 10000,
-        description: "Le tue asserzioni iniziano ad avere un senso logico. I tuoi test iniziano a scovare veri colpevoli."
+        name: "Coverage Apprentice",
+        image: "/t5/images/ranks/rank3.png",
+        description: "La copertura non è più un numero a caso. Ogni test aggiunge valore misurabile."
     },
     {
-        name: "Logic Auditor",
-        threshold: 15000,
-        description: "Analizzi il flusso del codice con occhio critico. Non ti sfugge più il banale errore di sintassi."
+        name: "Logic Examiner",
+        image: "/t5/images/ranks/rank4.png",
+        description: "Analizzi i flussi come un investigatore. I bug semplici non passano più inosservati."
     },
     {
-        name: "Integration Expert",
-        threshold: 25000,
-        description: "Hai capito che il vero pericolo è dove i moduli si incontrano. Gestisci le dipendenze con fermezza."
+        name: "Integration Tactician",
+        image: "/t5/images/ranks/rank5.png",
+        description: "I problemi veri nascono tra i moduli. Tu li affronti prima che l’AI li generi."
     },
     {
-        name: "Edge-Case Hunter",
-        threshold: 35000,
-        description: "Maniaco del dettaglio. Vai a scovare quegli errori che capitano una volta su un milione."
+        name: "Edge-Case Specialist",
+        image: "/t5/images/ranks/rank6.png",
+        description: "Cerchi ciò che nessuno prova. Gli input impossibili sono il tuo terreno di caccia."
     },
     {
-        name: "Coverage Authority",
-        threshold: 50000,
-        description: "La tua percentuale di copertura del codice è il tuo vanto. Ogni riga è sotto il tuo controllo."
+        name: "Coverage Strategist",
+        image: "/t5/images/ranks/rank7.png",
+        description: "La coverage è una strategia, non un obiettivo cieco. Ogni riga è una scelta consapevole."
     },
     {
-        name: "Automation Senior",
-        threshold: 75000,
-        description: "Hai automatizzato la noia. I tuoi script lavorano mentre tu pianifichi la prossima sfida."
+        name: "Automation Challenger",
+        image: "/t5/images/ranks/rank8.png",
+        description: "I test automatici dell’AI sono veloci. I tuoi sono più intelligenti."
     },
     {
-        name: "Reliability Lead",
-        threshold: 100000,
-        description: "Sei il garante della stabilità. Se un commit passa sotto i tuoi test, è pronto per il mondo."
+        name: "Reliability Architect",
+        image: "/t5/images/ranks/rank9.png",
+        description: "Il sistema regge perché tu lo hai stressato prima. L’AI ora gioca in difesa."
     },
     {
-        name: "Principal Tester",
-        threshold: 500000,
-        description: "Il tuo approccio alla qualità è un punto di riferimento per l'intero dipartimento."
-    },
-    {
-        name: "System Visionary",
-        threshold: 1000000,
-        description: "Vedi i bug prima ancora che il codice venga scritto. La tua intuizione è diventata leggendaria."
-    },
-    {
-        name: "Architect of Quality",
-        threshold: 2000000,
-        description: "L'apice della piramide. Non scrivi solo test, definisci gli standard di perfezione del software."
+        name: "Master of Coverage",
+        image: "/t5/images/ranks/rank10.png",
+        description: "La copertura è quasi totale. Non stai più inseguendo bug: stai progettando affidabilità."
     }
 ];
+
 
 function openAvatarModal() {
     console.log("openAvatarModal called");
@@ -132,65 +122,62 @@ function closeAvatarModal() {
     modal.classList.remove("active");
 }
 
-
-// ---------------------------
-//    FUNZIONI UTILI
-// ---------------------------
-
-function getLocalImage(rankName) {
-    return `/t5/images/ranks/${rankName.toLowerCase().replace(/ /g, "_")}.png`;
-}
-
-function formatNumber(num) {
-    return num.toLocaleString();
-}
-
-// ---------------------------
-//    CALCOLO DEL RANGO
-// ---------------------------
-
-function getRank(userExp) {
-    let current = rankData[0];
-    let next = rankData[1];
-
-    for (let i = 0; i < rankData.length; i++) {
-        if (userExp >= rankData[i].threshold) {
-            current = rankData[i];
-            next = (i + 1 < rankData.length) ? rankData[i + 1] : null;
-        } else {
-            break;
-        }
-    }
-
-    return { current, next };
-}
-
 // ---------------------------
 //    AGGIORNA DATI UI
 // ---------------------------
 
 function updateRankUI() {
-    const userExp = parseInt(document.getElementById("user-exp").textContent, 10) || 0;
+    const levelEl = document.querySelector(".progress_value");
+    if (!levelEl) return;
 
-    const { current, next } = getRank(userExp);
+    // Prendi il livello dall'HTML
+    let levelText = levelEl.textContent.trim();
+    let level = 1;
 
-    const expPerLevel = next ? (next.threshold - current.threshold) : 0;
-
-    document.getElementById("currentRankName").textContent = `${current.name}`;
-    document.getElementById("nextRankCredits").textContent = expPerLevel;
-    document.getElementById("currentCredits").textContent = userExp;
-
-    document.getElementById("rankImage").src = getLocalImage(current.name);
-
-    let progress = 100;
-    if (next) {
-        progress = ((userExp - current.threshold) / (next.threshold - current.threshold)) * 100;
+    if (levelText.includes("Lv.")) {
+        level = parseInt(levelText.replace("Lv.", "").trim(), 10);
+    } else if (levelText.includes("MAX")) {
+        level = rankData.length;
     }
-    document.getElementById("rankProgressBar").style.width = progress + "%";
-    document.getElementById("rankMessage").textContent = current.description || "";
 
-    console.log("UserExp:", userExp, "CurrentRank:", current.name, "NextRank:", next?.name, "Progress:", progress);
+    // Prendi il rank corrispondente
+    const rank = rankData[Math.min(level - 1, rankData.length - 1)];
+
+    console.log("rango giocatore: ", rank);
+
+    // Aggiorna nome e immagine
+    const rankNameEl = document.getElementById("currentRankName");
+    const rankImageEl = document.getElementById("rankImage");
+
+    if (rankNameEl) rankNameEl.textContent = rank.name;
+    if (rankImageEl) rankImageEl.src = rank.image;
+
+    // ---- PROGRESSIONE CERCHIO ----
+    const expRemainingEl = document.getElementById("expRemaining");
+    const progressFill = document.getElementById("progressFill");
+
+    if (expRemainingEl && progressFill) {
+        console.log("dati necessari per il cerchio trovati");
+        const expRemaining = parseFloat(expRemainingEl.textContent.trim()) || 0;
+        const expPerLevelEl = document.getElementById("expPerLevel");
+        const expPerLevel = expPerLevelEl ? parseFloat(expPerLevelEl.textContent.trim()) : 1000;
+        console.log(expRemaining);
+        console.log(expPerLevel);
+        let pct = (expPerLevel - expRemaining) / expPerLevel;
+        console.log(pct);
+
+        // Se siamo al livello massimo, barra piena
+        if (level === rankData.length) pct = 1;
+
+        const radius = 50;
+        const circumference = 2 * Math.PI * radius;
+
+        progressFill.style.strokeDasharray = `${circumference}`;
+        progressFill.style.strokeDashoffset = `${circumference - pct * circumference}`;
+    }
 }
+
+
 
 // ---------------------------
 //    MODAL RANGHI
@@ -211,37 +198,32 @@ function closeRankModal() {
 }
 
 function generateRankList() {
-    const userExp = parseInt(document.getElementById("user-exp").textContent, 10) || 0;
+
+    const progressValueEl = document.querySelector(".progress_value");
+    let currentLevel = 1;
+    if (progressValueEl) {
+        const text = progressValueEl.textContent.trim();
+        if (text === "Lv. MAX") {
+            currentLevel = 10;
+        } else {
+            currentLevel = parseInt(text.replace("Lv. ", ""), 10);
+        }
+    }
+
     const list = document.getElementById("fullRankList");
+    if (!list) return;
     list.innerHTML = "";
 
-    let currentIdx = 0;
-    for (let i = 0; i < rankData.length; i++) {
-        if (userExp >= rankData[i].threshold) currentIdx = i;
-        else break;
-    }
-
-    const next = rankData[currentIdx + 1];
-    if (next) {
-        const diff = next.threshold - userExp;
-        const pct = ((userExp - rankData[currentIdx].threshold) /
-            (next.threshold - rankData[currentIdx].threshold)) * 100;
-
-        document.getElementById("modalNextGoalText").innerHTML =
-            `Mancano <strong style="color:var(--accent-cyan)">${diff.toLocaleString()} cR</strong> per <strong>${next.name}</strong>`;
-
-        document.getElementById("modalProgressBar").style.width = pct + "%";
-    }
-
-    rankData.forEach((r, i) => {
+    rankData.forEach((r, idx) => {
         const li = document.createElement("li");
-        li.className = `rank-list-item clickable-hover-sound tier-${r.tier}`;
+        li.className = "rank-list-item clickable-hover-sound";
 
         let icon = "";
-        if (i < currentIdx) {
+        if (idx + 1 < currentLevel) {
             li.classList.add("past");
             icon = `<i class="bi bi-check"></i>`;
-        } else if (i === currentIdx) {
+        } else if (idx + 1 === currentLevel) {
+
             li.classList.add("current");
             icon = `<i class="bi bi-map-marker-alt"></i>`;
             setTimeout(() => li.scrollIntoView({ block: "center" }), 100);
@@ -252,9 +234,9 @@ function generateRankList() {
 
         li.innerHTML = `
             <div class="rank-list-left">
-                <img src="${getLocalImage(r.name)}" alt="" class="list-rank-img" onerror="this.style.display='none'">
+                <img src="${r.image}" alt="${r.name}" class="list-rank-img" onerror="this.style.display='none'">
                 <div class="rank-list-info">
-                    <span class="rank-list-combined">${r.name} / <span class="credits-text">${r.threshold.toLocaleString()} cR</span></span>
+                    <span class="rank-list-combined">${r.name}</span>
                 </div>
             </div>
             <div class="rank-list-status">${icon}</div>
@@ -263,6 +245,7 @@ function generateRankList() {
         list.appendChild(li);
     });
 }
+
 
 function closeBioEdit(saveChanges) {
     const bioText = document.getElementById("bioText");
@@ -296,8 +279,10 @@ function loadFollowing() {
         url: `/profile/social/following/${userId}`,
         type: "GET",
         dataType: "json",
-        success: function (users) {
-            renderFollowing(users);
+        success: function (followingUsers) {
+            // Salviamo la lista dei following in una variabile globale temporanea
+            window.currentFollowing = followingUsers || [];
+            renderFollowing(followingUsers);
         },
         error: function (xhr, status, error) {
             console.error("Errore following:", error);
@@ -310,8 +295,10 @@ function loadFollowers() {
         url: `/profile/social/followers/${userId}`,
         type: "GET",
         dataType: "json",
-        success: function (users) {
-            renderFollowers(users);
+        success: function (followers) {
+            // Passiamo anche la lista dei following per disabilitare il pulsante "Segui"
+            const followingUsers = window.currentFollowing || [];
+            renderFollowers(followers, followingUsers);
         },
         error: function (xhr, status, error) {
             console.error("Errore followers:", error);
@@ -337,6 +324,12 @@ function switchMainView(view) {
 
     if (view === "social") {
         loadSocialData();
+    }
+    else if (view === "matches") {
+        fetchGameHistory(userId);
+    }
+    else if (view === "stats") {
+        updateRankUI();
     }
 }
 
@@ -393,7 +386,7 @@ function renderFollowing(users) {
     });
 }
 
-function renderFollowers(users) {
+function renderFollowers(users, followingUsers = []) {
     const ul = document.getElementById("followersList");
     const count = document.getElementById("followersCount");
 
@@ -409,6 +402,12 @@ function renderFollowers(users) {
         const li = document.createElement("li");
         li.className = "social-item d-flex align-items-center justify-content-between";
 
+        // Controlla se l'utente è già seguito
+        const alreadyFollowing = followingUsers.some(f => f.id === user.id);
+        const btnText = alreadyFollowing ? "Già seguito" : "Segui";
+        const btnClass = alreadyFollowing ? "btn-secondary" : "btn-primary";
+        const btnDisabled = alreadyFollowing ? "disabled" : "";
+
         li.innerHTML = `
             <div class="d-flex align-items-center gap-3">
                 <img src="${user?.profilePicturePath || 't5/images/profileImages/default.png'}"
@@ -420,9 +419,9 @@ function renderFollowers(users) {
                 </div>
             </div>
 
-            <button class="btn btn-primary btn-sm"
+            <button class="btn ${btnClass} btn-sm" ${btnDisabled}
                     onclick="toggleFollow(${user.id},'followers')">
-                Segui
+                ${btnText}
             </button>
         `;
 
@@ -534,7 +533,7 @@ function renderCurrentPage() {
                     <strong>${game.type}</strong>
             
                     <span class="text-muted small">
-                        ${game.gameMode} • ${game.difficulty}
+                        <strong>classUT :</strong> ${game.classUT} ${game.gameMode} • ${game.difficulty}
                     </span>
             
                     <span class="text-muted small">
@@ -584,7 +583,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const rankModal = document.getElementById("rankModal");
 
     updateRankUI();
-    fetchGameHistory(userId);
 
     if (rankImage) {
         rankImage.addEventListener("click", openRankModal);
