@@ -154,6 +154,10 @@
                             <span class="rank-label">Grado Attuale</span>
                             <h3 id="currentRankName">...</h3>
                         </div>
+                            <div class="bio-container">
+                                <h6 class="bio-title">Descrizione</h6>
+                                <p id="bio-text" class="bio-text"></p>
+                            </div>
                     </div>
                     <div class="d-sm-flex align-items-center justify-content-around mt-3 mb-5">
                         <div class="text-center">
@@ -216,7 +220,7 @@
                 <div class="card social-hub-card">
                     <h3><i class="bi bi-satellite-dish"></i> Social</h3>
 
-                    <!-- SELECTOR -->
+                    <!-- BUTTON GROUP FOLLOWING/FOLLOWERS -->
                     <div class="btn-group w-100 mb-3" role="group">
                         <button id="btnFollowing"
                                 class="btn btn-outline-primary active"
@@ -231,7 +235,18 @@
                             Followers
                             <span class="badge bg-success ms-1" id="followersCount">0</span>
                         </button>
+
+                        <button id="btnSearch"
+                                class="btn btn-outline-secondary"
+                                onclick="showSearch()">
+                            Cerca
+                        </button>
                     </div>
+
+                    <!-- SEARCH RESULTS LIST -->
+                    <ul class="social-list d-none" id="searchResultsList">
+                        <li class="text-muted">Cerca giocatori</li>
+                    </ul>
 
                     <!-- FOLLOWING LIST -->
                     <ul class="social-list" id="followingList">
@@ -242,6 +257,17 @@
                     <ul class="social-list d-none" id="followersList">
                         <li class="text-muted">Caricamento...</li>
                     </ul>
+
+                    <div id="searchSection" class="d-none">
+                        <input type="text"
+                               id="userSearchInput"
+                               class="form-control mb-2"
+                               placeholder="Cerca giocatori...">
+                        <ul class="social-list" id="searchResults">
+                            <li class="text-muted">Caricamento...</li>
+                        </ul>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -275,6 +301,24 @@
     </div>
 </div>
 
+<div class="modal fade" id="achievementsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="achievementsModalTitle">
+                    Obiettivi
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="achievements-modal-container"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <div id="rematchModal" class="modal-overlay">
     <div class="modal-window small-modal">
@@ -319,6 +363,53 @@
 </div>
 
 <div th:replace="fragments/footer :: footer"></div>
+
+<script th:inline="javascript">
+    let gamemode_achievements = /*[[${gamemode_achievements}]]*/ [];
+    let general_achievements = /*[[${general_achievements}]]*/ [];
+
+    let difficultyTranslation = {
+        easy: /*[[#{d_facile}]]*/ "Facile",
+        medium: /*[[#{d_medio}]]*/ "Medio",
+        hard: /*[[#{d_difficile}]]*/ "Difficile"
+    };
+    const achievementData = {
+        "instructions": {
+            name: /*[[#{instructions_name}]]*/ "Coverage Master",
+            descr: /*[[#{instructions_descr}]]*/ "Ottenuto superando il robot nel numero di istruzioni coperte per la classe sotto test."
+        },
+        "instructionsAndWeakMutation": {
+            name: /*[[#{instructionsAndWeakMutation_name}]]*/ "Signore delle Weak Mutation",
+            descr: /*[[#{instructionsAndWeakMutation_descr}]]*/ "Ottenuto superando il robot sia nel numero di istruzioni coperte che nella metrica weakMutation."
+        },
+        "firstMatchWon": {
+            name: /*[[#{firstMatchWon_text}]]*/ "Primi passi",
+            descr: /*[[#{firstMatchWon_descr}]]*/ "Ottenuto vincendo la tua prima partita."
+        },
+        "thirdMatchWon": {
+            name: /*[[#{thirdMatchWon_text}]]*/ "In ritmo",
+            descr: /*[[#{thirdMatchWon_descr}]]*/ "Ottenuto vincendo la tua terza partita."
+        },
+        "allBeatenOneClass": {
+            name: /*[[#{allBeatenOneClass_text}]]*/ "Classe completata",
+            descr: /*[[#{allBeatenOneClass_descr}]]*/ "Ottenuto superando tutti gli avversari di una classe."
+        },
+        "allBeatenTwoClass": {
+            name: /*[[#{allBeatenTwoClass_text}]]*/ "Doppia padronanza",
+            descr: /*[[#{allBeatenTwoClass_descr}]]*/ "Ottenuto superando tutti gli avversari di due classi."
+        }
+    };
+
+    const gameMode = {
+        PartitaSingola: /*[[#{singola}]]*/ "Partita Singola",
+        Allenamento: /*[[#{allenamento}]]*/ "Allenamento",
+        Multiplayer: /*[[#{multiplayer}]]*/ "Multi-giocatore",
+        Scalata: /*[[#{scalata}]]*/ "Scalata",
+    }
+
+    const no_achievement_message = /*[[#{no_achievement_message}]]*/ "Nessun achievement sbloccato";
+    const general = /*[[#{general}]]*/ "Generici";
+</script>
 
 <script src="/t5/js/profile.js"></script>
 

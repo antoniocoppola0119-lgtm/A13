@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface UserProfileRepository extends JpaRepository<UserProfile, Integer> {
 
@@ -20,5 +22,5 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Intege
             "LOWER(u.surname) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
             "LOWER(u.email) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
             "LOWER(u.nickname) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
-    Page<UserProfile> searchByNameSurnameEmailOrNickname(String searchTerm, Pageable pageable);
+    List<UserProfile> searchByNameSurnameEmailOrNickname(String searchTerm);
 }

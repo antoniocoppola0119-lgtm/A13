@@ -7,6 +7,7 @@ import com.g2.components.UserProfileComponent;
 import com.g2.interfaces.ServiceManager;
 import com.g2.model.GameConfigData;
 import com.g2.model.User;
+import com.g2.model.UserProfile;
 import com.g2.model.dto.GameProgressDTO;
 import com.g2.model.dto.PlayerProgressDTO;
 import com.g2.model.dto.ResponseTeamComplete;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -85,6 +87,19 @@ public class UserProfileController {
         return ResponseEntity.ok(users);
     }
 
+    @GetMapping("/profile/social/allUsers")
+    public ResponseEntity<List<UserProfile>> getUsers(
+            @RequestParam String searchTerm
+    ) {
+                List<UserProfile> result = (List<UserProfile>) serviceManager.handleRequest(
+                "T23",
+                "searchUserProfiles",
+                searchTerm
+        );
+
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping("/profile")
     public String profilePagePersonal(Model model) {
         PageBuilder profilePage = new PageBuilder(serviceManager, "profile", model, JwtRequestContext.getJwtToken());
@@ -95,6 +110,8 @@ public class UserProfileController {
         PlayerProgressDTO playerProgress = (PlayerProgressDTO) serviceManager.handleRequest("T23", "getPlayerProgressAgainstAllOpponent", userId);
         List<GameProgressDTO> achievements = playerProgress.getGameProgressesDTO();
         Set<String> globalAchievements = playerProgress.getGlobalAchievements();
+        System.out.println("globalAchievements: " + globalAchievements);
+        System.out.println("achievements: " + achievements);
         model.addAttribute("gamemode_achievements", achievements);
         model.addAttribute("general_achievements", globalAchievements);
         model.addAttribute("userCurrentExperience", playerProgress.getExperiencePoints());

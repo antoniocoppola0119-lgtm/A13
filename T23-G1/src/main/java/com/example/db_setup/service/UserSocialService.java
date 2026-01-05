@@ -118,9 +118,8 @@ public class UserSocialService {
 
 
     // Metodo di ricerca per nome, cognome, email o nickname
-    public Page<UserProfile> searchUserProfiles(String searchTerm, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return userProfileRepository.searchByNameSurnameEmailOrNickname(searchTerm, pageable);
+    public List<UserProfile> searchUserProfiles(String searchTerm) {
+        return userProfileRepository.searchByNameSurnameEmailOrNickname(searchTerm);
     }
 
     /*

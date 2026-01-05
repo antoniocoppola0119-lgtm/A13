@@ -30,12 +30,10 @@ public class UserSocialController {
      *
      */
     @GetMapping("/searchUserProfiles")
-    public Page<UserProfile> searchUserProfiles(
-            @RequestParam String searchTerm,
-            @RequestParam int page,
-            @RequestParam int size) {
-
-        return userSocialService.searchUserProfiles(searchTerm, page, size);
+    public List<UserProfile> searchUserProfiles(
+            @RequestParam String searchTerm
+            ) {
+        return userSocialService.searchUserProfiles(searchTerm);
     }
 
     @GetMapping("/user_by_email")

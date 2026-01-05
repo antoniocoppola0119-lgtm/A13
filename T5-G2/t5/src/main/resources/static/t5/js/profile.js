@@ -3,15 +3,17 @@
  * Gestione livello, esperienza, progress bar e rank utente
  */
 
-// ---------------------------
-//    CONFIGURAZIONE RANGHI
-// ---------------------------
 
 let isEditingBio = false;
 let allGames = [];
 let currentPage = 0;
+let allUsersCache = [];
 const PAGE_SIZE = 3;
-
+let searchTimeout = null;
+window.currentFollowing = [];
+window.currentFollowers = [];
+window.lastSearchResults = [];
+window.lastSearchTerm = "";
 
 const availableAvatars = [
     "default.png",
@@ -78,7 +80,6 @@ const rankData = [
         description: "La copertura è quasi totale. Non stai più inseguendo bug: stai progettando affidabilità."
     }
 ];
-
 
 function openAvatarModal() {
     console.log("openAvatarModal called");
@@ -148,6 +149,11 @@ function updateRankUI() {
     // Aggiorna nome e immagine
     const rankNameEl = document.getElementById("currentRankName");
     const rankImageEl = document.getElementById("rankImage");
+
+    const bioTextEl = document.getElementById("bio-text");
+    if (bioTextEl) {
+        bioTextEl.textContent = rank.description || "...";
+    }
 
     if (rankNameEl) rankNameEl.textContent = rank.name;
     if (rankImageEl) rankImageEl.src = rank.image;
@@ -274,36 +280,20 @@ function loadSocialData() {
     socialLoaded = true;
 }
 
-function loadFollowing() {
-    $.ajax({
-        url: `/profile/social/following/${userId}`,
-        type: "GET",
-        dataType: "json",
-        success: function (followingUsers) {
-            // Salviamo la lista dei following in una variabile globale temporanea
-            window.currentFollowing = followingUsers || [];
-            renderFollowing(followingUsers);
-        },
-        error: function (xhr, status, error) {
-            console.error("Errore following:", error);
-        }
-    });
+async function loadFollowing() {
+    const response = await fetch("/profile/social/following/" + userId);
+    const data = await response.json();
+
+    window.currentFollowing = data;
+    renderFollowing(data);
 }
 
-function loadFollowers() {
-    $.ajax({
-        url: `/profile/social/followers/${userId}`,
-        type: "GET",
-        dataType: "json",
-        success: function (followers) {
-            // Passiamo anche la lista dei following per disabilitare il pulsante "Segui"
-            const followingUsers = window.currentFollowing || [];
-            renderFollowers(followers, followingUsers);
-        },
-        error: function (xhr, status, error) {
-            console.error("Errore followers:", error);
-        }
-    });
+async function loadFollowers() {
+    const response = await fetch("/profile/social/followers/" + userId);
+    const data = await response.json();
+
+    window.currentFollowers = data;
+    renderFollowers(data, window.currentFollowing);
 }
 
 
@@ -331,22 +321,6 @@ function switchMainView(view) {
     else if (view === "stats") {
         updateRankUI();
     }
-}
-
-function switchSocialTab(tab) {
-    document.querySelectorAll(".social-list-container").forEach(c => {
-        c.style.display = "none";
-        c.classList.remove("active");
-    });
-
-    document.querySelectorAll(".tab-btn").forEach(b => {
-        b.classList.remove("active");
-    });
-
-    document.getElementById(`${tab}List`).style.display = "block";
-    document.getElementById(`${tab}List`).classList.add("active");
-
-    event.currentTarget.classList.add("active");
 }
 
 function renderFollowing(users) {
@@ -430,28 +404,97 @@ function renderFollowers(users, followingUsers = []) {
 }
 
 function showFollowing() {
+    resetTabs();
     document.getElementById("followingList").classList.remove("d-none");
-    document.getElementById("followersList").classList.add("d-none");
-
     document.getElementById("btnFollowing").classList.add("active");
-    document.getElementById("btnFollowers").classList.remove("active");
 }
 
 function showFollowers() {
+    resetTabs();
     document.getElementById("followersList").classList.remove("d-none");
-    document.getElementById("followingList").classList.add("d-none");
-
     document.getElementById("btnFollowers").classList.add("active");
-    document.getElementById("btnFollowing").classList.remove("active");
 }
 
+function showSearch() {
+    resetTabs();
+    document.getElementById("searchSection").classList.remove("d-none");
+    document.getElementById("btnSearch").classList.add("active");
+}
+
+async function loadAllUsers(searchTerm) {
+    window.lastSearchTerm = searchTerm;
+
+    const response = await fetch(
+        `/profile/social/allUsers?searchTerm=${encodeURIComponent(searchTerm)}`
+    );
+
+    const data = await response.json();
+    window.lastSearchResults = data;
+
+    renderSearchResults(data);
+}
+
+function renderSearchResults(users) {
+    const ul = document.getElementById("searchResults");
+    const profileId = Number(document.getElementById("userProfileId").value);
+    const followingUsers = window.currentFollowing || [];
+
+    ul.innerHTML = "";
+
+    if (!users || users.length === 0) {
+        ul.innerHTML = `<li class="text-muted">Nessun utente trovato</li>`;
+        return;
+    }
+
+    // 🔹 rimuove il profilo dell'utente loggato
+    const filteredUsers = users.filter(user => user.id !== profileId);
+
+    if (filteredUsers.length === 0) {
+        ul.innerHTML = `<li class="text-muted">Nessun utente trovato</li>`;
+        return;
+    }
+
+    filteredUsers.forEach(user => {
+        const alreadyFollowing = followingUsers.some(f => f.id === user.id);
+
+        const li = document.createElement("li");
+        li.className = "social-item d-flex align-items-center justify-content-between";
+
+        li.innerHTML = `
+            <div class="d-flex align-items-center gap-3">
+                <img src="${user.profilePicturePath || '/t5/images/profileImages/default.png'}"
+                     class="social-avatar">
+                <div class="social-info">
+                    <strong>${user.nickname}</strong><br>
+                    <span class="text-muted small">${user.name} ${user.surname}</span>
+                </div>
+            </div>
+
+            <button class="btn btn-sm ${alreadyFollowing ? 'btn-outline-danger' : 'btn-outline-primary'}"
+                    onclick="toggleFollow(${user.id}, 'search')">
+                ${alreadyFollowing ? 'Smetti di seguire' : 'Segui'}
+            </button>
+        `;
+
+        ul.appendChild(li);
+    });
+}
+
+function resetTabs() {
+    document.getElementById("followingList").classList.add("d-none");
+    document.getElementById("followersList").classList.add("d-none");
+    document.getElementById("searchSection").classList.add("d-none");
+
+    document.getElementById("btnFollowing").classList.remove("active");
+    document.getElementById("btnFollowers").classList.remove("active");
+    document.getElementById("btnSearch").classList.remove("active");
+}
 /**
  * targetUserId: id dell'utente su cui si clicca
  * type: "followers" se si clicca nella lista dei follower (Segui)
  *       "following" se si clicca nella lista dei following (Smetti di seguire)
  */
 async function toggleFollow(targetUserId, type) {
-
     const profileId = document.getElementById("userProfileId").value;
 
     try {
@@ -464,22 +507,20 @@ async function toggleFollow(targetUserId, type) {
             body: formData
         });
 
-        if (response.ok) {
-            loadFollowers();
-            loadFollowing();
-        } else {
-            console.error("Errore toggle follow:", response);
-            alert("Errore durante l'operazione di follow.");
+        if (!response.ok) throw new Error("Toggle failed");
+
+        await loadFollowing();
+        await loadFollowers();
+
+        if (window.lastSearchResults.length > 0) {
+            renderSearchResults(window.lastSearchResults);
         }
+
     } catch (err) {
         console.error(err);
-        alert("Errore di connessione al server.");
+        alert("Errore durante l'operazione di follow.");
     }
 }
-
-
-
-
 
 function fetchGameHistory(playerId) {
     $.ajax({
@@ -522,31 +563,31 @@ function renderCurrentPage() {
 
         const achievementsText =
             game.achievements && game.achievements.length > 0
-                ? game.achievements.join(", ")
+                ? game.achievements
+                    .map(ach => achievementData[ach]?.name || ach)
+                    .join(", ")
                 : "Nessun achievement";
 
         const li = document.createElement("li");
         li.className = "match-item";
         li.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <strong>${game.type}</strong>
-            
-                    <span class="text-muted small">
-                        <strong>classUT :</strong> ${game.classUT} ${game.gameMode} • ${game.difficulty}
-                    </span>
-            
-                    <span class="text-muted small">
-                        ${achievementsText}
-                    </span>
-                </div>
-            
-                <div>
-                    ${badge}
-                </div>
-            </div>
+    <div class="match-content">
+        <strong>${game.type}</strong>
 
-        `;
+        <div class="match-meta">
+            <span><strong>classUT:</strong> ${game.classUT}</span>
+            <span>${game.gameMode}</span>
+            <span>• ${game.difficulty}</span>
+        </div>
+
+        <div class="match-achievements">
+            ${achievementsText}
+        </div>
+        <div class="match-badge">
+            ${badge}
+        </div>
+    </div>
+`;
 
         container.appendChild(li);
     });
@@ -570,6 +611,8 @@ function updateButtons() {
 // ---------------------------
 
 document.addEventListener("DOMContentLoaded", () => {
+
+    console.log(general_achievements);
 
     const profileImage = document.getElementById("profileImage");
     if (!profileImage.src || profileImage.naturalWidth === 0) {
@@ -721,5 +764,173 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    document.querySelector('option[value="PartitaSingola"]').textContent = gameMode.PartitaSingola;
+    document.querySelector('option[value="General"]').textContent = general;
+
+    let progressContainer = document.querySelector('.progress_container');
+    let progress = parseFloat(progressContainer.getAttribute('data-progress'));
+    let progressFill = document.querySelector(".progress_fill");
+    // Rapporto il progresso al perimetro della progress bar (2*pi*r con r=50)
+    let offset = 314 * (1 - progress);
+    progressFill.style.strokeDashoffset = offset;
+
+    function groupBy(array, key) {
+        return array.reduce((result, item) => {
+            (result[item[key]] = result[item[key]] || []).push(item);
+            return result;
+        }, {});
+    }
+
+    function renderGeneralAchievements(containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+
+        if (!general_achievements || general_achievements.length === 0) {
+            container.innerHTML = `
+            <div class="text-center mt-3 fw-bold">
+                ${no_achievement_message}
+            </div>`;
+            return;
+        }
+
+        const achievementsContainer = document.createElement("div");
+        achievementsContainer.classList.add("achievements-container");
+
+        general_achievements.forEach(ach => {
+            const achDiv = document.createElement("div");
+            achDiv.classList.add("achievement-item");
+            achDiv.innerHTML = `
+            <img src="/images/achievements/${ach}.png"
+                 alt="${achievementData[ach]?.name || ach}">
+            <div class="achievement-info">
+                <h6>${achievementData[ach]?.name || ach}</h6>
+                <p>${achievementData[ach]?.descr || ""}</p>
+            </div>
+        `;
+            achievementsContainer.appendChild(achDiv);
+        });
+
+        container.appendChild(achievementsContainer);
+    }
+
+
+    function renderGameModeAchievements(containerId, selectedMode) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+
+        let hasAchievements = false;
+
+        if (!gamemode_achievements || gamemode_achievements.length === 0) {
+            container.innerHTML = `
+            <div class="text-center mt-3 fw-bold">
+                ${no_achievement_message}
+            </div>`;
+            return;
+        }
+
+        const filtered = gamemode_achievements.filter(
+            a => a.gameMode === selectedMode
+        );
+
+        const groupedByClassUT = groupBy(filtered, "classUT");
+
+        for (let classUT in groupedByClassUT) {
+            const classUTDiv = document.createElement("div");
+            classUTDiv.innerHTML = `<div class="class-ut">${classUT}</div>`;
+
+            const groupedByRobot = groupBy(groupedByClassUT[classUT], "type");
+
+            for (let robotType in groupedByRobot) {
+                const robotDiv = document.createElement("div");
+                const groupedByDifficulty = groupBy(groupedByRobot[robotType], "difficulty");
+
+                for (let difficulty in groupedByDifficulty) {
+                    const difficultyText =
+                        difficulty === "EASY" ? difficultyTranslation.easy :
+                            difficulty === "MEDIUM" ? difficultyTranslation.medium :
+                                difficultyTranslation.hard;
+
+                    const difficultyTitle = document.createElement("div");
+                    difficultyTitle.classList.add("robot-difficulty");
+                    difficultyTitle.textContent = `${robotType} - ${difficultyText}`;
+
+                    const achievementsContainer = document.createElement("div");
+                    achievementsContainer.classList.add("achievements-container");
+
+                    groupedByDifficulty[difficulty].forEach(entry => {
+                        entry.achievements?.forEach(ach => {
+                            const achDiv = document.createElement("div");
+                            achDiv.classList.add("achievement-item");
+                            achDiv.innerHTML = `
+                            <img src="/images/achievements/${ach}.png"
+                                 alt="${achievementData[ach]?.name || ach}">
+                            <div class="achievement-info">
+                                <h6>${achievementData[ach]?.name || ach}</h6>
+                                <p>${achievementData[ach]?.descr || ""}</p>
+                            </div>
+                        `;
+                            achievementsContainer.appendChild(achDiv);
+                            hasAchievements = true;
+                        });
+                    });
+
+                    if (achievementsContainer.children.length > 0) {
+                        robotDiv.appendChild(difficultyTitle);
+                        robotDiv.appendChild(achievementsContainer);
+                    }
+                }
+
+                classUTDiv.appendChild(robotDiv);
+            }
+
+            if (classUTDiv.children.length > 1) {
+                container.appendChild(classUTDiv);
+            }
+        }
+
+        if (!hasAchievements) {
+            container.innerHTML = `
+            <div class="text-center mt-3 fw-bold">
+                ${no_achievement_message}
+            </div>`;
+        }
+    }
+
+
+    document.getElementById("game-mode-select")
+        .addEventListener("change", function () {
+
+            const modalEl = document.getElementById("achievementsModal");
+            const modal = new bootstrap.Modal(modalEl);
+            const containerId = "achievements-modal-container";
+            const title = document.getElementById("achievementsModalTitle");
+
+            if (this.value === "General") {
+                title.textContent = "Obiettivi Generici";
+                renderGeneralAchievements(containerId);
+            } else {
+                title.textContent = `Obiettivi – ${this.value}`;
+                renderGameModeAchievements(containerId, this.value);
+            }
+
+            modal.show();
+        });
+
+    document.getElementById("achievementsModal")
+        .addEventListener("hidden.bs.modal", () => {
+            document.activeElement?.blur();
+        });
+
+    document.getElementById("userSearchInput").addEventListener("input", (e) => {
+        const term = e.target.value.trim();
+        console.log(term);
+
+        clearTimeout(searchTimeout);
+
+        // debounce → evita 200 chiamate al secondo
+        searchTimeout = setTimeout(() => {
+            loadAllUsers(term);
+        }, 300);
+    });
 
 });

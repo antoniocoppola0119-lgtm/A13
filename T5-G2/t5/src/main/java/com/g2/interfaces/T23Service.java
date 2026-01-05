@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.data.domain.Page;
 import testrobotchallenge.commons.models.dto.auth.JwtValidationResponseDTO;
 import testrobotchallenge.commons.models.opponent.GameMode;
 import testrobotchallenge.commons.models.opponent.OpponentDifficulty;
@@ -38,6 +39,7 @@ import testrobotchallenge.commons.models.opponent.OpponentDifficulty;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashMap;
 
 @Service
 public class T23Service extends BaseService {
@@ -141,6 +143,11 @@ public class T23Service extends BaseService {
         registerAction("getFollowing", new ServiceActionDefinition(
                 params -> getFollowing((Long) params[0]),
                 Long.class
+        ));
+
+        registerAction("searchUserProfiles", new ServiceActionDefinition(
+                params -> searchUserProfiles((String) params[0]),
+                String.class
         ));
     }
 
@@ -407,6 +414,19 @@ public class T23Service extends BaseService {
         );
     }
 
+    public List<UserProfile> searchUserProfiles(String searchTerm) {
+        final String endpoint = "/profile/searchUserProfiles";
+        logger.info("[DEBUG] GET searchUserProfiles Endpoint: " + endpoint + "con parametri: " + searchTerm);
+
+        Map<String, String> params = new HashMap<>();
+        params.put("searchTerm", searchTerm);
+
+        return callRestGET(
+                endpoint,
+                params,
+                new ParameterizedTypeReference<List<UserProfile>>() {}
+        );
+    }
 
     private List<GameProgressDTO> getPlayerGameHistory(Long playerId) {
         final String endpoint = "/games/player/" + playerId;
