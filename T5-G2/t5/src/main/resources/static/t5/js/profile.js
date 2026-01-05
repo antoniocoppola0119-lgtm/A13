@@ -131,58 +131,77 @@ function updateRankUI() {
     const levelEl = document.querySelector(".progress_value");
     if (!levelEl) return;
 
-    // Prendi il livello dall'HTML
+    const maxLevel = rankData.length;
     let levelText = levelEl.textContent.trim();
     let level = 1;
 
-    if (levelText.includes("Lv.")) {
-        level = parseInt(levelText.replace("Lv.", "").trim(), 10);
-    } else if (levelText.includes("MAX")) {
-        level = rankData.length;
+    if (levelText.includes("MAX")) {
+        level = maxLevel;
+    } else if (levelText.includes("Lv.")) {
+        level = parseInt(levelText.replace("Lv.", ""), 10) || 1;
     }
 
-    // Prendi il rank corrispondente
-    const rank = rankData[Math.min(level - 1, rankData.length - 1)];
+    const isMax = level >= maxLevel;
+    if (isMax) {
+        level = maxLevel;
+        levelEl.textContent = "Lv. MAX";
+    }
 
-    console.log("rango giocatore: ", rank);
+    const rank = rankData[level - 1];
 
-    // Aggiorna nome e immagine
     const rankNameEl = document.getElementById("currentRankName");
     const rankImageEl = document.getElementById("rankImage");
-
     const bioTextEl = document.getElementById("bio-text");
+
+    if (rankNameEl) {
+        rankNameEl.textContent = rank.name;
+
+        // 🔔 badge MAX
+        rankNameEl.querySelector(".rank-badge-max")?.remove();
+        if (isMax) {
+            const badge = document.createElement("span");
+            badge.className = "rank-badge-max";
+            badge.textContent = "MAX";
+            rankNameEl.appendChild(badge);
+        }
+    }
+
+    if (rankImageEl) {
+        rankImageEl.src = rank.image;
+        rankImageEl.classList.toggle("rank-max", isMax);
+    }
+
     if (bioTextEl) {
         bioTextEl.textContent = rank.description || "...";
     }
 
-    if (rankNameEl) rankNameEl.textContent = rank.name;
-    if (rankImageEl) rankImageEl.src = rank.image;
-
-    // ---- PROGRESSIONE CERCHIO ----
-    const expRemainingEl = document.getElementById("expRemaining");
+    // 🌀 CERCHIO
     const progressFill = document.getElementById("progressFill");
+    if (!progressFill) return;
 
-    if (expRemainingEl && progressFill) {
-        console.log("dati necessari per il cerchio trovati");
-        const expRemaining = parseFloat(expRemainingEl.textContent.trim()) || 0;
-        const expPerLevelEl = document.getElementById("expPerLevel");
-        const expPerLevel = expPerLevelEl ? parseFloat(expPerLevelEl.textContent.trim()) : 1000;
-        console.log(expRemaining);
-        console.log(expPerLevel);
-        let pct = (expPerLevel - expRemaining) / expPerLevel;
-        console.log(pct);
+    const radius = 50;
+    const circumference = 2 * Math.PI * radius;
+    progressFill.style.strokeDasharray = circumference;
 
-        // Se siamo al livello massimo, barra piena
-        if (level === rankData.length) pct = 1;
-
-        const radius = 50;
-        const circumference = 2 * Math.PI * radius;
-
-        progressFill.style.strokeDasharray = `${circumference}`;
-        progressFill.style.strokeDashoffset = `${circumference - pct * circumference}`;
+    if (isMax) {
+        progressFill.style.strokeDashoffset = 0;
+        return;
     }
-}
 
+    const expRemainingEl = document.getElementById("expRemaining");
+    const expPerLevelEl = document.getElementById("expPerLevel");
+
+    const expRemaining = expRemainingEl
+        ? parseFloat(expRemainingEl.textContent) || 0
+        : 0;
+
+    const expPerLevel = expPerLevelEl
+        ? parseFloat(expPerLevelEl.textContent) || 1000
+        : 1000;
+
+    const pct = Math.max(0, Math.min(1, (expPerLevel - expRemaining) / expPerLevel));
+    progressFill.style.strokeDashoffset = circumference - pct * circumference;
+}
 
 
 // ---------------------------
