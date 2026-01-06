@@ -71,6 +71,7 @@ public class UserProfileController {
         return searchPage.handlePageRequest();
     }
 
+    //quando il giocatore richiede una lista dei suoi seguiti
     @GetMapping("/profile/social/following/{playerID}")
     public ResponseEntity<List<User>> getFollowing(@PathVariable Long playerID) {
         List<User> users = (List<User>) serviceManager.handleRequest(
@@ -79,6 +80,7 @@ public class UserProfileController {
         return ResponseEntity.ok(users);
     }
 
+    //quando il giocatore richiede una lista di chi lo segue
     @GetMapping("/profile/social/followers/{playerID}")
     public ResponseEntity<List<User>> getFollowers(@PathVariable Long playerID) {
         List<User> users = (List<User>) serviceManager.handleRequest(
@@ -87,6 +89,7 @@ public class UserProfileController {
         return ResponseEntity.ok(users);
     }
 
+    //quando il giocatore richiede una lista di tutti i profili
     @GetMapping("/profile/social/allUsers")
     public ResponseEntity<List<UserProfile>> getUsers(
             @RequestParam String searchTerm
@@ -100,6 +103,7 @@ public class UserProfileController {
         return ResponseEntity.ok(result);
     }
 
+    //unita pagina profilo e pagina Achievements, quindi qui vengono presi anche i progressi del giocatore
     @GetMapping("/profile")
     public String profilePagePersonal(Model model) {
         PageBuilder profilePage = new PageBuilder(serviceManager, "profile", model, JwtRequestContext.getJwtToken());
@@ -110,8 +114,6 @@ public class UserProfileController {
         PlayerProgressDTO playerProgress = (PlayerProgressDTO) serviceManager.handleRequest("T23", "getPlayerProgressAgainstAllOpponent", userId);
         List<GameProgressDTO> achievements = playerProgress.getGameProgressesDTO();
         Set<String> globalAchievements = playerProgress.getGlobalAchievements();
-        System.out.println("globalAchievements: " + globalAchievements);
-        System.out.println("achievements: " + achievements);
         model.addAttribute("gamemode_achievements", achievements);
         model.addAttribute("general_achievements", globalAchievements);
         model.addAttribute("userCurrentExperience", playerProgress.getExperiencePoints());
@@ -197,6 +199,7 @@ public class UserProfileController {
         return images;
     }
 
+    //Quando il giocatore richiede di salvare il proprio profilo
     @PostMapping("/profile/save")
     public ResponseEntity<Void> saveProfile(@RequestParam String email,
                                             @RequestParam String bio,
@@ -216,6 +219,7 @@ public class UserProfileController {
         return ResponseEntity.ok().build();
     }
 
+    //Quando il giocatore richiede di follow/unfollow un altro giocatore
     @PostMapping("/profile/toggle_follow")
     public ResponseEntity<Void> toggleFollow(
             @RequestParam Long profileId,
@@ -249,6 +253,7 @@ public class UserProfileController {
         return editProfilePage.handlePageRequest();
     }
 
+    //Quando il giocatore richiede lo storico delle sue partite
     @GetMapping("/profile/game-history/{playerId}")
     public ResponseEntity<List<GameProgressDTO>> getGameHistory(
             @PathVariable Long playerId

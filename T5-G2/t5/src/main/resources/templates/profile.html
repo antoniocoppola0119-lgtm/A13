@@ -19,25 +19,6 @@
         <h1 class="page-title">Profilo</h1>
 
         <div class="header-controls">
-            <div class="dropdown-wrapper">
-                <button id="soundMenuBtn" class="btn-outline small icon-only" onclick="toggleSoundMenu()">
-                    <i class="bi bi-volume-up" id="mainSoundIcon"></i>
-                </button>
-                <div id="soundDropdown" class="custom-dropdown sound-dropdown">
-                    <div class="sound-toggle-row" onclick="toggleMuteState()">
-                        <span id="soundStatusText">Audio: ON</span>
-                        <i class="bi bi-toggle-on" id="soundToggleIcon"></i>
-                    </div>
-                    <div class="dropdown-divider"></div>
-                    <div class="dropdown-label">Pacchetto Suoni</div>
-                    <div class="sound-options-list">
-                        <div class="sound-item active" id="opt_spartan" onclick="setSoundProfile('spartan')"><i class="bi bi-shield-alt"></i> Spartan</div>
-                        <div class="sound-item" id="opt_covenant" onclick="setSoundProfile('covenant')"><i class="bi bi-globe-asia"></i> Covenant</div>
-                        <div class="sound-item" id="opt_retro" onclick="setSoundProfile('retro')"><i class="bi bi-gamepad"></i> 8-Bit</div>
-                        <div class="sound-item" id="opt_heavy" onclick="setSoundProfile('heavy')"><i class="bi bi-cog"></i> Heavy</div>
-                    </div>
-                </div>
-            </div>
 
             <div class="dropdown-wrapper">
                 <button id="notifBtn" class="btn-outline small icon-only" onclick="toggleNotifications()">
@@ -104,14 +85,13 @@
                         </button>
                     </div>
 
-                    <!-- BIO VISUALIZZATA -->
+                    <!-- BIO -->
                     <p class="bio-text"
                        id="bioText"
                        th:text="${user.userProfile.bio}">
                         Bio utente
                     </p>
 
-                    <!-- BIO MODIFICABILE -->
                     <textarea id="bioInput"
                               class="bio-textarea"
                               style="display: none;"
@@ -119,7 +99,6 @@
         </textarea>
                 </div>
 
-                <!-- Pulsante per salvare le modifiche -->
                 <button id="saveProfileBtn"
                         class="btn btn-primary"
                         title="Salva modifiche">
@@ -174,8 +153,8 @@
                             </div>
                         </div>
                         <div class="text-center">
-                            <h4 id="expRemaining" class="mb-0 fw-semibold lh-1" th:text="${expPerLevel - (userCurrentExperience % expPerLevel)}"></h4>
-                            <p class="mb-0 fs-5" th:text="#{exp_next_level_label}"></p>
+                            <h4 id="expRemaining" class="mb-0 fw-semibold lh-1" th:text="${(userCurrentExperience / expPerLevel) + startingLevel == maxLevel} ? 'MAX raggiunto' : ${expPerLevel - (userCurrentExperience % expPerLevel)}"></h4>
+                            <p class="mb-0 fs-5" th:text="${(userCurrentExperience / expPerLevel) + startingLevel == maxLevel} ? ' ' : #{exp_next_level_label}"></p>
                         </div>
                     </div>
                 </div>
@@ -195,6 +174,7 @@
                 </div>
             </div>
 
+            <!-- PARTITE -->
             <div id="view-matches" class="view-section" style="display:none;">
                 <div class="card activity-card">
                         <h3 class="section-title">
@@ -203,7 +183,6 @@
 
                         <ul class="match-list" id="matchListArea"></ul>
 
-                        <!-- CONTROLLI PAGINAZIONE -->
                         <div class="d-flex justify-content-between mt-3">
                             <button id="prevMatchesBtn" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-chevron-left"></i> Indietro
@@ -220,7 +199,7 @@
                 <div class="card social-hub-card">
                     <h3><i class="bi bi-satellite-dish"></i> Social</h3>
 
-                    <!-- BUTTON GROUP FOLLOWING/FOLLOWERS -->
+                    <!-- SOCIAL -->
                     <div class="btn-group w-100 mb-3" role="group">
                         <button id="btnFollowing"
                                 class="btn btn-outline-primary active"
@@ -316,23 +295,6 @@
                 <div id="achievements-modal-container"></div>
             </div>
 
-        </div>
-    </div>
-</div>
-
-<div id="rematchModal" class="modal-overlay">
-    <div class="modal-window small-modal">
-        <div class="modal-header warning-header">
-            <h2><i class="bi bi-exclamation-triangle"></i> Sfida</h2>
-            <button class="close-modal" onclick="closeRematchModal()"><i class="bi bi-times"></i></button>
-        </div>
-        <div class="modal-body center-content">
-            <p class="rematch-text">Vuoi sfidare di nuovo:</p>
-            <h2 id="rematchOpponentName" class="opponent-name">OPPONENT</h2>
-            <div class="modal-actions">
-                <button class="btn-modal btn-cancel" onclick="closeRematchModal()">No</button>
-                <button class="btn-modal btn-confirm" onclick="confirmRematch()">Sì</button>
-            </div>
         </div>
     </div>
 </div>

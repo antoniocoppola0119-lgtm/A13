@@ -175,18 +175,20 @@ function updateRankUI() {
         bioTextEl.textContent = rank.description || "...";
     }
 
-    // 🌀 CERCHIO
     const progressFill = document.getElementById("progressFill");
     if (!progressFill) return;
 
     const radius = 50;
     const circumference = 2 * Math.PI * radius;
+
     progressFill.style.strokeDasharray = circumference;
 
     if (isMax) {
-        progressFill.style.strokeDashoffset = 0;
+
+        progressFill.style.strokeDasharray = 0;
         return;
     }
+
 
     const expRemainingEl = document.getElementById("expRemaining");
     const expPerLevelEl = document.getElementById("expPerLevel");
@@ -199,8 +201,13 @@ function updateRankUI() {
         ? parseFloat(expPerLevelEl.textContent) || 1000
         : 1000;
 
-    const pct = Math.max(0, Math.min(1, (expPerLevel - expRemaining) / expPerLevel));
+    const pct = Math.max(
+        0,
+        Math.min(1, (expPerLevel - expRemaining) / expPerLevel)
+    );
+
     progressFill.style.strokeDashoffset = circumference - pct * circumference;
+
 }
 
 

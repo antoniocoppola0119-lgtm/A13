@@ -382,8 +382,8 @@ public class T23Service extends BaseService {
 
     /*
      *   Metodo per follow/unfollow di un utente
-     *   il targetUserId + chi viene seguito
-     *   il authUserId è chi segue
+     *   il targetUserId è il profilo che viene selezionato
+     *   il profileId è il profilo che seleziona
      */
     public Boolean ToggleFollow(Long profileId, Long targetUserId) {
         final String endpoint = "/profile/toggle_follow";
@@ -394,9 +394,9 @@ public class T23Service extends BaseService {
         return callRestPost(endpoint, map, null, Boolean.class);
     }
 
+    //metodo per ottenere tutti i followers di un profilo a partire dal suo id
     public List<UserProfile> getFollowers(Long userId) {
         final String endpoint = "/profile/followers/" + userId;
-        logger.info("[DEBUG] GET Followers Endpoint: " + endpoint); // <-- stampa l'endpoint
         return callRestGET(
                 endpoint,
                 null,
@@ -404,9 +404,9 @@ public class T23Service extends BaseService {
         );
     }
 
+    //metodo per ottenere tutti i following di un profilo a partire dal suo id
     public List<UserProfile> getFollowing(Long userId) {
         final String endpoint = "/profile/following/" + userId;
-        logger.info("[DEBUG] GET Following Endpoint: " + endpoint);
         return callRestGET(
                 endpoint,
                 null,
@@ -414,9 +414,9 @@ public class T23Service extends BaseService {
         );
     }
 
+    //metodo per la ricerca dei profili dei giocatori partendo da un termine di ricerca
     public List<UserProfile> searchUserProfiles(String searchTerm) {
         final String endpoint = "/profile/searchUserProfiles";
-        logger.info("[DEBUG] GET searchUserProfiles Endpoint: " + endpoint + "con parametri: " + searchTerm);
 
         Map<String, String> params = new HashMap<>();
         params.put("searchTerm", searchTerm);
@@ -428,6 +428,7 @@ public class T23Service extends BaseService {
         );
     }
 
+    //metodo per ottenere lo storico delle partite di un giocatore
     private List<GameProgressDTO> getPlayerGameHistory(Long playerId) {
         final String endpoint = "/games/player/" + playerId;
 
