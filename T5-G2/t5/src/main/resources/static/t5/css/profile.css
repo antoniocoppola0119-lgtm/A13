@@ -164,6 +164,15 @@ body {
     margin: 0 auto 18px;
 }
 
+.avatar-choice {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+
 .avatar-container img {
     width: 100%;
     height: 100%;

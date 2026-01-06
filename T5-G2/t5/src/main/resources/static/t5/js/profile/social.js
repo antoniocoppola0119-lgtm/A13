@@ -68,24 +68,26 @@ export function renderFollowing(users) {
         li.className = "social-item d-flex align-items-center justify-content-between";
 
         li.innerHTML = `
-            <div class="d-flex align-items-center gap-3">
-                <img src="${user?.profilePicturePath || 't5/images/profileImages/default.png'}"
-                     class="social-avatar">
-
-                <div class="social-info">
-                    <strong>${user.nickname}</strong><br>
-                    <span class="text-muted small">${user.name} ${user.surname}</span>
-                </div>
+        <div class="d-flex align-items-center gap-3">
+            <img src="${user?.profilePicturePath || 't5/images/profileImages/default.png'}"
+                 class="social-avatar">
+            <div class="social-info">
+                <strong>${user.nickname}</strong><br>
+                <span class="text-muted small">${user.name} ${user.surname}</span>
             </div>
+        </div>
+        <button class="btn btn-outline-danger btn-sm follow-btn"
+                data-user-id="${user.id}">
+            Smetti di seguire
+        </button>
+    `;
 
-            <button class="btn btn-outline-danger btn-sm"
-                    onclick="toggleFollow(${user.id},'following')">
-                Smetti di seguire
-            </button>
-        `;
+        li.querySelector(".follow-btn")
+            .addEventListener("click", () => toggleFollow(user.id));
 
         ul.appendChild(li);
     });
+
 }
 
 export function renderFollowers(users, followingUsers = []) {
@@ -107,27 +109,31 @@ export function renderFollowers(users, followingUsers = []) {
         const alreadyFollowing = followingUsers.some(f => f.id === user.id);
         const btnText = alreadyFollowing ? "Già seguito" : "Segui";
         const btnClass = alreadyFollowing ? "btn-secondary" : "btn-primary";
-        const btnDisabled = alreadyFollowing ? "disabled" : "";
 
         li.innerHTML = `
-            <div class="d-flex align-items-center gap-3">
-                <img src="${user?.profilePicturePath || 't5/images/profileImages/default.png'}"
-                     class="social-avatar">
+        <div class="d-flex align-items-center gap-3">
+            <img src="${user?.profilePicturePath || '/t5/images/profileImages/default.png'}"
+                 class="social-avatar">
 
-                <div class="social-info">
-                    <strong>${user?.nickname || "Utente"}</strong><br>
-                    <span class="text-muted small">${user.name} ${user.surname}</span>
-                </div>
+            <div class="social-info">
+                <strong>${user?.nickname || "Utente"}</strong><br>
+                <span class="text-muted small">${user.name} ${user.surname}</span>
             </div>
+        </div>
 
-            <button class="btn ${btnClass} btn-sm" ${btnDisabled}
-                    onclick="toggleFollow(${user.id},'followers')">
-                ${btnText}
-            </button>
-        `;
+        <button class="btn ${btnClass} btn-sm follow-btn" ${alreadyFollowing ? "disabled" : ""}>
+            ${btnText}
+        </button>
+    `;
+
+        const followBtn = li.querySelector(".follow-btn");
+        if (!alreadyFollowing) {
+            followBtn.addEventListener("click", () => toggleFollow(user.id));
+        }
 
         ul.appendChild(li);
     });
+
 }
 
 export function renderSearchResults(users) {
@@ -156,23 +162,33 @@ export function renderSearchResults(users) {
         li.className = "social-item d-flex align-items-center justify-content-between";
 
         li.innerHTML = `
-            <div class="d-flex align-items-center gap-3">
-                <img src="${user.profilePicturePath || '/t5/images/profileImages/default.png'}"
-                     class="social-avatar">
-                <div class="social-info">
-                    <strong>${user.nickname}</strong><br>
-                    <span class="text-muted small">${user.name} ${user.surname}</span>
-                </div>
-            </div>
+        <div class="d-flex align-items-center gap-3">
+            <img src="${user.profilePicturePath || '/t5/images/profileImages/default.png'}"
+                 class="social-avatar">
 
-            <button class="btn btn-sm ${alreadyFollowing ? 'btn-outline-danger' : 'btn-outline-primary'}"
-                    onclick="toggleFollow(${user.id}, 'search')">
-                ${alreadyFollowing ? 'Smetti di seguire' : 'Segui'}
-            </button>
-        `;
+            <div class="social-info">
+                <strong>${user.nickname}</strong><br>
+                <span class="text-muted small">${user.name} ${user.surname}</span>
+            </div>
+        </div>
+
+        <button 
+            class="btn btn-sm ${alreadyFollowing ? 'btn-outline-danger' : 'btn-outline-primary'} follow-btn"
+            data-user-id="${user.id}"
+            data-context="search">
+            ${alreadyFollowing ? 'Smetti di seguire' : 'Segui'}
+        </button>
+    `;
+
+        const followBtn = li.querySelector(".follow-btn");
+        if (!alreadyFollowing) {
+            followBtn.addEventListener("click", () => toggleFollow(user.id));
+        }
 
         ul.appendChild(li);
+
     });
+
 }
 
 export function showFollowing() {

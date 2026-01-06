@@ -219,23 +219,6 @@ public class UserProfileController {
         return ResponseEntity.ok().build();
     }
 
-    //Quando il giocatore richiede di follow/unfollow un altro giocatore
-    @PostMapping("/profile/toggle_follow")
-    public ResponseEntity<Void> toggleFollow(
-            @RequestParam Long profileId,
-            @RequestParam Long targetUserId) {
-
-        serviceManager.handleRequest(
-                "T23",
-                "ToggleFollow",
-                profileId,
-                targetUserId
-        );
-
-        return ResponseEntity.ok().build();
-    }
-
-
     @GetMapping("/edit_profile")
     public String showEditProfile(Model model) {
         PageBuilder editProfilePage = new PageBuilder(serviceManager, "Edit_Profile", model, JwtRequestContext.getJwtToken());
@@ -268,6 +251,22 @@ public class UserProfileController {
                 );
 
         return ResponseEntity.ok(history);
+    }
+
+    //Quando il giocatore richiede di follow/unfollow un altro giocatore
+    @PostMapping("/profile/toggle_follow")
+    public ResponseEntity<Void> toggleFollow(
+            @RequestParam Long profileId,
+            @RequestParam Long targetUserId) {
+
+        serviceManager.handleRequest(
+                "T23",
+                "ToggleFollow",
+                profileId,
+                targetUserId
+        );
+
+        return ResponseEntity.ok().build();
     }
 
 
