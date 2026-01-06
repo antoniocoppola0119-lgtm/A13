@@ -4,16 +4,25 @@
  */
 
 
+//costanti utili
 let isEditingBio = false;
 let allGames = [];
 let currentPage = 0;
-let allUsersCache = [];
-const PAGE_SIZE = 3;
+let socialLoaded = false;
 let searchTimeout = null;
+const PAGE_SIZE = 3;
 window.currentFollowing = [];
 window.currentFollowers = [];
 window.lastSearchResults = [];
 window.lastSearchTerm = "";
+
+document.querySelector('option[value="PartitaSingola"]').textContent = gameMode.PartitaSingola;
+document.querySelector('option[value="General"]').textContent = general;
+
+const progressContainer = document.querySelector('.progress_container');
+const progressFill = document.querySelector(".progress_fill");
+const progress = parseFloat(progressContainer.getAttribute('data-progress'));
+progressFill.style.strokeDashoffset = 314 * (1 - progress);
 
 const availableAvatars = [
     "default.png",
@@ -25,7 +34,6 @@ const availableAvatars = [
     "women-2.png",
     "women-3.png",
     "women-4.png"
-    // aggiungi tutte quelle presenti in /t5/images/profileImages/
 ];
 
 const rankData = [
@@ -81,12 +89,38 @@ const rankData = [
     }
 ];
 
+const dom = {
+    bioText: document.getElementById("bioText"),
+    bioInput: document.getElementById("bioInput"),
+    saveProfileBtn: document.getElementById("saveProfileBtn"),
+    profileName: document.getElementById("profileName"),
+    nicknameInput: document.getElementById("nicknameInput"),
+    editNicknameBtn: document.getElementById("editNicknameBtn"),
+    profileImage: document.getElementById("profileImage"),
+    rankModal: document.getElementById("rankModal"),
+};
+
+// PARTE FISSA //
+
+function selectAvatar(filename) {
+    const avatarImg = dom.profileImage;
+
+    if (avatarImg) {
+        avatarImg.src = `/t5/images/profileImages/${filename}`;
+    }
+
+    const hiddenInput = document.getElementById("selectedAvatarInput");
+    if (hiddenInput) {
+        hiddenInput.value = filename;
+    }
+
+}
+
 function openAvatarModal() {
-    console.log("openAvatarModal called");
     const modal = document.getElementById("avatarPickerModal");
     const list = document.getElementById("avatarList");
 
-    list.innerHTML = ""; // reset
+    list.innerHTML = "";
 
     availableAvatars.forEach(img => {
         const element = document.createElement("img");
@@ -102,187 +136,15 @@ function openAvatarModal() {
 
 }
 
-function selectAvatar(filename) {
-    console.log("selectAvatar called");
-    const avatarImg = document.getElementById("profileImage");
-
-    if (avatarImg) {
-        avatarImg.src = `/t5/images/profileImages/${filename}`;
-    }
-
-    const hiddenInput = document.getElementById("selectedAvatarInput");
-    if (hiddenInput) {
-        hiddenInput.value = filename;
-    }
-
-}
-
 function closeAvatarModal() {
-    console.log("closeAvatarModal called");
     const modal = document.getElementById("avatarPickerModal");
     modal.classList.remove("active");
 }
 
-// ---------------------------
-//    AGGIORNA DATI UI
-// ---------------------------
-
-function updateRankUI() {
-    const levelEl = document.querySelector(".progress_value");
-    if (!levelEl) return;
-
-    const maxLevel = rankData.length;
-    let levelText = levelEl.textContent.trim();
-    let level = 1;
-
-    if (levelText.includes("MAX")) {
-        level = maxLevel;
-    } else if (levelText.includes("Lv.")) {
-        level = parseInt(levelText.replace("Lv.", ""), 10) || 1;
-    }
-
-    const isMax = level >= maxLevel;
-    if (isMax) {
-        level = maxLevel;
-        levelEl.textContent = "Lv. MAX";
-    }
-
-    const rank = rankData[level - 1];
-
-    const rankNameEl = document.getElementById("currentRankName");
-    const rankImageEl = document.getElementById("rankImage");
-    const bioTextEl = document.getElementById("bio-text");
-
-    if (rankNameEl) {
-        rankNameEl.textContent = rank.name;
-
-        // 🔔 badge MAX
-        rankNameEl.querySelector(".rank-badge-max")?.remove();
-        if (isMax) {
-            const badge = document.createElement("span");
-            badge.className = "rank-badge-max";
-            badge.textContent = "MAX";
-            rankNameEl.appendChild(badge);
-        }
-    }
-
-    if (rankImageEl) {
-        rankImageEl.src = rank.image;
-        rankImageEl.classList.toggle("rank-max", isMax);
-    }
-
-    if (bioTextEl) {
-        bioTextEl.textContent = rank.description || "...";
-    }
-
-    const progressFill = document.getElementById("progressFill");
-    if (!progressFill) return;
-
-    const radius = 50;
-    const circumference = 2 * Math.PI * radius;
-
-    progressFill.style.strokeDasharray = circumference;
-
-    if (isMax) {
-
-        progressFill.style.strokeDasharray = 0;
-        return;
-    }
-
-
-    const expRemainingEl = document.getElementById("expRemaining");
-    const expPerLevelEl = document.getElementById("expPerLevel");
-
-    const expRemaining = expRemainingEl
-        ? parseFloat(expRemainingEl.textContent) || 0
-        : 0;
-
-    const expPerLevel = expPerLevelEl
-        ? parseFloat(expPerLevelEl.textContent) || 1000
-        : 1000;
-
-    const pct = Math.max(
-        0,
-        Math.min(1, (expPerLevel - expRemaining) / expPerLevel)
-    );
-
-    progressFill.style.strokeDashoffset = circumference - pct * circumference;
-
-}
-
-
-// ---------------------------
-//    MODAL RANGHI
-// ---------------------------
-
-
-function openRankModal() {
-    console.log("openRankModal called");
-    const rankModal = document.getElementById("rankModal");
-    rankModal.classList.add("active");
-    generateRankList();
-
-}
-
-function closeRankModal() {
-    const rankModal = document.getElementById("rankModal");
-    rankModal.classList.remove("active");
-}
-
-function generateRankList() {
-
-    const progressValueEl = document.querySelector(".progress_value");
-    let currentLevel = 1;
-    if (progressValueEl) {
-        const text = progressValueEl.textContent.trim();
-        if (text === "Lv. MAX") {
-            currentLevel = 10;
-        } else {
-            currentLevel = parseInt(text.replace("Lv. ", ""), 10);
-        }
-    }
-
-    const list = document.getElementById("fullRankList");
-    if (!list) return;
-    list.innerHTML = "";
-
-    rankData.forEach((r, idx) => {
-        const li = document.createElement("li");
-        li.className = "rank-list-item clickable-hover-sound";
-
-        let icon = "";
-        if (idx + 1 < currentLevel) {
-            li.classList.add("past");
-            icon = `<i class="bi bi-check"></i>`;
-        } else if (idx + 1 === currentLevel) {
-
-            li.classList.add("current");
-            icon = `<i class="bi bi-map-marker-alt"></i>`;
-            setTimeout(() => li.scrollIntoView({ block: "center" }), 100);
-        } else {
-            li.classList.add("locked");
-            icon = `<i class="bi bi-lock"></i>`;
-        }
-
-        li.innerHTML = `
-            <div class="rank-list-left">
-                <img src="${r.image}" alt="${r.name}" class="list-rank-img" onerror="this.style.display='none'">
-                <div class="rank-list-info">
-                    <span class="rank-list-combined">${r.name}</span>
-                </div>
-            </div>
-            <div class="rank-list-status">${icon}</div>
-        `;
-
-        list.appendChild(li);
-    });
-}
-
-
 function closeBioEdit(saveChanges) {
-    const bioText = document.getElementById("bioText");
-    const bioInput = document.getElementById("bioInput");
-    const saveBtn = document.getElementById("saveProfileBtn");
+    const bioText = dom.bioText;
+    const bioInput = dom.bioInput;
+    const saveBtn = dom.saveProfileBtn;
 
     if (saveChanges) {
         bioText.innerText = bioInput.value.trim();
@@ -295,34 +157,100 @@ function closeBioEdit(saveChanges) {
     isEditingBio = false;
 }
 
-let socialLoaded = false;
+async function saveProfile() {
+    if (isEditingBio) {
+        alert("Chiudi prima la modifica della bio");
+        return;
+    }
 
-function loadSocialData() {
-    if (socialLoaded) return;
+    const bio = dom.bioText.innerText.trim();
+    const selectedAvatarPath = dom.profileImage.src;
+    const nickname = dom.nicknameInput.innerText.trim();
+    const email = document.getElementById('userEmail').value;
 
-    loadFollowing();
-    loadFollowers();
+    try {
+        const formData = new URLSearchParams();
+        formData.append("bio", bio);
+        formData.append("avatar", selectedAvatarPath || '');
+        formData.append("nickname", nickname);
+        formData.append("email", email);
 
-    socialLoaded = true;
+        const response = await fetch(`/profile/save`, {
+            method: "POST",
+            body: formData
+        });
+
+        if (response.ok) {
+            alert("Profilo salvato correttamente!");
+        } else {
+            alert("Errore nel salvataggio del profilo.");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Errore di connessione al server.");
+    }
 }
 
-async function loadFollowing() {
-    const response = await fetch("/profile/social/following/" + userId);
-    const data = await response.json();
+function startBioEdit() {
+    const bioText = dom.bioText;
+    const bioInput = dom.bioInput;
+    const saveBtn = dom.saveProfileBtn;
 
-    window.currentFollowing = data;
-    renderFollowing(data);
+    bioInput.value = bioText.innerText.trim();
+
+    bioText.style.display = "none";
+    bioInput.style.display = "block";
+    bioInput.focus();
+
+    saveBtn.disabled = true;
+    isEditingBio = true;
 }
 
-async function loadFollowers() {
-    const response = await fetch("/profile/social/followers/" + userId);
-    const data = await response.json();
-
-    window.currentFollowers = data;
-    renderFollowers(data, window.currentFollowing);
+function handleBioInputKeydown(e) {
+    if (e.key === "Enter") {
+        e.preventDefault(); // evita newline
+        closeBioEdit(true);
+    }
 }
 
+function startNicknameEdit() {
+    const profileName = dom.profileName;
+    const editNicknameBtn = dom.editNicknameBtn;
+    const nicknameInput = dom.nicknameInput;
+    const saveProfileBtn = dom.saveProfileBtn;
 
+    profileName.style.display = 'none';
+    editNicknameBtn.style.display = 'none';
+
+    nicknameInput.style.display = 'block';
+    nicknameInput.focus();
+
+    saveProfileBtn.disabled = true;
+}
+
+function handleNicknameInputKeypress(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+
+        const profileName = dom.profileName;
+        const editNicknameBtn = dom.editNicknameBtn;
+        const nicknameInput = dom.nicknameInput;
+        const saveProfileBtn = dom.saveProfileBtn;
+
+        const newNickname = nicknameInput.value.trim();
+        if (newNickname !== '') {
+            profileName.textContent = newNickname;
+
+            profileName.style.display = 'block';
+            editNicknameBtn.style.display = 'inline-block';
+            nicknameInput.style.display = 'none';
+
+            saveProfileBtn.disabled = false;
+        }
+    }
+}
+
+//Funzione per cambiare vista secondaria
 function switchMainView(view) {
     document.querySelectorAll(".view-section").forEach(v => {
         v.classList.remove("active");
@@ -347,6 +275,33 @@ function switchMainView(view) {
     else if (view === "stats") {
         updateRankUI();
     }
+}
+
+
+//     SOCIAL     //
+function loadSocialData() {
+    if (socialLoaded) return;
+
+    loadFollowing();
+    loadFollowers();
+
+    socialLoaded = true;
+}
+
+async function loadFollowing() {
+    const response = await fetch("/profile/social/following/" + userId);
+    const data = await response.json();
+
+    window.currentFollowing = data;
+    renderFollowing(data);
+}
+
+async function loadFollowers() {
+    const response = await fetch("/profile/social/followers/" + userId);
+    const data = await response.json();
+
+    window.currentFollowers = data;
+    renderFollowers(data, window.currentFollowing);
 }
 
 function renderFollowing(users) {
@@ -402,7 +357,6 @@ function renderFollowers(users, followingUsers = []) {
         const li = document.createElement("li");
         li.className = "social-item d-flex align-items-center justify-content-between";
 
-        // Controlla se l'utente è già seguito
         const alreadyFollowing = followingUsers.some(f => f.id === user.id);
         const btnText = alreadyFollowing ? "Già seguito" : "Segui";
         const btnClass = alreadyFollowing ? "btn-secondary" : "btn-primary";
@@ -472,7 +426,6 @@ function renderSearchResults(users) {
         return;
     }
 
-    // 🔹 rimuove il profilo dell'utente loggato
     const filteredUsers = users.filter(user => user.id !== profileId);
 
     if (filteredUsers.length === 0) {
@@ -515,12 +468,11 @@ function resetTabs() {
     document.getElementById("btnFollowers").classList.remove("active");
     document.getElementById("btnSearch").classList.remove("active");
 }
+
 /**
  * targetUserId: id dell'utente su cui si clicca
- * type: "followers" se si clicca nella lista dei follower (Segui)
- *       "following" se si clicca nella lista dei following (Smetti di seguire)
  */
-async function toggleFollow(targetUserId, type) {
+async function toggleFollow(targetUserId) {
     const profileId = document.getElementById("userProfileId").value;
 
     try {
@@ -548,25 +500,29 @@ async function toggleFollow(targetUserId, type) {
     }
 }
 
-function fetchGameHistory(playerId) {
-    $.ajax({
-        url: `/profile/game-history/${playerId}`,
-        type: "GET",
-        dataType: "json",
-        success: function (response) {
-            if (Array.isArray(response)) {
-                allGames = response.sort(
-                    (a, b) => new Date(b.closedAt) - new Date(a.closedAt)
-                );
-                renderCurrentPage();
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error("Errore caricamento history:", error);
-        }
-    });
+function handleUserSearchInput(e) {
+    const term = e.target.value.trim();
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        loadAllUsers(term);
+    }, 300);
 }
 
+//   MATCHES   //
+async function fetchGameHistory(playerId) {
+    try {
+        const response = await fetch(`/profile/game-history/${playerId}`);
+        if (!response.ok) throw new Error(`Errore caricamento history: ${response.statusText}`);
+
+        const data = await response.json();
+        if (Array.isArray(data)) {
+            allGames = data.sort((a, b) => new Date(b.closedAt) - new Date(a.closedAt));
+            renderCurrentPage();
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
 
 function renderCurrentPage() {
     const container = document.getElementById("matchListArea");
@@ -621,7 +577,19 @@ function renderCurrentPage() {
     updateButtons();
 }
 
+function goToNextMatchesPage() {
+    if ((currentPage + 1) * PAGE_SIZE < allGames.length) {
+        currentPage++;
+        renderCurrentPage();
+    }
+}
 
+function goToPrevMatchesPage() {
+    if (currentPage > 0) {
+        currentPage--;
+        renderCurrentPage();
+    }
+}
 
 function updateButtons() {
     document.getElementById("prevMatchesBtn").disabled = currentPage === 0;
@@ -629,203 +597,176 @@ function updateButtons() {
         (currentPage + 1) * PAGE_SIZE >= allGames.length;
 }
 
+//   STATS   //
+function updateRankUI() {
+    const levelEl = document.querySelector(".progress_value");
+    if (!levelEl) return;
 
+    const maxLevel = rankData.length;
+    let levelText = levelEl.textContent.trim();
+    let level = 1;
 
-
-// ---------------------------
-//    AVVIO
-// ---------------------------
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    console.log(general_achievements);
-
-    const profileImage = document.getElementById("profileImage");
-    if (!profileImage.src || profileImage.naturalWidth === 0) {
-        profileImage.src = "/t5/images/profileImages/default.png";
+    if (levelText.includes("MAX")) {
+        level = maxLevel;
+    } else if (levelText.includes("Lv.")) {
+        level = parseInt(levelText.replace("Lv.", ""), 10) || 1;
     }
 
-    const rankImage = document.getElementById("rankIconContainer");
-
-    const editAvatarBtn = document.getElementById("editAvatarBtn");
-
-    const rankModal = document.getElementById("rankModal");
-
-    updateRankUI();
-
-    if (rankImage) {
-        rankImage.addEventListener("click", openRankModal);
+    const isMax = level >= maxLevel;
+    if (isMax) {
+        level = maxLevel;
+        levelEl.textContent = "Lv. MAX";
     }
 
-    if (rankModal) {
-        rankModal.addEventListener("click", closeRankModal);
+    const rank = rankData[level - 1];
+
+    const rankNameEl = document.getElementById("currentRankName");
+    const rankImageEl = document.getElementById("rankImage");
+    const bioTextEl = document.getElementById("bio-text");
+
+    if (rankNameEl) {
+        rankNameEl.textContent = rank.name;
+
+        rankNameEl.querySelector(".rank-badge-max")?.remove();
+        if (isMax) {
+            const badge = document.createElement("span");
+            badge.className = "rank-badge-max";
+            badge.textContent = "MAX";
+            rankNameEl.appendChild(badge);
+        }
     }
 
-    if (editAvatarBtn) {
-        editAvatarBtn.addEventListener("click", openAvatarModal);
+    if (rankImageEl) {
+        rankImageEl.src = rank.image;
+        rankImageEl.classList.toggle("rank-max", isMax);
     }
 
-    const avatarPickerModal = document.getElementById("avatarPickerModal");
-    const avatarModalContent = avatarPickerModal.querySelector(".avatar-modal-content");
-
-    if (avatarPickerModal) {
-        // click sull'overlay → chiude
-        avatarPickerModal.addEventListener("click", closeAvatarModal);
+    if (bioTextEl) {
+        bioTextEl.textContent = rank.description || "...";
     }
 
-// click sul contenuto → NON chiude
-    if (avatarModalContent) {
-        avatarModalContent.addEventListener("click", (e) => {
-            e.stopPropagation();
-        });
+    const progressFill = document.getElementById("progressFill");
+    if (!progressFill) return;
+
+    const radius = 50;
+    const circumference = 2 * Math.PI * radius;
+
+    progressFill.style.strokeDasharray = circumference;
+
+    if (isMax) {
+
+        progressFill.style.strokeDasharray = 0;
+        return;
     }
 
-    document.getElementById('saveProfileBtn').addEventListener('click', async () => {
 
-        if (isEditingBio) {
-            alert("Chiudi prima la modifica della bio");
-            return;
+    const expRemainingEl = document.getElementById("expRemaining");
+    const expPerLevelEl = document.getElementById("expPerLevel");
+
+    const expRemaining = expRemainingEl
+        ? parseFloat(expRemainingEl.textContent) || 0
+        : 0;
+
+    const expPerLevel = expPerLevelEl
+        ? parseFloat(expPerLevelEl.textContent) || 1000
+        : 1000;
+
+    const pct = Math.max(
+        0,
+        Math.min(1, (expPerLevel - expRemaining) / expPerLevel)
+    );
+
+    progressFill.style.strokeDashoffset = circumference - pct * circumference;
+
+}
+
+function openRankModal() {
+    const rankModal = dom.rankModal;
+    rankModal.classList.add("active");
+    generateRankList();
+
+}
+
+function closeRankModal() {
+    const rankModal = dom.rankModal;
+    rankModal.classList.remove("active");
+}
+
+function generateRankList() {
+
+    const progressValueEl = document.querySelector(".progress_value");
+    let currentLevel = 1;
+    if (progressValueEl) {
+        const text = progressValueEl.textContent.trim();
+        if (text === "Lv. MAX") {
+            currentLevel = 10;
+        } else {
+            currentLevel = parseInt(text.replace("Lv. ", ""), 10);
+        }
+    }
+
+    const list = document.getElementById("fullRankList");
+    if (!list) return;
+    list.innerHTML = "";
+
+    rankData.forEach((r, idx) => {
+        const li = document.createElement("li");
+        li.className = "rank-list-item clickable-hover-sound";
+
+        let icon = "";
+        if (idx + 1 < currentLevel) {
+            li.classList.add("past");
+            icon = `<i class="bi bi-check"></i>`;
+        } else if (idx + 1 === currentLevel) {
+
+            li.classList.add("current");
+            icon = `<i class="bi bi-map-marker-alt"></i>`;
+            setTimeout(() => li.scrollIntoView({ block: "center" }), 100);
+        } else {
+            li.classList.add("locked");
+            icon = `<i class="bi bi-lock"></i>`;
         }
 
-        const bio = document.getElementById('bioText').innerText.trim();
-        const selectedAvatarPath = document.getElementById('profileImage').src;
-        const nickname = document.getElementById('profileName').innerText.trim();
-        const email = document.getElementById('userEmail').value; // recupera l'email dall'input nascosto o dal JS
+        li.innerHTML = `
+            <div class="rank-list-left">
+                <img src="${r.image}" alt="${r.name}" class="list-rank-img" onerror="this.style.display='none'">
+                <div class="rank-list-info">
+                    <span class="rank-list-combined">${r.name}</span>
+                </div>
+            </div>
+            <div class="rank-list-status">${icon}</div>
+        `;
 
-        try {
-            const formData = new URLSearchParams();
-            formData.append("bio", bio);
-            formData.append("avatar", selectedAvatarPath || '');
-            formData.append("nickname", nickname);
-            formData.append("email", email); // <--- aggiungi qui l'email
-
-            const response = await fetch(`/profile/save`, {
-                method: "POST",
-                body: formData
-            });
-
-            if (response.ok) {
-                alert("Profilo salvato correttamente!");
-            } else {
-                alert("Errore nel salvataggio del profilo.");
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Errore di connessione al server.");
-        }
+        list.appendChild(li);
     });
+}
 
-    document.getElementById("editBioBtn").addEventListener("click", () => {
-        const bioText = document.getElementById("bioText");
-        const bioInput = document.getElementById("bioInput");
-        const saveBtn = document.getElementById("saveProfileBtn");
+function groupBy(array, key) {
+    return array.reduce((result, item) => {
+        (result[item[key]] = result[item[key]] || []).push(item);
+        return result;
+    }, {});
+}
 
-        bioInput.value = bioText.innerText.trim();
+function renderGeneralAchievements(containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
 
-        bioText.style.display = "none";
-        bioInput.style.display = "block";
-        bioInput.focus();
-
-        saveBtn.disabled = true;
-        isEditingBio = true;
-    });
-
-    document.getElementById("bioInput").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault(); // evita newline
-            closeBioEdit(true);
-        }
-    });
-
-    const editNicknameBtn = document.getElementById('editNicknameBtn');
-    const profileName = document.getElementById('profileName');
-    const nicknameInput = document.getElementById('nicknameInput');
-    const saveProfileBtn = document.getElementById('saveProfileBtn');
-
-    editNicknameBtn.addEventListener('click', () => {
-        // Nasconde nickname e pulsante matita
-        profileName.style.display = 'none';
-        editNicknameBtn.style.display = 'none';
-
-        // Mostra input
-        nicknameInput.style.display = 'block';
-        nicknameInput.focus();
-
-        // Disabilita il pulsante salva principale
-        saveProfileBtn.disabled = true;
-    });
-
-    nicknameInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const newNickname = nicknameInput.value.trim();
-            if (newNickname !== '') {
-                profileName.textContent = newNickname;
-
-                // Torna alla visualizzazione normale
-                profileName.style.display = 'block';
-                editNicknameBtn.style.display = 'inline-block';
-                nicknameInput.style.display = 'none';
-
-                // Riabilita il pulsante salva principale
-                saveProfileBtn.disabled = false;
-
-                // Qui puoi aggiungere la chiamata AJAX per salvare sul server
-                // es: saveNickname(newNickname);
-            }
-        }
-    });
-
-    document.getElementById("nextMatchesBtn").addEventListener("click", () => {
-        if ((currentPage + 1) * PAGE_SIZE < allGames.length) {
-            currentPage++;
-            renderCurrentPage();
-        }
-    });
-
-    document.getElementById("prevMatchesBtn").addEventListener("click", () => {
-        if (currentPage > 0) {
-            currentPage--;
-            renderCurrentPage();
-        }
-    });
-
-    document.querySelector('option[value="PartitaSingola"]').textContent = gameMode.PartitaSingola;
-    document.querySelector('option[value="General"]').textContent = general;
-
-    let progressContainer = document.querySelector('.progress_container');
-    let progress = parseFloat(progressContainer.getAttribute('data-progress'));
-    let progressFill = document.querySelector(".progress_fill");
-    // Rapporto il progresso al perimetro della progress bar (2*pi*r con r=50)
-    let offset = 314 * (1 - progress);
-    progressFill.style.strokeDashoffset = offset;
-
-    function groupBy(array, key) {
-        return array.reduce((result, item) => {
-            (result[item[key]] = result[item[key]] || []).push(item);
-            return result;
-        }, {});
-    }
-
-    function renderGeneralAchievements(containerId) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = "";
-
-        if (!general_achievements || general_achievements.length === 0) {
-            container.innerHTML = `
+    if (!general_achievements || general_achievements.length === 0) {
+        container.innerHTML = `
             <div class="text-center mt-3 fw-bold">
                 ${no_achievement_message}
             </div>`;
-            return;
-        }
+        return;
+    }
 
-        const achievementsContainer = document.createElement("div");
-        achievementsContainer.classList.add("achievements-container");
+    const achievementsContainer = document.createElement("div");
+    achievementsContainer.classList.add("achievements-container");
 
-        general_achievements.forEach(ach => {
-            const achDiv = document.createElement("div");
-            achDiv.classList.add("achievement-item");
-            achDiv.innerHTML = `
+    general_achievements.forEach(ach => {
+        const achDiv = document.createElement("div");
+        achDiv.classList.add("achievement-item");
+        achDiv.innerHTML = `
             <img src="/images/achievements/${ach}.png"
                  alt="${achievementData[ach]?.name || ach}">
             <div class="achievement-info">
@@ -833,61 +774,61 @@ document.addEventListener("DOMContentLoaded", () => {
                 <p>${achievementData[ach]?.descr || ""}</p>
             </div>
         `;
-            achievementsContainer.appendChild(achDiv);
-        });
+        achievementsContainer.appendChild(achDiv);
+    });
 
-        container.appendChild(achievementsContainer);
-    }
+    container.appendChild(achievementsContainer);
+}
 
 
-    function renderGameModeAchievements(containerId, selectedMode) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = "";
+function renderGameModeAchievements(containerId, selectedMode) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
 
-        let hasAchievements = false;
+    let hasAchievements = false;
 
-        if (!gamemode_achievements || gamemode_achievements.length === 0) {
-            container.innerHTML = `
+    if (!gamemode_achievements || gamemode_achievements.length === 0) {
+        container.innerHTML = `
             <div class="text-center mt-3 fw-bold">
                 ${no_achievement_message}
             </div>`;
-            return;
-        }
+        return;
+    }
 
-        const filtered = gamemode_achievements.filter(
-            a => a.gameMode === selectedMode
-        );
+    const filtered = gamemode_achievements.filter(
+        a => a.gameMode === selectedMode
+    );
 
-        const groupedByClassUT = groupBy(filtered, "classUT");
+    const groupedByClassUT = groupBy(filtered, "classUT");
 
-        for (let classUT in groupedByClassUT) {
-            const classUTDiv = document.createElement("div");
-            classUTDiv.innerHTML = `<div class="class-ut">${classUT}</div>`;
+    for (let classUT in groupedByClassUT) {
+        const classUTDiv = document.createElement("div");
+        classUTDiv.innerHTML = `<div class="class-ut">${classUT}</div>`;
 
-            const groupedByRobot = groupBy(groupedByClassUT[classUT], "type");
+        const groupedByRobot = groupBy(groupedByClassUT[classUT], "type");
 
-            for (let robotType in groupedByRobot) {
-                const robotDiv = document.createElement("div");
-                const groupedByDifficulty = groupBy(groupedByRobot[robotType], "difficulty");
+        for (let robotType in groupedByRobot) {
+            const robotDiv = document.createElement("div");
+            const groupedByDifficulty = groupBy(groupedByRobot[robotType], "difficulty");
 
-                for (let difficulty in groupedByDifficulty) {
-                    const difficultyText =
-                        difficulty === "EASY" ? difficultyTranslation.easy :
-                            difficulty === "MEDIUM" ? difficultyTranslation.medium :
-                                difficultyTranslation.hard;
+            for (let difficulty in groupedByDifficulty) {
+                const difficultyText =
+                    difficulty === "EASY" ? difficultyTranslation.easy :
+                        difficulty === "MEDIUM" ? difficultyTranslation.medium :
+                            difficultyTranslation.hard;
 
-                    const difficultyTitle = document.createElement("div");
-                    difficultyTitle.classList.add("robot-difficulty");
-                    difficultyTitle.textContent = `${robotType} - ${difficultyText}`;
+                const difficultyTitle = document.createElement("div");
+                difficultyTitle.classList.add("robot-difficulty");
+                difficultyTitle.textContent = `${robotType} - ${difficultyText}`;
 
-                    const achievementsContainer = document.createElement("div");
-                    achievementsContainer.classList.add("achievements-container");
+                const achievementsContainer = document.createElement("div");
+                achievementsContainer.classList.add("achievements-container");
 
-                    groupedByDifficulty[difficulty].forEach(entry => {
-                        entry.achievements?.forEach(ach => {
-                            const achDiv = document.createElement("div");
-                            achDiv.classList.add("achievement-item");
-                            achDiv.innerHTML = `
+                groupedByDifficulty[difficulty].forEach(entry => {
+                    entry.achievements?.forEach(ach => {
+                        const achDiv = document.createElement("div");
+                        achDiv.classList.add("achievement-item");
+                        achDiv.innerHTML = `
                             <img src="/images/achievements/${ach}.png"
                                  alt="${achievementData[ach]?.name || ach}">
                             <div class="achievement-info">
@@ -895,68 +836,88 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <p>${achievementData[ach]?.descr || ""}</p>
                             </div>
                         `;
-                            achievementsContainer.appendChild(achDiv);
-                            hasAchievements = true;
-                        });
+                        achievementsContainer.appendChild(achDiv);
+                        hasAchievements = true;
                     });
+                });
 
-                    if (achievementsContainer.children.length > 0) {
-                        robotDiv.appendChild(difficultyTitle);
-                        robotDiv.appendChild(achievementsContainer);
-                    }
+                if (achievementsContainer.children.length > 0) {
+                    robotDiv.appendChild(difficultyTitle);
+                    robotDiv.appendChild(achievementsContainer);
                 }
-
-                classUTDiv.appendChild(robotDiv);
             }
 
-            if (classUTDiv.children.length > 1) {
-                container.appendChild(classUTDiv);
-            }
+            classUTDiv.appendChild(robotDiv);
         }
 
-        if (!hasAchievements) {
-            container.innerHTML = `
-            <div class="text-center mt-3 fw-bold">
-                ${no_achievement_message}
-            </div>`;
+        if (classUTDiv.children.length > 1) {
+            container.appendChild(classUTDiv);
         }
     }
 
+    if (!hasAchievements) {
+        container.innerHTML = `
+            <div class="text-center mt-3 fw-bold">
+                ${no_achievement_message}
+            </div>`;
+    }
+}
 
-    document.getElementById("game-mode-select")
-        .addEventListener("change", function () {
+function handleGameModeChange(e) {
+    const modalEl = document.getElementById("achievementsModal");
+    const modal = new bootstrap.Modal(modalEl);
+    const containerId = "achievements-modal-container";
+    const title = document.getElementById("achievementsModalTitle");
 
-            const modalEl = document.getElementById("achievementsModal");
-            const modal = new bootstrap.Modal(modalEl);
-            const containerId = "achievements-modal-container";
-            const title = document.getElementById("achievementsModalTitle");
+    if (this.value === "General") {
+        title.textContent = "Obiettivi Generici";
+        renderGeneralAchievements(containerId);
+    } else {
+        title.textContent = `Obiettivi – ${this.value}`;
+        renderGameModeAchievements(containerId, this.value);
+    }
 
-            if (this.value === "General") {
-                title.textContent = "Obiettivi Generici";
-                renderGeneralAchievements(containerId);
-            } else {
-                title.textContent = `Obiettivi – ${this.value}`;
-                renderGameModeAchievements(containerId, this.value);
-            }
+    modal.show();
+}
 
-            modal.show();
-        });
+function handleAchievementsModalHidden() {
+    document.activeElement?.blur();
+}
 
-    document.getElementById("achievementsModal")
-        .addEventListener("hidden.bs.modal", () => {
-            document.activeElement?.blur();
-        });
+document.addEventListener("DOMContentLoaded", () => {
 
-    document.getElementById("userSearchInput").addEventListener("input", (e) => {
-        const term = e.target.value.trim();
-        console.log(term);
+    updateRankUI();
 
-        clearTimeout(searchTimeout);
+    document.getElementById("profileImage").src ||= "/t5/images/profileImages/default.png";
 
-        // debounce → evita 200 chiamate al secondo
-        searchTimeout = setTimeout(() => {
-            loadAllUsers(term);
-        }, 300);
-    });
+    document.getElementById("rankIconContainer")?.addEventListener("click", openRankModal);
+
+    document.getElementById("rankModal")?.addEventListener("click", closeRankModal);
+
+    document.getElementById("editAvatarBtn")?.addEventListener("click", openAvatarModal);
+
+    document.getElementById("avatarPickerModal")?.addEventListener("click", closeAvatarModal);
+
+    document.querySelector("#avatarPickerModal .avatar-modal-content")?.addEventListener("click", (e) => e.stopPropagation());
+
+    document.getElementById('saveProfileBtn')?.addEventListener('click', saveProfile);
+
+    document.getElementById("editBioBtn")?.addEventListener("click", startBioEdit);
+
+    document.getElementById("bioInput")?.addEventListener("keydown", handleBioInputKeydown);
+
+    document.getElementById('editNicknameBtn')?.addEventListener('click', startNicknameEdit);
+
+    document.getElementById('nicknameInput')?.addEventListener('keypress', handleNicknameInputKeypress);
+
+    document.getElementById('nextMatchesBtn')?.addEventListener('click', goToNextMatchesPage);
+
+    document.getElementById('prevMatchesBtn')?.addEventListener('click', goToPrevMatchesPage);
+
+    document.getElementById("game-mode-select")?.addEventListener("change", handleGameModeChange);
+
+    document.getElementById("achievementsModal")?.addEventListener("hidden.bs.modal", handleAchievementsModalHidden);
+
+    document.getElementById("userSearchInput")?.addEventListener("input", handleUserSearchInput);
 
 });

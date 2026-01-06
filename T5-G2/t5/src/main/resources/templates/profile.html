@@ -78,7 +78,7 @@
 
                 <div class="bio-section">
                     <div class="bio-header">
-                        <span class="bio-label">SERVICE RECORD</span>
+                        <span class="bio-label">BIO</span>
                         <button id="editBioBtn"
                                 class="edit-bio-btn">
                             <i class="bi bi-pen"></i>
@@ -110,13 +110,13 @@
         <div class="col-main">
 
             <div class="main-tabs-container">
-                <button class="main-tab-btn active" onclick="switchMainView('stats')">
+                <button class="main-tab-btn active" data-view="stats">
                     <i class="bi bi-bar-chart"></i> STATISTICHE
                 </button>
-                <button class="main-tab-btn" onclick="switchMainView('matches')">
+                <button class="main-tab-btn" data-view="matches">
                     <i class="bi bi-crosshairs"></i> PARTITE
                 </button>
-                <button class="main-tab-btn" onclick="switchMainView('social')">
+                <button class="main-tab-btn" data-view="social">
                     <i class="bi bi-globe"></i> SOCIAL
                 </button>
             </div>
@@ -202,22 +202,19 @@
                     <!-- SOCIAL -->
                     <div class="btn-group w-100 mb-3" role="group">
                         <button id="btnFollowing"
-                                class="btn btn-outline-primary active"
-                                onclick="showFollowing()">
+                                class="btn btn-outline-primary active">
                             Following
                             <span class="badge bg-primary ms-1" id="followingCount">0</span>
                         </button>
 
                         <button id="btnFollowers"
-                                class="btn btn-outline-success"
-                                onclick="showFollowers()">
+                                class="btn btn-outline-success">
                             Followers
                             <span class="badge bg-success ms-1" id="followersCount">0</span>
                         </button>
 
                         <button id="btnSearch"
-                                class="btn btn-outline-secondary"
-                                onclick="showSearch()">
+                                class="btn btn-outline-secondary">
                             Cerca
                         </button>
                     </div>
@@ -373,7 +370,7 @@
     const general = /*[[#{general}]]*/ "Generici";
 </script>
 
-<script src="/t5/js/profile.js"></script>
+<script type="module" src="/t5/js/profile/profileMain.js"></script>
 
 </body>
 </html>
