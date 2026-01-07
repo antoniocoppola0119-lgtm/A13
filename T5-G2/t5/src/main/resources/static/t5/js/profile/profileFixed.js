@@ -22,6 +22,11 @@ const availableAvatars = [
     "women-4.png"
 ];
 
+const LIMITS = {
+    NICKNAME: 20,
+    BIO: 200
+};
+
 export function selectAvatar(filename) {
     const avatarImg = dom.profileImage;
 
@@ -67,6 +72,10 @@ export function closeBioEdit(saveChanges) {
     const saveBtn = dom.saveProfileBtn;
 
     if (saveChanges) {
+        if (bioInput.value.length > LIMITS.BIO) {
+                    alert(`La bio non può superare i ${LIMITS.BIO} caratteri.`);
+                    return;
+                }
         bioText.innerText = bioInput.value.trim();
     }
 
@@ -86,6 +95,11 @@ export async function saveProfile() {
     const bio = dom.bioText.innerText.trim();
     const selectedAvatarPath = dom.profileImage.src;
     const nickname = dom.nicknameInput.innerText.trim();
+    // Validazione finale di sicurezza prima del fetch
+    if (nickname.length > LIMITS.NICKNAME || bio.length > LIMITS.BIO) {
+        alert("Errore: Nickname o Bio superano il limite consentito.");
+        return;
+    }
     const email = document.getElementById('userEmail').value;
 
     try {
@@ -158,6 +172,13 @@ export function handleNicknameInputKeypress(e) {
         const saveProfileBtn = dom.saveProfileBtn;
 
         const newNickname = nicknameInput.value.trim();
+
+        // Validazione lunghezza Nickname
+        if (newNickname.length > LIMITS.NICKNAME) {
+            alert(`Il nickname non può superare i ${LIMITS.NICKNAME} caratteri.`);
+            return;
+        }
+
         if (newNickname !== '') {
             profileName.textContent = newNickname;
 
