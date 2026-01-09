@@ -180,10 +180,8 @@ export function renderSearchResults(users) {
         </button>
     `;
 
-        const followBtn = li.querySelector(".follow-btn");
-        if (!alreadyFollowing) {
-            followBtn.addEventListener("click", () => toggleFollow(user.id));
-        }
+        li.querySelector(".follow-btn")
+            .addEventListener("click", () => toggleFollow(user.id));
 
         ul.appendChild(li);
 

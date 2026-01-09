@@ -149,12 +149,12 @@
                                 <circle id="progressFill" class="progress_fill" cx="60" cy="60" r="50" />
                             </svg>
                             <div class="progress_value"
-                                 th:text="${(userCurrentExperience / expPerLevel) + startingLevel == maxLevel} ? 'Lv. MAX' : 'Lv. ' + ${(userCurrentExperience / expPerLevel) + startingLevel}">
+                                 th:text="${(userCurrentExperience / expPerLevel) + startingLevel >= maxLevel} ? 'Lv. MAX' : 'Lv. ' + ${(userCurrentExperience / expPerLevel) + startingLevel}">
                             </div>
                         </div>
                         <div class="text-center">
-                            <h4 id="expRemaining" class="mb-0 fw-semibold lh-1" th:text="${(userCurrentExperience / expPerLevel) + startingLevel == maxLevel} ? 'MAX raggiunto' : ${expPerLevel - (userCurrentExperience % expPerLevel)}"></h4>
-                            <p class="mb-0 fs-5" th:text="${(userCurrentExperience / expPerLevel) + startingLevel == maxLevel} ? ' ' : #{exp_next_level_label}"></p>
+                            <h4 id="expRemaining" class="mb-0 fw-semibold lh-1" th:text="${(userCurrentExperience / expPerLevel) + startingLevel >= maxLevel} ? 'MAX raggiunto' : ${expPerLevel - (userCurrentExperience % expPerLevel)}"></h4>
+                            <p class="mb-0 fs-5" th:text="${(userCurrentExperience / expPerLevel) + startingLevel >= maxLevel} ? ' ' : #{exp_next_level_label}"></p>
                         </div>
                     </div>
                 </div>

@@ -94,7 +94,7 @@ export async function saveProfile() {
 
     const bio = dom.bioText.innerText.trim();
     const selectedAvatarPath = dom.profileImage.src;
-    const nickname = dom.nicknameInput.innerText.trim();
+    const nickname = dom.profileName.innerText.trim();
     // Validazione finale di sicurezza prima del fetch
     if (nickname.length > LIMITS.NICKNAME || bio.length > LIMITS.BIO) {
         alert("Errore: Nickname o Bio superano il limite consentito.");
@@ -180,7 +180,7 @@ export function handleNicknameInputKeypress(e) {
         }
 
         if (newNickname !== '') {
-            profileName.textContent = newNickname;
+            profileName.innerText = newNickname;
 
             profileName.style.display = 'block';
             editNicknameBtn.style.display = 'inline-block';

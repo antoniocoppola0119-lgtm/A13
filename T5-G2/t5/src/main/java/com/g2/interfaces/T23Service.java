@@ -293,11 +293,6 @@ public class T23Service extends BaseService {
 
     // Metodo per modificare il profilo di un utente
     private Boolean updateProfile(String email, String imagePath, String nick, String bio) {
-        System.out.println("[DEBUG] updateProfile chiamato");
-        System.out.println("Email: " + email);
-        System.out.println("Nickname: " + nick);
-        System.out.println("Bio: " + bio);
-        System.out.println("ProfilePicturePath: " + imagePath);
 
         final String endpoint = "/profile/update_profile";
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -308,7 +303,6 @@ public class T23Service extends BaseService {
 
         Boolean result = callRestPost(endpoint, map, null, Boolean.class);
 
-        System.out.println("[DEBUG] updateProfile risultato: " + result);
         return result;
     }
 
