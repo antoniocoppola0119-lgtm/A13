@@ -7,7 +7,7 @@
 | **ID Team** | Gruppo D3 |
 | **Componenti** | Andrea Pironti, Antonio Coppola, Mario Berrino |
 | **Task Assegnato** | Task R6, Gestione profilo giocatore |
-| **Approccio** | Sviluppo Agile |
+| **Approccio** | Sviluppo Incrementale |
 | **Repository Originale** | https://github.com/Testing-Game-SAD-2023/A13 |
 | **Repository Consegnato** | https://github.com/antoniocoppola0119-lgtm/A13/tree/main |
 
@@ -345,6 +345,7 @@ Il sistema utilizza una **Layered Architecture** distribuita tra il microservizi
 ## Appendice – Riferimenti
 
 - **Link GitHub**: https://github.com/antoniocoppola0119-lgtm/A13/tree/main
+
 
 
 
