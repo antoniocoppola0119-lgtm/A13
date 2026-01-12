@@ -282,6 +282,13 @@ L'obiettivo del **Task R6** è l'evoluzione dell'architettura esistente tramite 
 * **T5**
 * **T23**
 
+#### Code Smells e Anti-Patterns
+
+* (T23) Tutte le chiamate che includevano la gestione della classe GameProgress andavano al PlayerProgressService, risolto aggiungendo la classe GameProgressService
+* (T5-T23) Alcuni nomi delle rotte in T5 non combaciavano con quelli in T23, risolto modificando appropriatamente i nomi in T5 (specificatamente in T23Service)
+* (T5-T23) Alcuni tipi di ritorno non combaciavano tra T5 e T23, risolto aggiungendo in T5 le conversioni appropriate.
+
+
 ### 4. Implementazione e Architettura
 Il sistema utilizza una **Layered Architecture** distribuita tra il microservizio **T5** (UI) e il microservizio **T23** (Persistenza), comunicanti tramite REST.
 
