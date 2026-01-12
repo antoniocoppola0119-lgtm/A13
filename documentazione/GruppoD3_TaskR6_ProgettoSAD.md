@@ -227,26 +227,31 @@ L'obiettivo del **Task R6** è l'evoluzione dell'architettura esistente tramite 
       <td style="border: 1px solid black; padding: 6px;">Vecchia pagina di modifica; sostituita dalla modalità di editing "in-place" gestita da profileFixed.js</td>
     </tr>
     <tr style="background-color: #f5f5f5;">
+      <td style="border: 1px solid black; padding: 6px;">Rimossi dalla logica ma non dal progetto (Frontend)</td>
+      <td style="border: 1px solid black; padding: 6px;">GameHistory.html (T5)</td>
+      <td style="border: 1px solid black; padding: 6px;">Vecchia pagina dello storico partite; i contenuti sono ora integrati dinamicamente nel nuovo profilo.</td>
+    </tr>
+    <tr style="background-color: #ffffff;">
       <td style="border: 1px solid black; padding: 6px;">Rimossi dalla logica ma non dal progetto (Backend)</td>
       <td style="border: 1px solid black; padding: 6px;">UserProfileController (T5)</td>
       <td style="border: 1px solid black; padding: 6px;">rotta per /Achievements deprecata.</td>
     </tr>
-    <tr style="background-color: #ffffff;">
+    <tr style="background-color: #f5f5f5;">
       <td style="border: 1px solid black; padding: 6px;">Rimossi dalla logica ma non dal progetto (Backend)</td>
       <td style="border: 1px solid black; padding: 6px;">UserProfileController (T5)</td>
       <td style="border: 1px solid black; padding: 6px;">rotta per /Edit-Profile deprecata.</td>
     </tr>
-    <tr style="background-color: #f5f5f5;">
+    <tr style="background-color: #ffffff;">
       <td style="border: 1px solid black; padding: 6px;">Da implementare (sviluppi futuri)</td>
       <td style="border: 1px solid black; padding: 6px;">Notifiche Profilo</td>
       <td style="border: 1px solid black; padding: 6px;">Da implementare le notifiche sulla pagine /profile.</td>
     </tr>
-    <tr style="background-color: #ffffff;">
+    <tr style="background-color: #f5f5f5;">
       <td style="border: 1px solid black; padding: 6px;">Da implementare (sviluppi futuri)</td>
       <td style="border: 1px solid black; padding: 6px;">Immagini Personalizzate</td>
       <td style="border: 1px solid black; padding: 6px;">La scelta degli avatar è limitata a una lista fissa; l'upload di file personalizzati è rimandato.</td>
     </tr>
-    <tr style="background-color: #f5f5f5;">
+    <tr style="background-color: #ffffff;">
       <td style="border: 1px solid black; padding: 6px;">Da implementare (sviluppi futuri)</td>
       <td style="border: 1px solid black; padding: 6px;">Chat tra utenti</td>
       <td style="border: 1px solid black; padding: 6px;">Chat tra utenti che si seguono ancora da implementare.</td>
@@ -280,7 +285,7 @@ Il sistema utilizza una **Layered Architecture** distribuita tra il microservizi
 *Figura 2: Sequence diagram che descrive le interazioni del Giocatore tramite l'UI con il backEnd, ogni iterazione segue un preciso protocollo*
 
 
-* **T5**: Sostituiti i vecchi file `Profile.js/html/css` per supportare il nuovo design modulare.
+* **T5**: Sostituiti i vecchi file `Profile.js/html/css` per supportare il nuovo design, seguendo il modulo standard ES6.
 ![Figura 3: Component diagram](https://i.imgur.com/Cq1SMZN.jpeg)  
 
 *Figura 3: Component diagram che illustra l'architettura modulare del frontend in cui profileMain.js coordina i moduli subordinati per le chiamate asincrone verso il controller.*
@@ -328,4 +333,5 @@ Il sistema utilizza una **Layered Architecture** distribuita tra il microservizi
 ## Appendice – Riferimenti
 
 - **Link GitHub**: https://github.com/antoniocoppola0119-lgtm/A13/tree/main
+
 
