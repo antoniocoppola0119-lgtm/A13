@@ -229,7 +229,7 @@ L'obiettivo del **Task R6** è l'evoluzione dell'architettura esistente tramite 
     <tr style="background-color: #f5f5f5;">
       <td style="border: 1px solid black; padding: 6px;">Rimossi dalla logica ma non dal progetto (Frontend)</td>
       <td style="border: 1px solid black; padding: 6px;">GameHistory.html (T5)</td>
-      <td style="border: 1px solid black; padding: 6px;">Vecchia pagina dello storico partite; i contenuti sono ora integrati dinamicamente nel nuovo profilo.</td>
+      <td style="border: 1px solid black; padding: 6px;">Vecchia pagina dello storico partite; i contenuti sono ora integrati dinamicamente nel nuovo profilo.
     </tr>
     <tr style="background-color: #ffffff;">
       <td style="border: 1px solid black; padding: 6px;">Rimossi dalla logica ma non dal progetto (Backend)</td>
@@ -242,16 +242,21 @@ L'obiettivo del **Task R6** è l'evoluzione dell'architettura esistente tramite 
       <td style="border: 1px solid black; padding: 6px;">rotta per /Edit-Profile deprecata.</td>
     </tr>
     <tr style="background-color: #ffffff;">
+      <td style="border: 1px solid black; padding: 6px;">Rimossi dalla logica ma non dal progetto (Backend)</td>
+      <td style="border: 1px solid black; padding: 6px;">UserProfileController (T5)</td>
+      <td style="border: 1px solid black; padding: 6px;">rotta per /GameHistory deprecata.</td>
+    </tr>
+    <tr style="background-color: #f5f5f5;">
       <td style="border: 1px solid black; padding: 6px;">Da implementare (sviluppi futuri)</td>
       <td style="border: 1px solid black; padding: 6px;">Notifiche Profilo</td>
       <td style="border: 1px solid black; padding: 6px;">Da implementare le notifiche sulla pagine /profile.</td>
     </tr>
-    <tr style="background-color: #f5f5f5;">
+    <tr style="background-color: #ffffff;">
       <td style="border: 1px solid black; padding: 6px;">Da implementare (sviluppi futuri)</td>
       <td style="border: 1px solid black; padding: 6px;">Immagini Personalizzate</td>
       <td style="border: 1px solid black; padding: 6px;">La scelta degli avatar è limitata a una lista fissa; l'upload di file personalizzati è rimandato.</td>
     </tr>
-    <tr style="background-color: #ffffff;">
+    <tr style="background-color: #f5f5f5;">
       <td style="border: 1px solid black; padding: 6px;">Da implementare (sviluppi futuri)</td>
       <td style="border: 1px solid black; padding: 6px;">Chat tra utenti</td>
       <td style="border: 1px solid black; padding: 6px;">Chat tra utenti che si seguono ancora da implementare.</td>
@@ -333,5 +338,6 @@ Il sistema utilizza una **Layered Architecture** distribuita tra il microservizi
 ## Appendice – Riferimenti
 
 - **Link GitHub**: https://github.com/antoniocoppola0119-lgtm/A13/tree/main
+
 
 
