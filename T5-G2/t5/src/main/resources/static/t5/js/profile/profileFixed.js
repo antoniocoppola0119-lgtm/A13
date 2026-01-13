@@ -142,7 +142,7 @@ export function startBioEdit() {
 
 export function handleBioInputKeydown(e) {
     if (e.key === "Enter") {
-        e.preventDefault(); // evita newline
+        e.preventDefault();
         closeBioEdit(true);
     }
 }
