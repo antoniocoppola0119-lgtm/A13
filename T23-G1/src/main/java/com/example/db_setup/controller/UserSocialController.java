@@ -129,7 +129,7 @@ public class UserSocialController {
             System.out.println("Profilo non trovato per email: " + email);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
         }
-9
+
         profile.setBio(bio);
         profile.setNickname(nick);
         profile.setProfilePicturePath(profilePicturePath);
