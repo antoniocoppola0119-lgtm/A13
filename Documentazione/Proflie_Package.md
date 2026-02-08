@@ -9,7 +9,7 @@ Il package `profile` contiene i moduli JavaScript responsabili della gestione la
 
 ## Architettura
 
-Il modulo implementa il pattern **C2**. La logica di controllo è centralizzata in `profileMain.js`, che gestisce le chiamate asincrone in risposta alle interazioni dell'utente, delegando l'esecuzione specifica ai moduli funzionali importati.
+Il modulo implementa il pattern **Modular**, utilizzando moduli ES6. La logica di controllo è centralizzata in `profileMain.js`, che gestisce le chiamate asincrone in risposta alle interazioni dell'utente, delegando l'esecuzione specifica ai moduli funzionali importati.
 
 ### Gestione delle Dipendenze
 Il file principale importa le funzioni necessarie dai moduli `profileFixed.js`, `stats.js`, `matches.js` e `social.js`.
@@ -35,4 +35,5 @@ I file seguenti contengono la logica di rendering e le operazioni specifiche per
 * **`profileFixed.js`**: Gestisce la visualizzazione della colonna sinistra statica (informazioni persistenti dell'utente).
 * **`stats.js`**: Contiene le funzioni per il rendering della sezione statistiche e la visualizzazione degli *achievements*.
 * **`matches.js`**: Gestisce il recupero e la visualizzazione dello storico delle partite (Match History).
+
 * **`social.js`**: Gestisce le funzionalità della sezione social.
