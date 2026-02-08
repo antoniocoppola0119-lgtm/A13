@@ -15,11 +15,13 @@ Il modulo implementa il pattern **Modular**, utilizzando moduli ES6. La logica d
 Il file principale importa le funzioni necessarie dai moduli `profileFixed.js`, `stats.js`, `matches.js` e `social.js`.
 
 ![Imports in profileMain.js](https://i.imgur.com/D7rPd9Z.png)
+*Fig. 2: imports in profileMain.js*
 
 ### Event Handling
 `profileMain.js` registra gli *event listeners* collegati agli elementi del DOM. Al trigger di un evento, viene invocata la funzione asincrona corrispondente definita nei moduli importati.
 
 ![Event Listeners in profileMain.js](https://i.imgur.com/O0INIwj.png)
+*Fig. 3: parte degli event listeners*
 
 ## Componenti del Modulo
 
@@ -37,3 +39,4 @@ I file seguenti contengono la logica di rendering e le operazioni specifiche per
 * **`matches.js`**: Gestisce il recupero e la visualizzazione dello storico delle partite (Match History).
 
 * **`social.js`**: Gestisce le funzionalità della sezione social.
+
